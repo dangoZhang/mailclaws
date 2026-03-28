@@ -1,0 +1,8 @@
+.git
+.gitignore
+node_modules
+dist
+state
+coverage
+*.log
+plan*.md

@@ -1,0 +1,90 @@
+{
+  "name": "mailclaw",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Email-native runtime for durable, auditable, multi-agent mail workflows.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.11.1",
+  "main": "./dist/index.js",
+  "homepage": "https://github.com/dangoZhang/mailclaw",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dangoZhang/mailclaw.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dangoZhang/mailclaw/issues"
+  },
+  "keywords": [
+    "email",
+    "agent",
+    "runtime",
+    "mail",
+    "workflow",
+    "openclaw"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    ".env.example"
+  ],
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/index.ts",
+    "docs:sync": "node scripts/sync-docs-site.mjs",
+    "docs:dev": "pnpm docs:sync && vitepress dev docs",
+    "docs:build": "pnpm docs:sync && vitepress build docs",
+    "docs:preview": "pnpm docs:sync && vitepress preview docs",
+    "package:release": "pnpm build && pnpm docs:build && node scripts/build-release-bundle.mjs",
+    "benchmark:prompt-footprint": "tsx scripts/benchmark-prompt-footprint.mts",
+    "benchmark:prompt-footprint:json": "tsx scripts/benchmark-prompt-footprint.mts --json",
+    "lint": "eslint .",
+    "mailclaw": "tsx src/cli/mailclaw.ts",
+    "mailctl": "tsx src/cli/mailctl.ts",
+    "mailioctl": "tsx src/cli/mailioctl.ts",
+    "prepack": "pnpm build",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:mail-scenarios": "vitest run tests/mail-scenarios.test.ts",
+    "test:mail-projects": "vitest run tests/mail-projects.test.ts",
+    "test:mail-scheduling": "vitest run tests/mail-scheduling.test.ts",
+    "test:mail-attachments": "vitest run tests/mail-scenarios.test.ts",
+    "test:security": "vitest run tests/security-secrets.test.ts tests/providers-smtp.test.ts tests/app-api.test.ts",
+    "test:secrets": "vitest run tests/security-secrets.test.ts tests/providers-smtp.test.ts tests/app-api.test.ts",
+    "test:stability": "pnpm test:scenario && pnpm test:durability",
+    "test:workflow": "pnpm test:mail-scenarios && pnpm test:mail-projects && pnpm test:mail-scheduling && pnpm test:security",
+    "test:scenario": "vitest run --config vitest.stability.config.ts $(find stability/scenario -type f -name '*.test.ts' | sort)",
+    "test:durability": "vitest run --config vitest.stability.config.ts $(find stability/durability -type f -name '*.test.ts' | sort)",
+    "test:live-providers": "vitest run tests/providers-live-smoke.test.ts",
+    "test:watch": "vitest",
+    "check": "pnpm lint && pnpm test && pnpm build"
+  },
+  "bin": {
+    "mailclaw": "./dist/cli/mailclaw.js",
+    "mailctl": "./dist/cli/mailctl.js",
+    "mailioctl": "./dist/cli/mailioctl.js"
+  },
+  "dependencies": {
+    "imapflow": "^1.2.16",
+    "mailparser": "^3.9.5",
+    "nodemailer": "^8.0.3",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.23.0",
+    "@types/mailparser": "^3.4.6",
+    "@types/node": "^22.13.14",
+    "@types/nodemailer": "^7.0.11",
+    "eslint": "^9.23.0",
+    "globals": "^16.0.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.28.0",
+    "vitepress": "^1.6.4",
+    "vitest": "^3.1.1"
+  }
+}

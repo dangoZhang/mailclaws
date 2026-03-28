@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.DS_Store
+coverage/
+state/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+reference/_vendor/
+plan*.md
+docs/zh-CN/
+docs/fr/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+output/
