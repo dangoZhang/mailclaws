@@ -242,6 +242,14 @@ This repository now includes GitHub Actions for both automatic verification and 
   - checksums
   - release manifest
 
+One-click release from a clean local checkout:
+
+```bash
+pnpm release:ship
+```
+
+This runs `pnpm check`, builds the release bundle, tags `v<package.json version>`, pushes `main`, and pushes the release tag so the GitHub Release workflow can upload the assets.
+
 For headless OAuth login flows:
 
 ```bash

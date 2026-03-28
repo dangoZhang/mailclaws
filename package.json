@@ -40,6 +40,7 @@
     "docs:build": "pnpm docs:sync && vitepress build docs",
     "docs:preview": "pnpm docs:sync && vitepress preview docs",
     "package:release": "pnpm build && pnpm docs:build && node scripts/build-release-bundle.mjs",
+    "release:ship": "node scripts/release-ship.mjs",
     "benchmark:prompt-footprint": "tsx scripts/benchmark-prompt-footprint.mts",
     "benchmark:prompt-footprint:json": "tsx scripts/benchmark-prompt-footprint.mts --json",
     "lint": "eslint .",

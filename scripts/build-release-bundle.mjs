@@ -186,7 +186,7 @@ function assertExists(targetPath, message) {
 function buildHomebrewFormula(input) {
   return `class Mailclaw < Formula
   desc "Email-native runtime for durable, auditable, multi-agent mail workflows"
-  homepage "https://github.com/openclaw/openclaw"
+  homepage "https://github.com/dangoZhang/mailclaw"
   url "${input.archiveUrl}"
   sha256 "${input.archiveSha256}"
   version "${input.version}"

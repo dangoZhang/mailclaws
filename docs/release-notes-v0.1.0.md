@@ -46,6 +46,12 @@ Observed result at cut time:
 - `334` tests passed
 - `2` live-provider smoke tests were skipped because they require real credentials
 
+One-click local release command:
+
+```bash
+pnpm release:ship
+```
+
 ## Release Assets
 
 - Runtime bundle: `output/release/mailclaw-v0.1.0/`
