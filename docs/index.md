@@ -51,6 +51,7 @@ Then run the first-mail flow in [Getting Started](./getting-started.md#three-min
   `pnpm package:release`
 - Install from the generated local artifacts:
   `npm install -g ./output/release/npm/mailclaw-<version>.tgz`
+  `pnpm setup && pnpm add -g "file://$PWD/output/release/npm/mailclaw-<version>.tgz"`
   `brew install ./output/release/homebrew/mailclaw.rb`
 
 The release bundle writes both an unpacked directory and a `.tar.gz` archive under `output/release/`.

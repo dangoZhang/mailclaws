@@ -66,9 +66,12 @@ Local release assets:
 
 ```bash
 npm install -g ./output/release/npm/mailclaw-0.1.0.tgz
-pnpm add -g ./output/release/npm/mailclaw-0.1.0.tgz
+pnpm setup
+pnpm add -g "file://$PWD/output/release/npm/mailclaw-0.1.0.tgz"
 brew install ./output/release/homebrew/mailclaw.rb
 ```
+
+For `pnpm add -g`, use an absolute path or `file://` URL for the local tarball. Local Homebrew installs still require Homebrew to reach its own download infrastructure.
 
 From source:
 

@@ -62,19 +62,29 @@ Local one-command installs from those generated assets:
 
 ```bash
 npm install -g ./output/release/npm/mailclaw-<version>.tgz
-pnpm add -g ./output/release/npm/mailclaw-<version>.tgz
+pnpm setup
+pnpm add -g "file://$PWD/output/release/npm/mailclaw-<version>.tgz"
 brew install ./output/release/homebrew/mailclaw.rb
 ```
+
+Notes:
+
+- For a local tarball, `pnpm add -g` should use an absolute path or `file://` URL.
+- On a fresh machine, run `pnpm setup` once before the first global install.
+- Local Homebrew installs still depend on Homebrew being able to reach its own download endpoints.
 
 When the same artifact layout is published upstream, the intended install commands are:
 
 ```bash
 npm install -g mailclaw
+pnpm setup
 pnpm add -g mailclaw
 npx mailclaw@latest
 pnpm dlx mailclaw@latest
 brew install mailclaw
 ```
+
+`npx mailclaw@latest` and `pnpm dlx mailclaw@latest` run the default runtime entrypoint. Install the package first if you want to call `mailctl` directly.
 
 ## 1. Start The Runtime
 

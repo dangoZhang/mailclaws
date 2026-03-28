@@ -216,19 +216,29 @@ Local one-line installs from the generated release assets:
 
 ```bash
 npm install -g ./output/release/npm/mailclaw-<version>.tgz
-pnpm add -g ./output/release/npm/mailclaw-<version>.tgz
+pnpm setup
+pnpm add -g "file://$PWD/output/release/npm/mailclaw-<version>.tgz"
 brew install ./output/release/homebrew/mailclaw.rb
 ```
+
+Notes:
+
+- `pnpm add -g` should use an absolute or `file://` path for a local tarball; a relative path can fail in a fresh global-store setup.
+- On a fresh machine, run `pnpm setup` once so `PNPM_HOME` is added to `PATH`.
+- Local `brew install ./output/release/homebrew/mailclaw.rb` still depends on Homebrew being able to reach its own infrastructure such as `ghcr.io` for portable Ruby.
 
 After publish to a registry/tap, the same package layout is ready for:
 
 ```bash
 npm install -g mailclaw
+pnpm setup
 pnpm add -g mailclaw
 npx mailclaw@latest
 pnpm dlx mailclaw@latest
 brew install mailclaw
 ```
+
+`npx mailclaw@latest` and `pnpm dlx mailclaw@latest` launch the default `mailclaw` runtime entrypoint. If you want the operator CLI, install the package first and then run `mailctl`.
 
 ## GitHub Automation
 
