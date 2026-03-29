@@ -6,7 +6,7 @@
   <a href="./operators-guide.fr.md"><strong>Français</strong></a>
 </p>
 
-Ce guide couvre les workflows opérateurs déjà implémentés, y compris la surface `/console` ainsi que les opérations runtime et CLI/API ; ce n’est pas un guide de client mailbox complet.
+Ce guide couvre les workflows opérateurs déjà implémentés, y compris la surface navigateur `/workbench/mail` ainsi que les opérations runtime et CLI/API ; ce n’est pas un guide de client mailbox complet.
 
 ## Portée Et Terminologie
 
@@ -40,9 +40,9 @@ Les surfaces opérateurs MailClaw sont organisées autour de :
 
 Chemins console équivalents :
 
-- `/console/accounts/:accountId`
-- `/console/rooms/:roomKey`
-- `/console/mailboxes/:accountId/:mailboxId`
+- `/workbench/mail/accounts/:accountId`
+- `/workbench/mail/rooms/:roomKey`
+- `/workbench/mail/mailboxes/:accountId/:mailboxId`
 
 ## Vérifications Quotidiennes
 
@@ -71,10 +71,10 @@ Snapshots API de niveau console :
 - `GET /api/runtime/execution`
 - `GET /api/runtime/embedded-sessions`
 
-Console navigateur :
+Workbench navigateur :
 
-- `GET /console`
-- deep links stables sous `/console/accounts/:accountId`, `/console/inboxes/:accountId/:inboxId`, `/console/rooms/:roomKey`, `/console/mailboxes/:accountId/:mailboxId`
+- `GET /workbench/mail`
+- deep links stables sous `/workbench/mail/accounts/:accountId`, `/workbench/mail/inboxes/:accountId/:inboxId`, `/workbench/mail/rooms/:roomKey`, `/workbench/mail/mailboxes/:accountId/:mailboxId`
 
 Inspection runtime/operator :
 
@@ -181,7 +181,7 @@ pnpm mailctl operate dead-letter retry <jobId>
 
 ## Lacunes Opérateurs Connues
 
-- Une UI console opérateur first-party en lecture seule existe à `/console`, mais ce n’est pas encore un client mailbox complet et modifiable.
+- Un Mail workbench first-party existe à `/workbench/mail`, et `/console/*` résout vers la même coque, mais ce n’est pas encore un client mailbox complet et modifiable.
 - La sortie CLI reste majoritairement JSON et l’ergonomie de l’arbre de commandes est encore en évolution.
 - Les APIs de projection Gateway sont disponibles, mais l’auto-connexion complète aux flux d’événements Workbench amont n’est pas terminée.
 - Le câblage first-class embedded runtime/session-manager amont et la fermeture complète de l’enforcement backend restent dans le résiduel (`plan12`).

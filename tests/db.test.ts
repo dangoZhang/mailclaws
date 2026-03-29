@@ -103,4 +103,25 @@ describe("initializeDatabase", () => {
 
     handle.close();
   });
+
+  it("reopens an already-initialized database while another handle is still active", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-db-reopen-"));
+    tempDirs.push(tempDir);
+
+    const config = loadConfig({
+      MAILCLAW_STATE_DIR: tempDir,
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+    });
+
+    const first = initializeDatabase(config);
+    const second = initializeDatabase(config);
+    const row = second.db.prepare("SELECT version FROM schema_meta WHERE id = 1").get() as {
+      version: number;
+    };
+
+    expect(row.version).toBe(31);
+
+    second.close();
+    first.close();
+  });
 });

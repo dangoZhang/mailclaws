@@ -4,7 +4,7 @@ MailClaw `v0.1.0` is the first cleaned release cut from the current email-native
 
 ## Headline
 
-MailClaw ships as an email-native runtime for durable rooms, virtual internal mail, approval-gated delivery, and operator-grade replay.
+MailClaw ships as an email-native runtime for durable rooms, virtual internal mail, approval-gated delivery, and workbench-grade replay.
 
 ## What Is In v0.1.0
 
@@ -12,7 +12,7 @@ MailClaw ships as an email-native runtime for durable rooms, virtual internal ma
 - Virtual mail plane for internal agent collaboration with mailbox projections, single-parent replies, and reducer-based fan-in.
 - Pre-first room memory, so orchestrator prompts carry forward durable summaries/facts instead of replaying full transcripts by default.
 - Provider connectivity for IMAP, Gmail, SMTP, raw RFC822 ingest, and OAuth login flows for Gmail and Outlook.
-- Operator surfaces through `/console`, `mailctl`, replay traces, provider/mailbox inspection, and gateway projection visibility.
+- Mail workbench surfaces through `/workbench/mail`, `mailctl`, replay traces, provider/mailbox inspection, and gateway projection visibility.
 - Release packaging for source, tarball, npm tarball, and Homebrew formula generation.
 
 ## Prompt Footprint
@@ -82,21 +82,21 @@ pnpm dev
 
 ## Current Boundaries
 
-- `/console` is an operator-facing read-only surface, not a full Outlook-style mailbox client.
+- `/workbench/mail` is the shipped Mail workbench surface, but it is not a full Outlook-style mailbox client.
 - Live provider smoke still requires real mailbox credentials and provider-side setup.
 - Gateway/workbench full upstream automation is not claimed as complete end-to-end in this release.
 
 ## Suggested GitHub Release Body
 
 ```md
-MailClaw v0.1.0 ships as an email-native runtime for durable rooms, virtual internal mail, approval-gated delivery, and operator-grade replay.
+MailClaw v0.1.0 ships as an email-native runtime for durable rooms, virtual internal mail, approval-gated delivery, and workbench-grade replay.
 
 Highlights
 - Room-first truth with replay, recovery, quarantine, resend, and approval flows
 - Virtual mail plane for internal multi-agent collaboration
 - Pre-first room memory instead of transcript-first prompt growth
 - IMAP/Gmail/SMTP/raw-RFC822 provider support plus Gmail/Outlook OAuth login
-- `/console` and `mailctl` operator surfaces
+- `/workbench/mail` and `mailctl` Mail workbench surfaces
 - Release artifacts for tarball, npm package, and Homebrew formula
 
 Prompt footprint benchmark
@@ -110,7 +110,7 @@ Verification
 - pnpm package:release
 
 Known boundaries
-- `/console` is operator-facing and read-only
+- `/workbench/mail` is read-only
 - live provider smoke requires real credentials
 - no claim of full Outlook-like mailbox parity yet
 ```

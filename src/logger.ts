@@ -10,16 +10,26 @@ export interface Logger {
 }
 
 export function createLogger(service: string): Logger {
+  const format = (process.env.MAILCLAW_LOG_FORMAT ?? "pretty").trim().toLowerCase();
   const write = (level: LogLevel, message: string, fields: LogFields = {}) => {
+    const timestamp = new Date().toISOString();
     const record = {
-      timestamp: new Date().toISOString(),
+      timestamp,
       level,
       service,
       message,
       ...fields
     };
-
-    const output = JSON.stringify(record);
+    const output =
+      format === "json"
+        ? JSON.stringify(record)
+        : renderPrettyLog({
+            timestamp,
+            level,
+            service,
+            message,
+            fields
+          });
     if (level === "error") {
       console.error(output);
       return;
@@ -34,4 +44,21 @@ export function createLogger(service: string): Logger {
     warn: (message, fields) => write("warn", message, fields),
     error: (message, fields) => write("error", message, fields)
   };
+}
+
+function renderPrettyLog(input: {
+  timestamp: string;
+  level: LogLevel;
+  service: string;
+  message: string;
+  fields: LogFields;
+}) {
+  const suffix = Object.entries(input.fields)
+    .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    .map(([key, value]) => `${key}=${String(value)}`)
+    .join(" ");
+
+  return [`[${input.timestamp}]`, input.level.toUpperCase(), input.service, input.message, suffix]
+    .filter(Boolean)
+    .join(" ");
 }

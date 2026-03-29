@@ -7,6 +7,7 @@ import {
   runMailIoCommand,
   type MailIoCommandRequest
 } from "../providers/mail-io-command.js";
+import { isCliEntrypoint } from "./node-runtime-guard.js";
 
 async function main() {
   const request = resolveMailIoCliRequest({
@@ -58,7 +59,7 @@ async function readRawInput() {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-if (import.meta.url === new URL(process.argv[1] ?? "", "file://").href) {
+if (isCliEntrypoint(import.meta.url)) {
   void main().catch((error) => {
     stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     process.exitCode = 1;

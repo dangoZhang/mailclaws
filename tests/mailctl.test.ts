@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import type { GmailOAuthClientLike } from "../src/auth/gmail-oauth.js";
 import type { MicrosoftOAuthClientLike } from "../src/auth/microsoft-oauth.js";
-import { runMailctl } from "../src/cli/mailctl.js";
+import { createRuntimeFromEnv, runMailctl } from "../src/cli/mailctl-main.js";
 import type { MailctlPrompter } from "../src/cli/login-wizard.js";
 import { loadConfig } from "../src/config.js";
 import { createMailSidecarRuntime } from "../src/orchestration/runtime.js";
@@ -293,7 +293,9 @@ describe("mailctl", () => {
     expect(listExitCode).toBe(0);
     expect(listStdout.read()).toContain("Connect providers:");
     expect(listStdout.read()).toContain("API discovery: GET /api/connect and GET /api/connect/providers");
-    expect(listStdout.read()).toContain("gmail | Gmail | browser OAuth");
+    expect(listStdout.read()).toContain(
+      "gmail | Gmail | browser OAuth | login mailclaw login gmail <accountId> [displayName]"
+    );
     expect(listStdout.read()).toContain("forward | Forward / raw MIME fallback");
     expect(listStderr.read()).toBe("");
 
@@ -334,13 +336,13 @@ describe("mailctl", () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(stdout.read()).toContain("MailClaw connect onboarding");
+    expect(stdout.read()).toContain("MailClaw mailbox onboarding");
     expect(stdout.read()).toContain("Recommended provider: Gmail (gmail)");
-    expect(stdout.read()).toContain("Start here: pnpm mailctl connect login gmail acct-person-gmail-com \"person\"");
-    expect(stdout.read()).toContain("Inspect rooms/internal mail: pnpm mailctl observe workbench acct-person-gmail-com");
-    expect(stdout.read()).toContain("Browser console: /console");
-    expect(stdout.read()).toContain("OpenClaw migration path:");
-    expect(stdout.read()).toContain("start bridge mode: MAILCLAW_FEATURE_OPENCLAW_BRIDGE=true MAILCLAW_FEATURE_MAIL_INGEST=true pnpm dev");
+    expect(stdout.read()).toContain("1. Login: mailclaw login gmail acct-person-gmail-com \"person\"");
+    expect(stdout.read()).toContain("2. Send one email to the connected address from another mailbox.");
+    expect(stdout.read()).toContain("3. Open browser: /workbench/mail");
+    expect(stdout.read()).toContain("5. Check rooms/inbox: mailclaw rooms | mailclaw inboxes acct-person-gmail-com");
+    expect(stdout.read()).toContain("Optional internal mailbox view later: mailclaw workbench acct-person-gmail-com");
     expect(stderr.read()).toBe("");
 
     const jsonStdout = createWritableBuffer();
@@ -363,12 +365,12 @@ describe("mailctl", () => {
       },
       migration: {
         openClawUsers: {
-          inspectRuntime: "pnpm mailctl observe runtime"
+          inspectRuntime: "mailctl observe runtime"
         }
       },
       commands: {
-        login: "pnpm mailctl connect login",
-        observeWorkbench: "pnpm mailctl observe workbench acct-employee-custom-example"
+        login: "mailctl connect login",
+        observeWorkbench: "mailctl observe workbench acct-employee-custom-example"
       }
     });
   });
@@ -805,6 +807,178 @@ describe("mailctl", () => {
     });
 
     fixture.handle.close();
+  });
+
+  it("closes env-backed runtimes between sequential connect commands", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-mailctl-env-"));
+    tempDirs.push(tempDir);
+    const env = {
+      ...process.env,
+      MAILCLAW_STATE_DIR: tempDir,
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_FEATURE_MAIL_INGEST: "true",
+      MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
+      MAILCLAW_GMAIL_OAUTH_CLIENT_ID: "test-client-id",
+      MAILCLAW_MICROSOFT_OAUTH_CLIENT_ID: "test-ms-client-id"
+    };
+    const previousEnv = { ...process.env };
+    Object.assign(process.env, env);
+    const onboardingStdout = createWritableBuffer();
+    const onboardingStderr = createWritableBuffer();
+    const loginStdout = createWritableBuffer();
+    const loginStderr = createWritableBuffer();
+
+    try {
+      const startExitCode = await runMailctl(["connect", "start", "user@qq.com"], {
+        stdout: onboardingStdout.stream,
+        stderr: onboardingStderr.stream
+      });
+
+      expect(startExitCode).toBe(0);
+      expect(onboardingStderr.read()).toBe("");
+      expect(onboardingStdout.read()).toContain("1. Login: mailclaw login qq acct-user-qq-com \"user\"");
+
+      const loginExitCode = await runMailctl(["connect", "login", "qq"], {
+        stdout: loginStdout.stream,
+        stderr: loginStderr.stream,
+        prompter: createPrompter([
+          "user@qq.com",
+          "app-password-qq",
+          "acct-user-qq-com",
+          "QQ User",
+          "imap.qq.com",
+          "993",
+          "yes",
+          "INBOX",
+          "smtp.qq.com",
+          "465",
+          "yes",
+          "user@qq.com"
+        ])
+      });
+
+      expect(loginExitCode).toBe(0);
+      expect(loginStderr.read()).toContain("QQ Mail typically requires an authorization code");
+      expect(loginStdout.read()).toContain("Connected mailbox user@qq.com as acct-user-qq-com");
+    } finally {
+      process.env = previousEnv;
+    }
+  });
+
+  it("allows env-backed runtime handles to close more than once", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-mailctl-close-"));
+    tempDirs.push(tempDir);
+    const previousEnv = { ...process.env };
+    Object.assign(process.env, {
+      MAILCLAW_STATE_DIR: tempDir,
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_FEATURE_MAIL_INGEST: "true",
+      MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
+      MAILCLAW_GMAIL_OAUTH_CLIENT_ID: "test-client-id",
+      MAILCLAW_MICROSOFT_OAUTH_CLIENT_ID: "test-ms-client-id"
+    });
+
+    try {
+      const runtimeHandle = createRuntimeFromEnv();
+      expect(() => runtimeHandle.close()).not.toThrow();
+      expect(() => runtimeHandle.close()).not.toThrow();
+    } finally {
+      process.env = previousEnv;
+    }
+  });
+
+  it("drains queued room jobs with the default embedded runtime without closing env-backed runtimes early", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-mailctl-drain-"));
+    tempDirs.push(tempDir);
+    const previousEnv = { ...process.env };
+    Object.assign(process.env, {
+      MAILCLAW_STATE_DIR: tempDir,
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_FEATURE_MAIL_INGEST: "true"
+    });
+
+    try {
+      const config = loadConfig(process.env);
+      const handle = initializeDatabase(config);
+      const runtime = createMailSidecarRuntime({
+        db: handle.db,
+        config,
+        agentExecutor: {
+          async executeMailTurn() {
+            return {
+              startedAt: "2026-03-25T05:00:00.000Z",
+              completedAt: "2026-03-25T05:00:01.000Z",
+              responseText: "Drained.",
+              request: {
+                url: "http://127.0.0.1:11437/v1/responses",
+                method: "POST",
+                headers: {},
+                body: {}
+              }
+            };
+          }
+        }
+      });
+      runtime.upsertAccount({
+        accountId: "acct-1",
+        provider: "imap",
+        emailAddress: "user@example.com",
+        status: "active",
+        settings: {
+          imap: {
+            host: "imap.example.com",
+            port: 993,
+            secure: true,
+            username: "user@example.com",
+            password: "app-password",
+            mailbox: "INBOX"
+          },
+          smtp: {
+            host: "smtp.example.com",
+            port: 465,
+            secure: true,
+            username: "user@example.com",
+            password: "app-password",
+            from: "user@example.com"
+          }
+        }
+      });
+      await runtime.ingest({
+        accountId: "acct-1",
+        mailboxAddress: "user@example.com",
+        processImmediately: false,
+        envelope: {
+          providerMessageId: "provider-1",
+          messageId: "<msg-1@example.com>",
+          subject: "Drain repro",
+          from: {
+            email: "sender@example.com"
+          },
+          to: [{ email: "user@example.com" }],
+          text: "Hello from drain repro",
+          headers: [
+            {
+              name: "Message-ID",
+              value: "<msg-1@example.com>"
+            }
+          ]
+        }
+      });
+      handle.close();
+
+      const stdout = createWritableBuffer();
+      const stderr = createWritableBuffer();
+      const exitCode = await runMailctl(["drain", "5"], {
+        stdout: stdout.stream,
+        stderr: stderr.stream
+      });
+
+      expect(exitCode).toBe(0);
+      expect(stdout.read()).toContain("Drained room queue: 1 processed");
+      expect(stderr.read()).not.toContain("database is not open");
+    } finally {
+      process.env = previousEnv;
+    }
   });
 
   it("completes a gmail oauth login flow through the CLI loopback callback", async () => {

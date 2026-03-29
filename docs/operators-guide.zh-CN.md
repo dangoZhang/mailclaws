@@ -6,7 +6,7 @@
   <a href="./operators-guide.fr.md">Français</a>
 </p>
 
-本指南覆盖当前已经落地的运维流程，包括 `/console` 运维观察面以及 runtime 与 CLI/API 操作；它不是完整邮箱客户端使用手册。
+本指南覆盖当前已经落地的运维流程，包括 `/workbench/mail` 浏览器 workbench 观察面以及 runtime 与 CLI/API 操作；它不是完整邮箱客户端使用手册。
 
 ## 范围与术语
 
@@ -38,11 +38,11 @@ MailClaw 运维观察面围绕以下对象：
    - `pnpm mailctl observe approvals room <roomKey>`
    - `pnpm mailctl operate deliver-outbox`
 
-控制台对应路径：
+Mail workbench 对应路径：
 
-- `/console/accounts/:accountId`
-- `/console/rooms/:roomKey`
-- `/console/mailboxes/:accountId/:mailboxId`
+- `/workbench/mail/accounts/:accountId`
+- `/workbench/mail/rooms/:roomKey`
+- `/workbench/mail/mailboxes/:accountId/:mailboxId`
 
 ## 每日值守检查
 
@@ -62,7 +62,7 @@ pnpm mailctl operate quarantine
 pnpm mailctl operate dead-letter
 ```
 
-控制台级 API 快照：
+Mail workbench 级 API 快照：
 
 - `GET /api/console/terminology`
 - `GET /api/console/accounts`
@@ -71,10 +71,10 @@ pnpm mailctl operate dead-letter
 - `GET /api/runtime/execution`
 - `GET /api/runtime/embedded-sessions`
 
-浏览器控制台：
+浏览器 workbench：
 
-- `GET /console`
-- 稳定深链包括 `/console/accounts/:accountId`、`/console/inboxes/:accountId/:inboxId`、`/console/rooms/:roomKey`、`/console/mailboxes/:accountId/:mailboxId`
+- `GET /workbench/mail`
+- 稳定深链包括 `/workbench/mail/accounts/:accountId`、`/workbench/mail/inboxes/:accountId/:inboxId`、`/workbench/mail/rooms/:roomKey`、`/workbench/mail/mailboxes/:accountId/:mailboxId`
 
 runtime / operator 观测：
 
@@ -181,7 +181,7 @@ HTTP 对应接口：
 
 ## 当前运维缺口
 
-- 已有 `/console` 只读 operator UI 控制台，但它还不是可写的完整邮箱客户端。
+- 已有 `/workbench/mail` Mail workbench，而且 `/console/*` 会落到同一套 shell，但它还不是可写的完整邮箱客户端。
 - CLI 输出仍以 JSON 为主，命令树易用性还在收敛中。
 - Gateway 投影 API 已可用，但尚未与上游 Workbench 事件流形成完整自动闭环。
 - upstream embedded runtime/session-manager 一等接线与 backend enforcement 完整收口仍属于 residual 工作（`plan12`）。

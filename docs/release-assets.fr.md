@@ -6,7 +6,7 @@
   <a href="./release-assets.fr.md"><strong>Français</strong></a>
 </p>
 
-Cette page fixe le texte et les schémas natifs au dépôt pour la forme actuelle de la release MailClaw. Ces assets servent au hero README, au positionnement de `/console` et aux démonstrations.
+Cette page fixe le texte et les schémas natifs au dépôt pour la forme actuelle de la release MailClaw. Ces assets servent au hero README, au positionnement de `/workbench/mail` et aux démonstrations.
 
 ## Narratif De Release
 
@@ -18,7 +18,7 @@ Cette page fixe le texte et les schémas natifs au dépôt pour la forme actuell
 
 - One-liner : MailClaw est un runtime email-native pour un travail durable, auditable et multi-agent.
 - Positionnement : OpenClaw reste le substrate amont de l’écosystème ; MailClaw possède la vérité des rooms, la sémantique de collaboration virtual mail, la gouvernance approval/outbox, ainsi que replay/recovery.
-- Limite : la console actuelle est une surface opérateur en lecture seule, pas un client mailbox complet.
+- Limite : le mail workbench actuel est une surface en lecture seule, pas un client mailbox complet.
 - Pitch court : MailClaw garde la compatibilité transport côté email externe tout en replaçant l’état, les approbations et la récupération dans un ledger room kernel-first.
 - Pitch opérateur : les équipes peuvent inspecter l’historique room, les approbations, le provider state, le mailbox feed, les public inboxes et les traces Gateway depuis une seule surface.
 
@@ -29,7 +29,7 @@ Cette page fixe le texte et les schémas natifs au dépôt pour la forme actuell
 - Gouvernance approval/outbox pour que l’email sortant réel passe par des intents auditables au lieu d’effets de bord directs.
 - Observabilité provider et mailbox avec account state, mailbox feed, public inbox projection et traces d’événements provider.
 - Support Gateway projection avec room-bound outcome tracing et statut de dispatch inspectable.
-- Console opérateur en lecture seule sur `/console` plus surfaces CLI/API pour les opérations day-2.
+- Mail workbench en lecture seule sur `/workbench/mail` plus surfaces CLI/API pour les opérations day-2.
 
 ## À Ne Pas Revendiquer
 
@@ -63,9 +63,9 @@ Cette page fixe le texte et les schémas natifs au dépôt pour la forme actuell
 - Ouverture d’annonce:
   "MailClaw est maintenant livré comme runtime email orienté opérateur: vérité room, collaboration virtual mail, et envoi externe gouverné."
 - Fermeture compatible limites:
-  "Cette release livre une console opérateur en lecture seule et des primitives de contrôle durables; elle ne livre pas encore un client mailbox complet."
+  "Cette release livre un mail workbench en lecture seule et des primitives de contrôle durables; elle ne livre pas encore un client mailbox complet."
 - CTA opérateur:
-  "Utilisez `/console`, `mailctl` et les traces replay pour inspecter intake, approvals, posture de delivery, et lignée de projection Gateway."
+  "Utilisez `/workbench/mail`, `mailctl` et les traces replay pour inspecter intake, approvals, posture de delivery, et lignée de projection Gateway."
 
 ## Vue D’Ensemble Des Capacités
 
@@ -119,11 +119,11 @@ flowchart LR
 2. Ouvrir le détail room et souligner la timeline révisionnée, la vérité room et la capacité de replay.
 3. Montrer la collaboration interne dans les vues mailbox/feed plutôt que comme transcript partagé opaque.
 4. Montrer reviewer, guard, approval ou outbox avant tout envoi externe réel.
-5. Terminer dans `/console` avec provider state, mailbox feed, public inbox projection et Gateway trace visibles ensemble.
+5. Terminer dans `/workbench/mail` avec provider state, mailbox feed, public inbox projection et Gateway trace visibles ensemble.
 
 ## Checklist D’Assets
 
-- Capture hero : `/console` avec détail room, timeline, résumé approval et participation mailbox visibles.
+- Capture hero : `/workbench/mail` avec détail room, timeline, résumé approval et participation mailbox visibles.
 - Capture mailbox : panneau provider + mailboxes avec cartes mailbox et état du feed.
 - Capture inbox : public inbox projection avec intake et backlog au niveau room.
 - Capture trace : Gateway projection trace ou sortie replay montrant une lignée opérateur inspectable.
@@ -149,7 +149,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  A["/console"] --> B["Accounts"]
+  A["/workbench/mail"] --> B["Accounts"]
   A --> C["Rooms"]
   A --> D["Approvals"]
   A --> E["Provider + Mailboxes"]

@@ -36,7 +36,7 @@ const envSchema = z.object({
   MAILCLAW_PUBLIC_BASE_URL: z.string().default(""),
   MAILCLAW_STATE_DIR: z.string().default("./state"),
   MAILCLAW_SQLITE_PATH: z.string().default("./state/mailclaw.sqlite"),
-  MAILCLAW_RUNTIME_MODE: z.enum(["bridge", "command", "embedded"]).default("bridge"),
+  MAILCLAW_RUNTIME_MODE: z.enum(["bridge", "command", "embedded"]).default("embedded"),
   MAILCLAW_RUNTIME_COMMAND: z.string().default(""),
   MAILCLAW_RUNTIME_POLICY_MANIFEST_JSON: z.string().default(""),
   MAILCLAW_MAIL_IO_MODE: z.enum(["local", "command"]).default("local"),
@@ -88,7 +88,7 @@ const envSchema = z.object({
 });
 
 export function loadConfig(source: NodeJS.ProcessEnv | Record<string, string | undefined>) {
-  const env = envSchema.parse(source);
+  const env = envSchema.parse(normalizeSourceWithOpenClawFallbacks(source));
   const cwd = process.cwd();
   const roleAgentIds = parseRoleAgentIds(env.MAILCLAW_OPENCLAW_ROLE_AGENT_IDS_JSON);
   const roleExecutionPolicies = parseRoleExecutionPolicies(
@@ -172,6 +172,50 @@ export function loadConfig(source: NodeJS.ProcessEnv | Record<string, string | u
       sessionTtlMs: env.MAILCLAW_MICROSOFT_OAUTH_SESSION_TTL_MS
     }
   } as const;
+}
+
+function normalizeSourceWithOpenClawFallbacks(
+  source: NodeJS.ProcessEnv | Record<string, string | undefined>
+) {
+  const normalized = { ...source };
+
+  if (!normalized.MAILCLAW_PUBLIC_BASE_URL?.trim()) {
+    const inheritedPublicBaseUrl =
+      normalized.OPENCLAW_PUBLIC_BASE_URL?.trim() || normalized.OPENCLAW_BASE_URL?.trim() || "";
+    if (inheritedPublicBaseUrl) {
+      normalized.MAILCLAW_PUBLIC_BASE_URL = inheritedPublicBaseUrl;
+    }
+  }
+
+  if (!normalized.MAILCLAW_OPENCLAW_BASE_URL?.trim()) {
+    const inheritedBaseUrl = normalized.OPENCLAW_BASE_URL?.trim() || "";
+    if (inheritedBaseUrl) {
+      normalized.MAILCLAW_OPENCLAW_BASE_URL = inheritedBaseUrl;
+    }
+  }
+
+  if (!normalized.MAILCLAW_OPENCLAW_GATEWAY_TOKEN?.trim()) {
+    const inheritedGatewayToken = normalized.OPENCLAW_GATEWAY_TOKEN?.trim() || "";
+    if (inheritedGatewayToken) {
+      normalized.MAILCLAW_OPENCLAW_GATEWAY_TOKEN = inheritedGatewayToken;
+    }
+  }
+
+  if (!normalized.MAILCLAW_OPENCLAW_AGENT_ID?.trim()) {
+    const inheritedAgentId = normalized.OPENCLAW_AGENT_ID?.trim() || "";
+    if (inheritedAgentId) {
+      normalized.MAILCLAW_OPENCLAW_AGENT_ID = inheritedAgentId;
+    }
+  }
+
+  if (!normalized.MAILCLAW_OPENCLAW_SESSION_PREFIX?.trim()) {
+    const inheritedSessionPrefix = normalized.OPENCLAW_SESSION_PREFIX?.trim() || "";
+    if (inheritedSessionPrefix) {
+      normalized.MAILCLAW_OPENCLAW_SESSION_PREFIX = inheritedSessionPrefix;
+    }
+  }
+
+  return normalized;
 }
 
 function parseDelimitedStrings(raw: string, fallback: readonly string[] = []) {

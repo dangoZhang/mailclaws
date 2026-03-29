@@ -122,6 +122,7 @@ import {
 } from "../memory/namespace-spec.js";
 import { readMemoryNamespace as readScopedMemoryNamespace } from "../memory/namespaces.js";
 import type { MailAgentExecutor } from "../runtime/agent-executor.js";
+import { createDefaultMailAgentExecutor } from "../runtime/default-executor.js";
 import {
   listBridgeRuntimeSessions,
   describeRuntimeExecutionBoundary,
@@ -385,8 +386,11 @@ export class RuntimeApiError extends Error {
 }
 
 export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
+  const agentExecutor = deps.agentExecutor ?? createDefaultMailAgentExecutor(deps.config);
   const smtpSender = deps.smtpSender ?? createConfiguredSmtpSender(deps.config, deps.smtpTransportFactory);
-  const subAgentTransport = deps.subAgentTransport ?? createOpenClawSubAgentTransport(deps.config);
+  const subAgentTransport =
+    deps.subAgentTransport ??
+    (deps.config.features.openClawBridge ? createOpenClawSubAgentTransport(deps.config) : undefined);
   const gmailOAuthClient = deps.gmailOAuthClient ?? createGmailOAuthClient();
   const microsoftOAuthClient = deps.microsoftOAuthClient ?? createMicrosoftOAuthClient();
   const mailIoPlane =
@@ -441,13 +445,12 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
 
     const processed =
       input.processImmediately &&
-      deps.config.features.openClawBridge &&
       ingested.status === "queued"
         ? await (async () => {
             const result = await processNextRoomJob({
               db: deps.db,
               config: deps.config,
-              agentExecutor: deps.agentExecutor,
+              agentExecutor,
               subAgentTransport
             });
             if (result?.status === "completed") {
@@ -1242,33 +1245,57 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
           : input.approvals.length > 0 && !input.selectedAccountId
             ? "approvals"
             : input.accounts.length === 0
-              ? "connect"
+              ? "mail"
               : "accounts");
     const connectPlan = buildConnectOnboardingPlan({
       emailAddress: selectedAccount?.emailAddress
     });
+    const standaloneBasePath = "/workbench/mail";
+    const embeddedBasePath = "/workbench/mail/tab";
 
     return {
       activeTab,
+      entrypoints: {
+        standalone: standaloneBasePath,
+        embedded: embeddedBasePath,
+        compatAliases: ["/dashboard", "/mail"]
+      },
+      hostIntegration: {
+        tabId: "mailclaw.mail",
+        label: "Mail",
+        standalonePath: standaloneBasePath,
+        embeddedPath: embeddedBasePath,
+        defaultShell: "embedded",
+        capabilities: {
+          deepLinks: true,
+          readOnly: true,
+          approvals: true,
+          internalMail: true,
+          gatewayTrace: true
+        }
+      },
       tabs: [
         {
-          id: "connect",
-          label: "Connect",
-          href: "/console/connect",
-          active: activeTab === "connect",
+          id: "mail",
+          label: "Mail",
+          href: standaloneBasePath,
+          embeddedHref: embeddedBasePath,
+          active: activeTab === "mail" || activeTab === "connect",
           count: null
         },
         {
           id: "accounts",
           label: "Accounts",
-          href: input.selectedAccountId ? `/console/accounts/${encodeURIComponent(input.selectedAccountId)}` : "/console",
+          href: input.selectedAccountId ? `${standaloneBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}` : standaloneBasePath,
+          embeddedHref: input.selectedAccountId ? `${embeddedBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}` : embeddedBasePath,
           active: activeTab === "accounts",
           count: input.accounts.length
         },
         {
           id: "rooms",
           label: "Rooms",
-          href: input.selectedRoomKey ? `/console/rooms/${encodeURIComponent(input.selectedRoomKey)}` : "/console",
+          href: input.selectedRoomKey ? `${standaloneBasePath}/rooms/${encodeURIComponent(input.selectedRoomKey)}` : standaloneBasePath,
+          embeddedHref: input.selectedRoomKey ? `${embeddedBasePath}/rooms/${encodeURIComponent(input.selectedRoomKey)}` : embeddedBasePath,
           active: activeTab === "rooms",
           count: input.rooms.length
         },
@@ -1277,10 +1304,16 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
           label: "Mailboxes",
           href:
             input.selectedAccountId && input.selectedMailboxId
-              ? `/console/mailboxes/${encodeURIComponent(input.selectedAccountId)}/${encodeURIComponent(input.selectedMailboxId)}`
+              ? `${standaloneBasePath}/mailboxes/${encodeURIComponent(input.selectedAccountId)}/${encodeURIComponent(input.selectedMailboxId)}`
               : input.selectedAccountId
-                ? `/console/accounts/${encodeURIComponent(input.selectedAccountId)}`
-                : "/console",
+                ? `${standaloneBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}`
+                : standaloneBasePath,
+          embeddedHref:
+            input.selectedAccountId && input.selectedMailboxId
+              ? `${embeddedBasePath}/mailboxes/${encodeURIComponent(input.selectedAccountId)}/${encodeURIComponent(input.selectedMailboxId)}`
+              : input.selectedAccountId
+                ? `${embeddedBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}`
+                : embeddedBasePath,
           active: activeTab === "mailboxes",
           count: input.mailboxConsole?.virtualMailboxes?.length ?? 0
         },
@@ -1289,17 +1322,22 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
           label: "Approvals",
           href:
             input.selectedAccountId
-              ? `/console/accounts/${encodeURIComponent(input.selectedAccountId)}?approvalStatus=requested`
-              : "/console?approvalStatus=requested",
+              ? `${standaloneBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}?approvalStatus=requested`
+              : `${standaloneBasePath}?approvalStatus=requested`,
+          embeddedHref:
+            input.selectedAccountId
+              ? `${embeddedBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}?approvalStatus=requested`
+              : `${embeddedBasePath}?approvalStatus=requested`,
           active: activeTab === "approvals",
           count: input.approvals.length
         }
       ],
       connect: {
-        browserPath: "/console/connect",
+        browserPath: standaloneBasePath,
+        embeddedBrowserPath: embeddedBasePath,
         onboardingApiPath: "/api/connect/onboarding",
-        recommendedStartCommand: "pnpm mailctl connect start you@example.com",
-        recommendedLoginCommand: "pnpm mailctl connect login",
+        recommendedStartCommand: "mailctl connect start you@example.com",
+        recommendedLoginCommand: "mailctl connect login",
         defaultPlan: connectPlan,
         providerOptions: listConnectProviderGuides().map((guide) => ({
           id: guide.id,
@@ -1315,11 +1353,17 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
             selectedMailboxId: input.selectedMailboxId,
             selectedRoomKey: input.selectedRoomKey,
             browserPaths: {
-              account: `/console/accounts/${encodeURIComponent(input.selectedAccountId)}`,
-              room: input.selectedRoomKey ? `/console/rooms/${encodeURIComponent(input.selectedRoomKey)}` : null,
+              account: `${standaloneBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}`,
+              embeddedAccount: `${embeddedBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}`,
+              room: input.selectedRoomKey ? `${standaloneBasePath}/rooms/${encodeURIComponent(input.selectedRoomKey)}` : null,
+              embeddedRoom: input.selectedRoomKey ? `${embeddedBasePath}/rooms/${encodeURIComponent(input.selectedRoomKey)}` : null,
               mailbox:
                 input.selectedMailboxId
-                  ? `/console/mailboxes/${encodeURIComponent(input.selectedAccountId)}/${encodeURIComponent(input.selectedMailboxId)}`
+                  ? `${standaloneBasePath}/mailboxes/${encodeURIComponent(input.selectedAccountId)}/${encodeURIComponent(input.selectedMailboxId)}`
+                  : null,
+              embeddedMailbox:
+                input.selectedMailboxId
+                  ? `${embeddedBasePath}/mailboxes/${encodeURIComponent(input.selectedAccountId)}/${encodeURIComponent(input.selectedMailboxId)}`
                   : null
             }
           }
@@ -1927,7 +1971,7 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
       const bridgeSessions =
         deps.config.runtime.mode === "bridge" ? listBridgeRuntimeSessions(deps.config) : [];
       return {
-        runtime: describeRuntimeExecutionBoundary(deps.config, deps.agentExecutor),
+        runtime: describeRuntimeExecutionBoundary(deps.config, agentExecutor),
         embeddedSessionCount: embeddedSessions.length,
         bridgeSessionCount: bridgeSessions.length
       };
@@ -2063,6 +2107,30 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
         roomMailboxView
       };
     },
+    getConsoleWorkbenchHost() {
+      const workspace = buildConsoleWorkbenchWorkspace({
+        mode: "connect",
+        selectedAccountId: null,
+        selectedRoomKey: null,
+        selectedMailboxId: null,
+        accounts: listConsoleAccountsSnapshot(),
+        rooms: listConsoleRoomsView(deps.db, {}),
+        approvals: listConsoleApprovalsView(deps.db, {}),
+        mailboxConsole: null
+      });
+
+      return {
+        service: deps.config.serviceName,
+        integration: workspace.hostIntegration,
+        entrypoints: workspace.entrypoints,
+        tabs: workspace.tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.label,
+          href: tab.href,
+          embeddedHref: tab.embeddedHref ?? tab.href
+        }))
+      };
+    },
     projectRoomOutcomeToGateway(input: Parameters<typeof projectRoomOutcomeToGateway>[1]) {
       try {
         const result = projectRoomOutcomeToGateway(deps.db, input);
@@ -2154,7 +2222,7 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
           {
             db: deps.db,
             config: deps.config,
-            agentExecutor: deps.agentExecutor,
+            agentExecutor,
             subAgentTransport
           },
           leased as LeasedRoomJob
@@ -2500,6 +2568,9 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
       return listSubAgentRunsForRoom(deps.db, roomKey);
     },
     async dispatchSubAgentMailbox(input: Parameters<typeof dispatchSubAgentMailbox>[3]) {
+      if (!subAgentTransport) {
+        throw new RuntimeFeatureDisabledError("openclaw subagent bridge is disabled");
+      }
       return dispatchSubAgentMailbox(deps.db, deps.config, subAgentTransport, input);
     },
     submitVirtualMessage(input: Parameters<typeof submitVirtualMessage>[1]) {

@@ -134,8 +134,8 @@ Gateway 投影追踪：
 
 ## 当前集成缺口
 
-- 已有 `/console` 只读 operator UI，但它还不是完整邮箱客户端。
-- 还没有 OpenClaw Workbench mailbox tab 集成。
+- 已有 `/workbench/mail` 浏览器 Mail workbench，而且 `/console/*` 现在也会落到同一套 shell。
+- 当前它仍不是完整邮箱客户端。
 - Gateway 自动入站/回投的生产级接线尚未完成。
 - Provider 覆盖已比早期更广，但还没有达到长期目标的完整集合。
 - upstream embedded runtime/session-manager 一等接线与 backend policy enforcement 完整收口仍未完成（`plan12`）。

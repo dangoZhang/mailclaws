@@ -8,6 +8,7 @@ describe("loadConfig", () => {
 
     expect(config.http.host).toBe("127.0.0.1");
     expect(config.http.port).toBe(3000);
+    expect(config.runtime.mode).toBe("embedded");
     expect(config.features.mailIngest).toBe(false);
     expect(config.features.openClawBridge).toBe(false);
     expect(config.features.identityTrustGate).toBe(false);
@@ -36,6 +37,22 @@ describe("loadConfig", () => {
     expect(config.mailIo.mode).toBe("command");
     expect(config.mailIo.command).toBe("mail-io-sidecar");
     expect(config.http.publicBaseUrl).toBe("https://mail.example.com/base/");
+  });
+
+  it("inherits compatible OpenClaw environment variables when MailClaw-specific ones are unset", () => {
+    const config = loadConfig({
+      OPENCLAW_PUBLIC_BASE_URL: "https://gateway.example.com",
+      OPENCLAW_BASE_URL: "https://gateway.example.com/api",
+      OPENCLAW_GATEWAY_TOKEN: "gateway-token",
+      OPENCLAW_AGENT_ID: "mail",
+      OPENCLAW_SESSION_PREFIX: "hook:gateway-mail"
+    });
+
+    expect(config.http.publicBaseUrl).toBe("https://gateway.example.com");
+    expect(config.openClaw.baseUrl).toBe("https://gateway.example.com/api");
+    expect(config.openClaw.gatewayToken).toBe("gateway-token");
+    expect(config.openClaw.agentId).toBe("mail");
+    expect(config.openClaw.sessionPrefix).toBe("hook:gateway-mail");
   });
 
   it("parses per-role OpenClaw agent overrides", () => {

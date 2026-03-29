@@ -3,6 +3,7 @@ import { createOpenClawClient, type OpenClawClientOptions } from "../openclaw/cl
 import type { OpenClawBridgeSessionManager } from "../openclaw/session-manager.js";
 import { createEmbeddedMailRuntimeExecutor, type EmbeddedRuntimeAdapter } from "./embedded-executor.js";
 import type { EmbeddedRuntimeSessionManager } from "./embedded-session-manager.js";
+import { createBuiltInEmbeddedRuntimeAdapter } from "./embedded-default-adapter.js";
 import {
   createLocalCommandExecutor,
   type LocalCommandExecutorOptions,
@@ -24,13 +25,8 @@ export function createDefaultMailAgentExecutor(
   options: DefaultMailAgentExecutorOptions = {}
 ) {
   if (config.runtime.mode === "embedded") {
-    if (!options.embeddedAdapter) {
-      throw new Error(
-        "embedded runtime mode requires an in-process embeddedAdapter; shell fallback is no longer supported"
-      );
-    }
     return createEmbeddedMailRuntimeExecutor(config, {
-      adapter: options.embeddedAdapter,
+      adapter: options.embeddedAdapter ?? createBuiltInEmbeddedRuntimeAdapter(),
       sessionManager: options.embeddedSessionManager
     });
   }

@@ -27,14 +27,19 @@
     "node": ">=22.0.0"
   },
   "files": [
+    "bin",
     "dist",
+    "install.sh",
+    "install.ps1",
     "README.md",
     "LICENSE",
     ".env.example"
   ],
   "scripts": {
+    "preinstall": "node -e \"const major = Number(process.versions.node.split('.')[0]); if (!Number.isFinite(major) || major < 22) { console.error('\\nMailClaw requires Node.js 22+ because it uses the built-in node:sqlite module.'); console.error('Current runtime: ' + process.version); console.error('Install Node 22+ and retry.'); process.exit(1); }\"",
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
     "dev": "tsx watch src/index.ts",
+    "demo:mail": "tsx scripts/demo-mail.mts",
     "docs:sync": "node scripts/sync-docs-site.mjs",
     "docs:dev": "pnpm docs:sync && vitepress dev docs",
     "docs:build": "pnpm docs:sync && vitepress build docs",
@@ -65,9 +70,9 @@
     "check": "pnpm lint && pnpm test && pnpm build"
   },
   "bin": {
-    "mailclaw": "./dist/cli/mailclaw.js",
-    "mailctl": "./dist/cli/mailctl.js",
-    "mailioctl": "./dist/cli/mailioctl.js"
+    "mailclaw": "./bin/mailclaw",
+    "mailctl": "./bin/mailctl",
+    "mailioctl": "./bin/mailioctl"
   },
   "dependencies": {
     "imapflow": "^1.2.16",

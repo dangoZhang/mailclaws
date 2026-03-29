@@ -143,8 +143,18 @@ describe("default executor", () => {
       MAILCLAW_RUNTIME_MODE: "embedded"
     });
 
-    expect(() => createDefaultMailAgentExecutor(config)).toThrow(
-      "embedded runtime mode requires an in-process embeddedAdapter; shell fallback is no longer supported"
-    );
+    const executor = createDefaultMailAgentExecutor(config);
+
+    return expect(
+      executor.executeMailTurn({
+        sessionKey: "hook:mail:acct:thread:abc",
+        inputText: "Subject: Fresh install\n\nHello from a built-in executor."
+      })
+    ).resolves.toMatchObject({
+      responseText: expect.stringContaining('Received your message about "Fresh install".'),
+      request: {
+        url: "embedded://mailclaw-embedded"
+      }
+    });
   });
 });

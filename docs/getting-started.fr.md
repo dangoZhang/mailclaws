@@ -6,21 +6,36 @@
   <a href="./getting-started.fr.md"><strong>Français</strong></a>
 </p>
 
-Ce guide cible la forme actuelle de MailClaw orientée développeur/opérateur. Il inclut la surface opérateur en lecture seule `/console`, mais ne suppose pas une UI mailbox complète.
+Ce guide commence par le parcours normal d’un utilisateur mailbox : installer, connecter une boîte, envoyer un email de test, puis lire la conversation dans le navigateur. Les flux opérateur et développeur viennent ensuite.
 
 ## Prérequis
 
-- Node.js et `pnpm`
+- Node.js 22+ et `pnpm`
 - Un checkout de ce repository
 - Optionnel : identifiants de vraie boîte mail (pour les tests live provider)
 
-Installer les dépendances :
+Installation locale la plus rapide :
+
+```bash
+./install.sh
+```
+
+Ou installer depuis les sources :
 
 ```bash
 pnpm install
 ```
 
-## 1. Démarrer Le Runtime
+MailClaw utilise `node:sqlite`, donc les anciennes versions de Node ne suffisent pas pour le runtime ou les binaires packagés.
+
+## 1. Démarrer MailClaw
+
+Mode embedded par défaut :
+
+```bash
+MAILCLAW_FEATURE_MAIL_INGEST=true \
+pnpm mailclaw
+```
 
 Mode bridge (compatible OpenClaw) :
 
@@ -42,21 +57,21 @@ MAILCLAW_FEATURE_MAIL_INGEST=true \
 pnpm dev
 ```
 
-`MAILCLAW_RUNTIME_POLICY_MANIFEST_JSON` est requis dès qu’un tour runtime porte des métadonnées `executionPolicy`.
+`MAILCLAW_RUNTIME_POLICY_MANIFEST_JSON` est requis pour les modes bridge/command quand un tour runtime porte des métadonnées `executionPolicy`.
 
-Après le démarrage, vous pouvez ouvrir la console opérateur en lecture seule :
+Après démarrage, ouvrez le Mail workbench :
 
 ```text
-http://127.0.0.1:3000/console
+http://127.0.0.1:3000/workbench/mail
 ```
 
 ## 2. Connecter Un Compte
 
 Chemins possibles :
 
-- Inspecter d’abord la matrice provider/setup : `pnpm mailctl connect providers [provider]`
-- Demander d’abord une recommandation mailbox-first : `pnpm mailctl connect start you@example.com`
-- Assistant terminal interactif : `pnpm mailctl connect login`
+- Inspecter d’abord la matrice provider/setup : `pnpm mailclaw providers [provider]`
+- Demander d’abord une recommandation mailbox-first : `pnpm mailclaw onboard you@example.com`
+- Assistant terminal interactif : `pnpm mailclaw login`
 - OAuth Gmail : `pnpm mailctl connect login gmail <accountId> [displayName]`
 - OAuth Outlook : `pnpm mailctl connect login outlook <accountId> [displayName]`
 - OAuth Gmail headless : `pnpm mailctl connect login oauth gmail <accountId> [displayName] --no-browser`
@@ -66,15 +81,15 @@ Chemins possibles :
 Ordre de bootstrap recommande :
 
 ```bash
-pnpm mailctl connect providers
-pnpm mailctl connect login
-pnpm mailctl observe accounts
+pnpm mailclaw onboard you@example.com
+pnpm mailclaw login
+pnpm mailclaw accounts
 ```
 
 Vérifier les comptes connectés :
 
 ```bash
-pnpm mailctl observe accounts
+pnpm mailclaw accounts
 ```
 
 API du catalogue provider/setup :
@@ -93,20 +108,20 @@ curl -s http://127.0.0.1:3000/api/connect/providers/gmail
 Après la connexion du compte, commencez par un flux normal d’utilisateur email :
 
 1. Récupérer l’adresse mailbox connectée :
-   - `pnpm mailctl connect accounts show <accountId>`
+   - `pnpm mailclaw accounts show <accountId>`
 2. Envoyer un email de test vers cette adresse depuis un autre compte/client mail.
 3. Vérifier la room et l’inbox créées :
-   - `pnpm mailctl observe rooms`
-   - `pnpm mailctl observe inboxes <accountId>`
-   - `pnpm mailctl observe room <roomKey>`
-4. Ouvrir les vues console :
-   - `http://127.0.0.1:3000/console/accounts/<accountId>`
-   - `http://127.0.0.1:3000/console/rooms/<roomKey>`
+   - `pnpm mailclaw rooms`
+   - `pnpm mailclaw inboxes <accountId>`
+   - `pnpm mailclaw replay <roomKey>`
+4. Ouvrir les vues workbench :
+   - `http://127.0.0.1:3000/workbench/mail/accounts/<accountId>`
+   - `http://127.0.0.1:3000/workbench/mail/rooms/<roomKey>`
 5. Vérifier les messages de collaboration interne des agents :
    - `pnpm mailctl mailbox view <roomKey> <mailboxId>`
    - `pnpm mailctl mailbox feed <accountId> <mailboxId>`
 
-C’est le chemin le plus court "connexion -> reception -> inspection -> gouvernance".
+C’est le chemin le plus court "connexion -> réception -> inspection -> gouvernance".
 
 ## 4. Parcours A : provider mail -> room -> approval -> delivery
 

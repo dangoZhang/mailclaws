@@ -6,7 +6,7 @@
   <a href="./release-assets.fr.md">Français</a>
 </p>
 
-This page defines the repo-native release copy and diagrams for the current MailClaw release shape. Use these assets for README hero copy, `/console` positioning, and demo walkthroughs.
+This page defines the repo-native release copy and diagrams for the current MailClaw release shape. Use these assets for README hero copy, `/workbench/mail` positioning, and demo walkthroughs.
 
 For the release-ready changelog and GitHub release body, see [Release Notes: v0.1.0](./release-notes-v0.1.0.md).
 
@@ -14,15 +14,15 @@ For the release-ready changelog and GitHub release body, see [Release Notes: v0.
 
 - Release headline: MailClaw turns email threads into durable, governed rooms for multi-agent work.
 - Release subhead: External email stays transport. Internal coordination becomes virtual mail. Final delivery stays approval-gated, replayable, and inspectable.
-- Launch angle: ship MailClaw as an operator-grade runtime and observability surface, not as a generic chat wrapper and not as a full mailbox replacement.
+- Launch angle: ship MailClaw as an email-native runtime and workbench surface, not as a generic chat wrapper and not as a full mailbox replacement.
 
 ## Hero Copy
 
 - One-liner: MailClaw is an email-native runtime for durable, auditable, multi-agent work.
 - Positioning: OpenClaw remains the upstream ecosystem substrate; MailClaw owns room truth, virtual mail collaboration semantics, approval/outbox governance, and replay/recovery.
-- Boundary: the current console is operator-facing and read-only, not a full mailbox client.
+- Boundary: the current Mail workbench is read-only and not a full mailbox client.
 - Short pitch: MailClaw keeps external mail transport-compatible while moving state, approvals, and recovery into a kernel-first room ledger.
-- Operator pitch: Teams can inspect room history, approvals, provider state, mailbox feeds, inbox pressure, and Gateway projection traces from one surface.
+- Workbench pitch: Teams can inspect room history, approvals, provider state, mailbox feeds, inbox pressure, and Gateway projection traces from one surface.
 
 ## What Ships In This Release
 
@@ -31,7 +31,7 @@ For the release-ready changelog and GitHub release body, see [Release Notes: v0.
 - Approval/outbox governance so real outbound mail flows through auditable intents instead of direct worker side effects.
 - Provider and mailbox observability covering account state, mailbox feed, public inbox projection, and provider event traces.
 - Gateway projection support with room-bound outcome tracing and inspectable projection dispatch status.
-- Read-only operator console at `/console` plus CLI and API inspection surfaces for day-2 operations.
+- Read-only Mail workbench at `/workbench/mail` plus CLI and API inspection surfaces for day-2 operations.
 
 ## Do Not Claim
 
@@ -44,15 +44,15 @@ For the release-ready changelog and GitHub release body, see [Release Notes: v0.
 
 - Rooms survive beyond transient sessions and can be replayed from durable state.
 - Internal collaboration is visible as virtual mail rather than hidden prompt mutation.
-- Approval, resend, quarantine, and provider inspection are first-class operator actions.
-- Public inbox and mailbox projections let operators inspect intake pressure without changing room truth.
+- Approval, resend, quarantine, and provider inspection are first-class workbench actions.
+- Public inbox and mailbox projections let teams inspect intake pressure without changing room truth.
 
 ## Ship-Ready Asset Pack
 
 - Announcement post:
   `headline + one-liner + what-ships + boundaries + docs links`
 - Product update email:
-  `operator value + architecture positioning + migration-safe boundaries`
+  `workbench value + architecture positioning + migration-safe boundaries`
 - Demo deck:
   `capability overview + collaboration flow + chat-vs-room + console IA`
 - Console walkthrough:
@@ -63,11 +63,11 @@ For the release-ready changelog and GitHub release body, see [Release Notes: v0.
 ## Ready-To-Publish Copy Snippets
 
 - Announcement opener:
-  "MailClaw now ships as an operator-grade email runtime: room truth, virtual mail collaboration, and governed outbound delivery."
+  "MailClaw now ships as an email-native workbench runtime: room truth, virtual mail collaboration, and governed outbound delivery."
 - Boundary-safe closer:
-  "This release ships a read-only operator console and durable control-plane primitives; it does not yet ship a full mailbox client."
-- Operator CTA:
-  "Use `/console`, `mailctl`, and replay traces to inspect intake, approvals, delivery posture, and Gateway projection lineage."
+  "This release ships a read-only Mail workbench and durable control-plane primitives; it does not yet ship a full mailbox client."
+- Workbench CTA:
+  "Use `/workbench/mail`, `mailctl`, and replay traces to inspect intake, approvals, delivery posture, and Gateway projection lineage."
 
 ## Capability Overview
 
@@ -121,14 +121,14 @@ flowchart LR
 2. Open the room detail and point out revisioned timeline, room truth, and replayability.
 3. Show internal collaboration as mailbox/feed activity rather than hidden transcript mutation.
 4. Show reviewer, guard, approval, or outbox state before any real outbound delivery.
-5. End in `/console` with provider state, mailbox feed, public inbox projection, and Gateway trace visible.
+5. End in `/workbench/mail` with provider state, mailbox feed, public inbox projection, and Gateway trace visible.
 
 ## Asset Checklist
 
-- Hero screenshot: `/console` with room detail, timeline, approval summary, and mailbox participation visible.
+- Hero screenshot: `/workbench/mail` with room detail, timeline, approval summary, and mailbox participation visible.
 - Mailbox screenshot: provider plus mailbox panel showing mailbox cards and feed state.
 - Inbox screenshot: public inbox projection with room-level intake and backlog.
-- Trace screenshot: Gateway projection trace or replay output proving inspectable operator lineage.
+- Trace screenshot: Gateway projection trace or replay output proving inspectable workbench lineage.
 - Diagram set: capability overview, collaboration flow, chat-vs-room comparison, console information architecture.
 
 ## Reusable Captions
@@ -136,7 +136,7 @@ flowchart LR
 - "Email in, governed work out."
 - "Rooms hold truth; mailboxes project work."
 - "Internal collaboration stays inspectable, replayable, and approval-gated."
-- "Operator-first today, mailbox-client later."
+- "Workbench-first today, mailbox-client later."
 
 ## Publish Gate Checklist
 
@@ -151,7 +151,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  A["/console"] --> B["Accounts"]
+  A["/workbench/mail"] --> B["Accounts"]
   A --> C["Rooms"]
   A --> D["Approvals"]
   A --> E["Provider + Mailboxes"]

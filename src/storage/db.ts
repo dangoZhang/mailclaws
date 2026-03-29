@@ -18,6 +18,7 @@ export function initializeDatabase(config: AppConfig): DatabaseHandle {
 
   const db = new DatabaseSync(config.storage.sqlitePath);
   db.exec("PRAGMA journal_mode = WAL;");
+  db.exec("PRAGMA busy_timeout = 5000;");
   db.exec("PRAGMA foreign_keys = ON;");
   db.exec(`
     CREATE TABLE IF NOT EXISTS schema_meta (
@@ -26,6 +27,8 @@ export function initializeDatabase(config: AppConfig): DatabaseHandle {
       applied_at TEXT NOT NULL
     );
   `);
+  const currentSchemaVersion = readSchemaVersion(db);
+  if (currentSchemaVersion < SCHEMA_VERSION) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS thread_rooms (
       room_key TEXT PRIMARY KEY,
@@ -912,12 +915,28 @@ export function initializeDatabase(config: AppConfig): DatabaseHandle {
     `
   ).run(SCHEMA_VERSION, new Date().toISOString());
   backfillOutboxControlPlane(db);
+  }
 
   return {
     db,
     path: config.storage.sqlitePath,
     close: () => db.close()
   };
+}
+
+function readSchemaVersion(db: DatabaseSync) {
+  const row = db
+    .prepare(
+      `
+        SELECT version
+        FROM schema_meta
+        WHERE id = 1
+        LIMIT 1;
+      `
+    )
+    .get() as { version?: number } | undefined;
+
+  return typeof row?.version === "number" ? row.version : 0;
 }
 
 function ensureMailMessageColumns(db: DatabaseSync) {

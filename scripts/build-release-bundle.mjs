@@ -34,6 +34,8 @@ copyRecursive(docsSiteDir, path.join(stageDir, "docs-site"));
 copyIfPresent("README.md");
 copyIfPresent("LICENSE");
 copyIfPresent(".env.example");
+copyIfPresent("install.sh");
+copyIfPresent("install.ps1");
 copyIfPresent("pnpm-lock.yaml");
 
 writeJson(path.join(stageDir, "package.json"), buildReleasePackageJson(packageJson));
@@ -109,6 +111,8 @@ writeJson(path.join(stageDir, "release-manifest.json"), {
     mailioctl: "node dist/cli/mailioctl.js"
   },
   installers: {
+    shellInstaller: fs.existsSync(path.join(stageDir, "install.sh")) ? "install.sh" : null,
+    powershellInstaller: fs.existsSync(path.join(stageDir, "install.ps1")) ? "install.ps1" : null,
     npmTarball: path.relative(rootDir, npmTarballPath),
     npmTarballSha256,
     homebrewFormula: path.relative(rootDir, homebrewFormulaPath),

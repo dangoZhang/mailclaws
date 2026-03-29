@@ -134,8 +134,8 @@ Trace de projection Gateway :
 
 ## Lacunes D’Intégration Actuelles
 
-- Une UI console opérateur MailClaw en lecture seule existe à `/console`, mais ce n’est pas encore un client mailbox complet.
-- Aucune intégration Workbench mailbox tab OpenClaw n’est livrée.
+- Une surface navigateur MailClaw existe à `/workbench/mail`, et `/console/*` résout maintenant vers la même coque.
+- Ce n’est toujours pas un client mailbox complet.
 - Le câblage de production auto-ingress/egress Gateway reste incomplet.
 - La couverture provider est plus large qu’aux premières versions, mais pas encore au jeu cible long terme.
 - L’intégration first-class embedded runtime/session-manager amont et la fermeture complète de l’enforcement backend sont encore en attente (`plan12`).

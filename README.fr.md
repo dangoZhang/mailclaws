@@ -12,9 +12,11 @@
 
 MailClaw transforme les fils email en rooms durables avec état explicite, replay, approbations, retrieval local et livraison gouvernée. Le projet a démarré au-dessus de [OpenClaw](https://github.com/openclaw/openclaw), mais il est construit comme un runtime email-native, pas comme un simple plugin de transport.
 
+MailClaw n’est lié ni à QQ Mail ni à un provider unique. Le parcours recommandé est simple : saisir l’adresse mailbox que vous utilisez déjà, laisser MailClaw recommander le bon chemin provider, puis connecter ce compte. Les chemins intégrés couvrent actuellement Gmail, Outlook, QQ, iCloud, Yahoo, 163/126, ainsi que les comptes IMAP/SMTP génériques.
+
 ## Ce Qu’est MailClaw
 
-Aujourd’hui, MailClaw est surtout un runtime backend avec des surfaces opérateur. Le cœur vise la continuité par fil, la collaboration interne via virtual mail, les opérations rejouables et la livraison sortante sous approbation.
+Aujourd’hui, MailClaw est surtout un runtime backend avec des surfaces browser/CLI de type workbench. Le cœur vise la continuité par fil, la collaboration interne via virtual mail, les opérations rejouables et la livraison sortante sous approbation.
 
 ## Relation Avec OpenClaw
 
@@ -31,23 +33,27 @@ MailClaw réutilise les points d’entrée de l’écosystème OpenClaw (Gateway
 - Ingestion forward/raw RFC822 via `POST /api/inbound/raw`
 - Connexion OAuth Gmail/Outlook via `mailctl` et `/api/auth/:provider/*`
 - Catalogue provider/setup via `mailctl connect providers` et `GET /api/connect/providers`, couvrant Gmail, Outlook, QQ, iCloud, Yahoo, 163/126, IMAP générique, et le fallback forward/raw MIME
-- Les rooms liées à Gateway enregistrent désormais automatiquement les projections d’outcome pour les résultats de type `final_ready`, visibles dans le replay, l’API et la console
+- Les rooms liées à Gateway enregistrent désormais automatiquement les projections d’outcome pour les résultats de type `final_ready`, visibles dans le replay, l’API et le Mail workbench
 - Surfaces HTTP/CLI pour rooms, approvals, provider state, projections d’inbox, mailbox console/feed et traces de projection Gateway
-- Console opérateur en lecture seule à `/console` pour inspecter comptes, rooms, approvals, mailboxes et traces Gateway
+- Entrée workbench navigateur à `/workbench/mail`, avec la même coque Mail tab réutilisée à `/workbench/mail/tab` pour l’hébergement embarqué ; `/dashboard`, `/mail` et `/console/*` restent des alias de compatibilité
 
 ## Parcours 3 Minutes Pour Le Premier Email
 
-Si vous venez d’un client mail classique, suivez ce flux simple "connexion -> premier mail -> verification":
+Si vous venez d’un client mail classique, suivez ce flux simple "démarrage -> connexion -> premier mail -> vérification":
 
-1. Démarrer le runtime : `pnpm dev`
-2. Demander d’abord à MailClaw le chemin le plus simple : `pnpm mailctl connect start you@example.com`
-3. Connecter une mailbox : `pnpm mailctl connect login`
-4. Vérifier le compte et l’adresse : `pnpm mailctl connect accounts show <accountId>`
-5. Envoyer un email de test depuis une autre mailbox (ou votre seconde adresse) vers cette mailbox connectée
-6. Vérifier la room et l’inbox :
-   - `pnpm mailctl observe rooms`
-   - `pnpm mailctl observe inboxes <accountId>`
-   - ouvrir `http://127.0.0.1:3000/console/connect` pour l’onboarding mailbox-first, puis `http://127.0.0.1:3000/console/accounts/<accountId>` pour le workbench du compte connecté
+1. Démarrer le runtime : `pnpm mailclaw`
+2. Demander d’abord à MailClaw le chemin le plus simple : `pnpm mailclaw onboard you@example.com`
+3. Connecter une mailbox : `pnpm mailclaw login`
+4. Envoyer un email de test depuis une autre mailbox vers cette mailbox connectée
+5. Ouvrir `http://127.0.0.1:3000/workbench/mail`
+6. Lire la room depuis la page du compte connecté
+
+Si vous voulez aussi une confirmation CLI :
+
+- `pnpm mailclaw accounts`
+- `pnpm mailclaw rooms`
+- `pnpm mailclaw inboxes <accountId>`
+- `pnpm mailclaw replay <roomKey>`
 
 Le même flux de recommandation existe aussi via `GET /api/connect/onboarding?emailAddress=you@example.com`.
 
@@ -55,7 +61,7 @@ Si vous utilisez déjà OpenClaw, démarrez d’abord en mode bridge puis inspec
 
 - `MAILCLAW_FEATURE_OPENCLAW_BRIDGE=true MAILCLAW_FEATURE_MAIL_INGEST=true pnpm dev`
 - `pnpm mailctl observe runtime`
-- `pnpm mailctl observe workbench <accountId>`
+- `pnpm mailclaw workbench <accountId>`
 
 Pour inspecter les emails internes de collaboration agent :
 
@@ -64,8 +70,8 @@ Pour inspecter les emails internes de collaboration agent :
 
 ## Limites Actuelles
 
-- Une console opérateur en lecture seule existe à `/console`, mais pas encore de client mailbox complet de type Outlook.
-- Pas encore d’intégration Workbench mailbox tab dans OpenClaw.
+- Une entrée Mail workbench navigateur existe à `/workbench/mail`, et `/console/*` résout maintenant vers la même coque OpenClaw-style au lieu d’une console séparée.
+- Cette surface reste un Mail workbench opérateur, pas encore un client mailbox complet de type Outlook.
 - Les traces d’outcome Gateway se projettent désormais automatiquement quand une room est liée à Gateway, mais l’automatisation complète de l’ingress amont Gateway / Workbench reste incomplète dans ce repo.
 - Le guidage de connexion existe maintenant côté CLI/API, mais MailClaw ne provisionne pas encore pour vous le DNS provider, les topics Pub/Sub, les règles de forwarding, ou les politiques mailbox.
 - L’intégration first-class du couple embedded runtime/session-manager OpenClaw et la fermeture complète de l’enforcement backend restent dans le closeout résiduel (`plan12`).
@@ -74,7 +80,7 @@ Pour inspecter les emails internes de collaboration agent :
 
 - [Index de documentation (français)](./docs/index.fr.md)
 - [Getting Started (français)](./docs/getting-started.fr.md)
-- [Console opérateur (français)](./docs/operator-console.fr.md)
+- [Mail Workbench (français)](./docs/operator-console.fr.md)
 - [Guide opérateurs (français)](./docs/operators-guide.fr.md)
 - [Intégrations (français)](./docs/integrations.fr.md)
 - [Assets de release (français)](./docs/release-assets.fr.md)

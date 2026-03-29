@@ -80,6 +80,8 @@ export interface ConnectOnboardingPlan {
   notes: string[];
 }
 
+const MAILCTL_CMD = "mailctl";
+
 const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
   {
     id: "gmail",
@@ -410,38 +412,38 @@ export function buildConnectOnboardingPlan(input: {
       accountProvider: guide.accountProvider
     })),
     commands: {
-      inspectProviders: "pnpm mailctl connect providers",
-      inspectProvider: `pnpm mailctl connect providers ${recommendation.provider.id}`,
+      inspectProviders: `${MAILCTL_CMD} connect providers`,
+      inspectProvider: `${MAILCTL_CMD} connect providers ${recommendation.provider.id}`,
       login: renderOnboardingLoginCommand(recommendation.provider, {
         accountIdSuggestion,
         displayNameSuggestion
       }),
-      observeAccounts: "pnpm mailctl observe accounts",
+      observeAccounts: `${MAILCTL_CMD} observe accounts`,
       observeWorkbench:
         accountIdSuggestion === "<accountId>"
-          ? "pnpm mailctl observe workbench <accountId>"
-          : `pnpm mailctl observe workbench ${accountIdSuggestion}`,
+          ? `${MAILCTL_CMD} observe workbench <accountId>`
+          : `${MAILCTL_CMD} observe workbench ${accountIdSuggestion}`,
       observeInboxes:
         accountIdSuggestion === "<accountId>"
-          ? "pnpm mailctl observe inboxes <accountId>"
-          : `pnpm mailctl observe inboxes ${accountIdSuggestion}`
+          ? `${MAILCTL_CMD} observe inboxes <accountId>`
+          : `${MAILCTL_CMD} observe inboxes ${accountIdSuggestion}`
     },
     console: {
-      browserPath: "/console",
+      browserPath: "/workbench/mail",
       workbenchApiPath: "/api/console/workbench"
     },
     migration: {
       openClawUsers: {
         startCommand:
           "MAILCLAW_FEATURE_OPENCLAW_BRIDGE=true MAILCLAW_FEATURE_MAIL_INGEST=true pnpm dev",
-        inspectRuntime: "pnpm mailctl observe runtime",
+        inspectRuntime: `${MAILCTL_CMD} observe runtime`,
         inspectWorkbench:
           accountIdSuggestion === "<accountId>"
-            ? "pnpm mailctl observe workbench <accountId>"
-            : `pnpm mailctl observe workbench ${accountIdSuggestion}`,
+            ? `${MAILCTL_CMD} observe workbench <accountId>`
+            : `${MAILCTL_CMD} observe workbench ${accountIdSuggestion}`,
         notes: [
           "Keep Gateway/bridge mode enabled first; MailClaw adds room truth, virtual mail, approvals, and replay on top of the OpenClaw substrate.",
-          "Do not treat OpenClaw session transcript as MailClaw truth. Inspect rooms, mailbox feeds, and `/console` instead."
+          "Do not treat OpenClaw session transcript as MailClaw truth. Inspect rooms, mailbox feeds, and `/workbench/mail` instead."
         ]
       }
     },
@@ -545,15 +547,15 @@ function renderOnboardingLoginCommand(
 ) {
   const displayNamePart = input.displayNameSuggestion ? ` "${input.displayNameSuggestion}"` : " [displayName]";
   if (provider.setupKind === "browser_oauth") {
-    return `pnpm mailctl connect login ${provider.id} ${input.accountIdSuggestion}${displayNamePart}`;
+    return `${MAILCTL_CMD} connect login ${provider.id} ${input.accountIdSuggestion}${displayNamePart}`;
   }
   if (provider.id === "imap") {
-    return "pnpm mailctl connect login";
+    return `${MAILCTL_CMD} connect login`;
   }
   if (provider.id === "forward") {
     return "curl -X POST http://127.0.0.1:3000/api/accounts -H 'content-type: application/json' -d '{\"provider\":\"forward\",\"accountId\":\"<accountId>\",\"emailAddress\":\"you@example.com\"}'";
   }
-  return `pnpm mailctl connect login ${provider.id} ${input.accountIdSuggestion}${displayNamePart}`;
+  return `${MAILCTL_CMD} connect login ${provider.id} ${input.accountIdSuggestion}${displayNamePart}`;
 }
 
 function buildOnboardingChecklist(
@@ -565,11 +567,11 @@ function buildOnboardingChecklist(
 ) {
   const mailboxLabel = input.emailAddress ?? "your mailbox";
   const steps = [
-    `Inspect the provider guide with \`pnpm mailctl connect providers ${provider.id}\`.`,
+    `Inspect the provider guide with \`${MAILCTL_CMD} connect providers ${provider.id}\`.`,
     `Connect ${mailboxLabel} with \`${renderOnboardingLoginCommand(provider, { accountIdSuggestion: input.accountIdSuggestion, displayNameSuggestion: input.emailAddress ? inferSuggestedDisplayName(input.emailAddress) : undefined })}\`.`,
-    "Open `/console` and confirm the account shows up under Accounts/Mailboxes.",
+    "Open `/workbench/mail` and confirm the account shows up under Accounts/Mailboxes.",
     `Send a test email from another mailbox to ${mailboxLabel} and confirm a new room appears.`,
-    `Inspect the room and internal agent mail with \`pnpm mailctl observe workbench ${input.accountIdSuggestion}\` or the browser console.`,
+    `Inspect the room and internal agent mail with \`${MAILCTL_CMD} observe workbench ${input.accountIdSuggestion}\` or the browser console.`,
     "Approve or reject any pending outbound draft through the outbox/approval flow instead of expecting direct send from workers."
   ];
 

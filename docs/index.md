@@ -3,14 +3,14 @@ layout: home
 
 hero:
   name: MailClaw
-  text: Connect A Mailbox And Send A First Test Mail In 3 Minutes
-  tagline: MailClaw keeps email context durable in rooms, runs multi-agent collaboration with virtual mail, and lets operators inspect everything from one console.
+  text: Install, Connect One Mailbox, And Read Mail From The Workbench
+  tagline: MailClaw keeps room truth, approvals, and internal agent mail behind one OpenClaw-aligned workbench route.
   actions:
     - theme: brand
-      text: 3-Min First Mail
+      text: Quick Start
       link: /getting-started#three-minute-first-mail
     - theme: alt
-      text: Open Operator Console
+      text: Workbench Mail
       link: /operator-console
     - theme: alt
       text: Release Bundle
@@ -25,19 +25,17 @@ features:
     details: Agents collaborate through virtual mailbox threads, so you can inspect internal collaboration without polluting external email threads.
   - title: Safe Outbound By Default
     details: Real sends are governed by outbox intents and approval flow, not direct worker side effects.
-  - title: One Operator Surface
-    details: "`/console` and `mailctl` expose rooms, inboxes, mailbox feeds, approvals, and gateway projection traces in one workflow."
+  - title: One Workbench Surface
+    details: "`/workbench/mail` and `mailctl` expose rooms, inboxes, mailbox feeds, approvals, and gateway projection traces in one workflow."
 ---
 
 ## Start Here (3 Minutes)
 
-1. Start runtime: `pnpm dev`
-2. Connect your mailbox: `pnpm mailctl connect login`
-3. Verify account and open console:
-   - `pnpm mailctl observe accounts`
-   - `http://127.0.0.1:3000/console`
-   - `http://127.0.0.1:3000/console/connect`
-4. After the first inbound, inspect the durable room summary with `pnpm mailctl replay <roomKey>`
+1. Start MailClaw: `pnpm mailclaw`
+2. Ask MailClaw for the easiest login path: `pnpm mailclaw onboard you@example.com`
+3. Connect your mailbox: `pnpm mailclaw login`
+4. Open `http://127.0.0.1:3000/workbench/mail`
+5. Send one email from another mailbox to the connected address
 
 Then run the first-mail flow in [Getting Started](./getting-started.md#three-minute-first-mail).
 
@@ -56,12 +54,12 @@ Then run the first-mail flow in [Getting Started](./getting-started.md#three-min
 
 The release bundle writes both an unpacked directory and a `.tar.gz` archive under `output/release/`.
 
-## Discover Internal Agent Mailboxes
+## Discover Internal Agent Mailboxes Later
 
-- Open `/console/accounts/:accountId` to pick an account and jump into room or mailbox detail.
-- Open `/console/connect` to start from a mailbox address and get a recommended provider path.
-- Open `/console/mailboxes/:accountId/:mailboxId` to inspect one agent mailbox feed.
-- Open `/console/rooms/:roomKey` to correlate external mail state with internal agent collaboration traces.
+- Open `/workbench/mail/accounts/:accountId` to pick an account and jump into room or mailbox detail.
+- Open `/workbench/mail` to start from a mailbox address and get a recommended provider path.
+- Open `/workbench/mail/mailboxes/:accountId/:mailboxId` to inspect one agent mailbox feed.
+- Open `/workbench/mail/rooms/:roomKey` to correlate external mail state with internal agent collaboration traces.
 - CLI mirror:
   - `pnpm mailctl observe mailbox-feed <accountId> <mailboxId>`
   - `pnpm mailctl observe mailbox-view <roomKey> <mailboxId>`
@@ -77,18 +75,18 @@ The release bundle writes both an unpacked directory and a `.tar.gz` archive und
 
 - [Getting Started](./getting-started.md): 3-minute path plus provider/gateway/internal-agent smoke paths.
 - [Prompt Footprint](./prompt-footprint.md): reproducible benchmark for prompt-volume savings versus transcript-first baselines.
-- [Operator Console](./operator-console.md): `/console` routes, filters, and inbox/mailbox inspection model.
+- [Mail Workbench](./operator-console.md): `/workbench/mail` routes, filters, and inbox/mailbox inspection model.
 - [Operators Guide](./operators-guide.md): day-2 operations, replay, resend, approvals, recovery, and troubleshooting.
 - [Integrations](./integrations.md): provider coverage, OAuth, inbound/outbound wiring, and OpenClaw compatibility.
 - [Security Boundaries](./security-boundaries.md): trust model, redaction scope, and what is intentionally not isolated yet.
 
 ## Release Reality
 
-- Shipped now: runtime kernel, provider ingestion/delivery seams, gateway projection APIs, replay and approval flows, and a read-only `/console` operator surface.
-- Not shipped yet: a full Outlook-like mailbox client, Workbench mailbox tab integration, and automatic end-to-end Gateway round-trip wiring.
+- Shipped now: runtime kernel, provider ingestion/delivery seams, gateway projection APIs, replay and approval flows, and a browser workbench entry at `/workbench/mail`.
+- Not shipped yet: a full Outlook-like mailbox client, first-class upstream OpenClaw mail-tab integration, and automatic end-to-end Gateway round-trip wiring.
 - Validate before release: run [Live Provider Smoke](./live-provider-smoke.md) and review [ADR-001 Architecture](./adr/ADR-001-architecture.md) for design constraints.
 
 ## Current Boundary
 
 - A documentation website now ships from this repository via `pnpm docs:dev` and `pnpm docs:build`.
-- The runtime and read-only operator console are documented; a full Outlook-like mailbox client inside OpenClaw Workbench is still not shipped in this repository.
+- The runtime and browser Mail workbench are documented; a full Outlook-like mailbox client inside upstream OpenClaw Workbench is still not shipped in this repository.

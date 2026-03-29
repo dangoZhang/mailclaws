@@ -19,6 +19,51 @@ afterEach(() => {
 });
 
 describe("runtime drainQueue", () => {
+  it("uses the built-in embedded executor in a fresh default runtime", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-embedded-"));
+    tempDirs.push(tempDir);
+
+    const config = loadConfig({
+      MAILCLAW_STATE_DIR: tempDir,
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_FEATURE_MAIL_INGEST: "true"
+    });
+    const handle = initializeDatabase(config);
+    const runtime = createMailSidecarRuntime({
+      db: handle.db,
+      config
+    });
+
+    await runtime.ingest({
+      accountId: "acct-1",
+      mailboxAddress: "mailclaw@example.com",
+      processImmediately: false,
+      envelope: {
+        providerMessageId: "provider-embedded-1",
+        messageId: "<msg-embedded-1@example.com>",
+        subject: "Embedded default",
+        from: {
+          email: "sender@example.com"
+        },
+        to: [{ email: "mailclaw@example.com" }],
+        text: "Hello from a fresh runtime.",
+        headers: [
+          {
+            name: "Message-ID",
+            value: "<msg-embedded-1@example.com>"
+          }
+        ]
+      }
+    });
+
+    const drained = await runtime.drainQueue();
+
+    expect(drained.processed).toHaveLength(1);
+    expect(drained.processed[0]?.run.responseText).toContain('Received your message about "Embedded default".');
+
+    handle.close();
+  });
+
   it("processes multiple rooms up to the configured concurrency cap", async () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-drain-"));
     tempDirs.push(tempDir);

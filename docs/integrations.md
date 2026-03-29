@@ -134,8 +134,8 @@ Gateway projection trace:
 
 ## Current Integration Gaps
 
-- A first-party read-only MailClaw operator console is shipped at `/console`, but it is not a full mailbox client.
-- No OpenClaw Workbench mailbox tab integration is shipped yet.
+- A first-party MailClaw browser workbench is shipped at `/workbench/mail`, and `/console/*` now resolves to the same shell.
+- It is still not a full mailbox client.
 - Gateway auto-ingress/egress production wiring is still incomplete.
 - Provider coverage is broader than early versions, but still not the full long-term target set.
 - Upstream embedded runtime/session-manager first-class integration and full backend policy enforcement closeout are still pending (`plan12`).

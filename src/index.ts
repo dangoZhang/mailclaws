@@ -26,6 +26,23 @@ server.listen(config.http.port, config.http.host, () => {
     port: config.http.port,
     sqlitePath: config.storage.sqlitePath
   });
+  if (process.stdout.isTTY) {
+    const baseUrl = config.http.publicBaseUrl.trim() || `http://${config.http.host}:${String(config.http.port)}`;
+    const consoleUrl = `${baseUrl}/workbench/mail`;
+    console.log(
+      [
+        "",
+        "MailClaw is ready.",
+        `Dashboard ${consoleUrl}`,
+        `Health ${baseUrl}/healthz`,
+        "",
+        "Next:",
+        "  mailclaw onboard you@example.com",
+        "  mailclaw login",
+        "  mailclaw dashboard"
+      ].join("\n")
+    );
+  }
 });
 
 const shutdown = (signal: NodeJS.Signals) => {

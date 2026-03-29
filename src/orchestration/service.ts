@@ -2796,6 +2796,12 @@ function collectWorkerReplySummaries(input: {
   );
   const orchestratorMailboxId = virtualMailboxes.mailboxIds["mail-orchestrator"];
   const consumerId = `${input.room.parentSessionKey}:${input.stage}:mailbox-consumer:r${input.revision}`;
+  staleSupersededMailboxDeliveries(input.db, {
+    roomKey: input.room.roomKey,
+    mailboxId: orchestratorMailboxId,
+    currentRevision: input.revision,
+    staleAt: input.consumedAt
+  });
   const queuedEntries = projectMailboxView(input.db, {
     roomKey: input.room.roomKey,
     mailboxId: orchestratorMailboxId
@@ -2876,6 +2882,12 @@ function collectSubAgentReplySummaries(input: {
   );
   const orchestratorMailboxId = virtualMailboxes.mailboxIds["mail-orchestrator"];
   const consumerId = `${input.room.parentSessionKey}:subagent-mailbox-consumer:r${input.revision}`;
+  staleSupersededMailboxDeliveries(input.db, {
+    roomKey: input.room.roomKey,
+    mailboxId: orchestratorMailboxId,
+    currentRevision: input.revision,
+    staleAt: input.consumedAt
+  });
   const queuedEntries = projectMailboxView(input.db, {
     roomKey: input.room.roomKey,
     mailboxId: orchestratorMailboxId
@@ -2966,6 +2978,37 @@ function collectSubAgentReplySummaries(input: {
   }
 
   return summaries;
+}
+
+function staleSupersededMailboxDeliveries(
+  db: DatabaseSync,
+  input: {
+    roomKey: string;
+    mailboxId: string;
+    currentRevision: number;
+    staleAt: string;
+  }
+) {
+  const supersededMessageIds = new Set(
+    projectMailboxView(db, {
+      roomKey: input.roomKey,
+      mailboxId: input.mailboxId
+    })
+      .filter(
+        (entry) =>
+          (entry.delivery.status === "queued" || entry.delivery.status === "leased") &&
+          entry.message.roomRevision < input.currentRevision
+      )
+      .map((entry) => entry.message.messageId)
+  );
+
+  for (const messageId of supersededMessageIds) {
+    markVirtualMessageStale(db, {
+      messageId,
+      supersededByRevision: input.currentRevision,
+      staleAt: input.staleAt
+    });
+  }
 }
 
 function readSubAgentReplyArtifact(bodyRef: string | undefined) {

@@ -6,7 +6,7 @@
   <a href="./operators-guide.fr.md">Français</a>
 </p>
 
-This guide documents currently implemented operator workflows. It covers the `/console` operator surface plus runtime and CLI/API operations; it is not a full mailbox-client guide.
+This guide documents currently implemented operator workflows. It covers the `/workbench/mail` browser workbench surface plus runtime and CLI/API operations; it is not a full mailbox-client guide.
 
 ## Scope And Terminology
 
@@ -40,9 +40,9 @@ Use this when a mailbox user says "I sent mail, did the system receive it?".
 
 Console path for the same checks:
 
-- `/console/accounts/:accountId`
-- `/console/rooms/:roomKey`
-- `/console/mailboxes/:accountId/:mailboxId`
+- `/workbench/mail/accounts/:accountId`
+- `/workbench/mail/rooms/:roomKey`
+- `/workbench/mail/mailboxes/:accountId/:mailboxId`
 
 ## Daily Readiness Checks
 
@@ -71,10 +71,10 @@ Console-grade API snapshots:
 - `GET /api/runtime/execution`
 - `GET /api/runtime/embedded-sessions`
 
-Browser console:
+Browser workbench:
 
-- `GET /console`
-- deep links under `/console/accounts/:accountId`, `/console/inboxes/:accountId/:inboxId`, `/console/rooms/:roomKey`, `/console/mailboxes/:accountId/:mailboxId`
+- `GET /workbench/mail`
+- deep links under `/workbench/mail/accounts/:accountId`, `/workbench/mail/inboxes/:accountId/:inboxId`, `/workbench/mail/rooms/:roomKey`, `/workbench/mail/mailboxes/:accountId/:mailboxId`
 
 Runtime/operator inspection:
 
@@ -181,7 +181,7 @@ HTTP equivalents:
 
 ## Known Operator Gaps
 
-- A first-party read-only operator console is shipped at `/console`, but it is not yet a write-capable mailbox client.
+- A first-party Mail workbench is shipped at `/workbench/mail`, and `/console/*` resolves to the same shell, but it is not yet a write-capable mailbox client.
 - CLI output is still mostly JSON and command-tree ergonomics are still evolving.
 - Gateway ingress/egress projection is available through APIs, but not yet fully auto-wired to upstream Workbench event flows.
 - Upstream embedded runtime/session-manager first-class wiring and full backend enforcement closeout remain residual work (`plan12`).
