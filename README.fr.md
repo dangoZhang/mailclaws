@@ -10,84 +10,110 @@
   <a href="./README.fr.md"><strong>Français</strong></a>
 </p>
 
-MailClaw transforme les fils email en rooms durables avec état explicite, replay, approbations, retrieval local et livraison gouvernée. Le projet a démarré au-dessus de [OpenClaw](https://github.com/openclaw/openclaw), mais il est construit comme un runtime email-native, pas comme un simple plugin de transport.
+<p align="center">
+  <a href="https://dangozhang.github.io/mailclaw/">Docs</a> ·
+  <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/ci.yml">CI</a> ·
+  <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/release.yml">Release</a>
+</p>
 
-MailClaw n’est lié ni à QQ Mail ni à un provider unique. Le parcours recommandé est simple : saisir l’adresse mailbox que vous utilisez déjà, laisser MailClaw recommander le bon chemin provider, puis connecter ce compte. Les chemins intégrés couvrent actuellement Gmail, Outlook, QQ, iCloud, Yahoo, 163/126, ainsi que les comptes IMAP/SMTP génériques.
+MailClaw transforme les conversations email en rooms durables. Le runtime garde dans une seule couche la vérité de la room, le courrier interne entre agents, les approbations, le replay et la livraison sortante gouvernée.
 
-## Ce Qu’est MailClaw
+MailClaw n’impose pas un fournisseur unique. Commencez avec l’adresse email que vous utilisez déjà, laissez MailClaw recommander le bon chemin provider, puis connectez cette mailbox. Les chemins intégrés couvrent les principaux providers hébergés ainsi que les comptes IMAP/SMTP génériques.
 
-Aujourd’hui, MailClaw est surtout un runtime backend avec des surfaces browser/CLI de type workbench. Le cœur vise la continuité par fil, la collaboration interne via virtual mail, les opérations rejouables et la livraison sortante sous approbation.
+## Pourquoi MailClaw
+
+- une conversation externe devient une room durable
+- les agents collaborent par email interne au lieu de partager un transcript géant
+- la mémoire longue garde des snapshots Pre compacts, pas les traces scratch
+- approvals, outbox, replay et courrier interne restent visibles dans le même workbench
+- Mail peut être monté comme onglet dans un Gateway workbench au style OpenClaw
+
+## Installation
+
+Prérequis runtime : Node.js 22+.
+
+```bash
+./install.sh
+```
+
+Les parcours d’installation documentés couvrent aussi :
+
+- npm
+- pnpm
+- Homebrew
+
+## Premier Démarrage
+
+```bash
+pnpm install
+MAILCLAW_FEATURE_MAIL_INGEST=true pnpm mailclaw
+```
+
+Puis dans un second terminal :
+
+```bash
+pnpm mailclaw onboard you@example.com
+pnpm mailclaw login
+pnpm mailclaw dashboard
+```
+
+Parcours recommandé :
+
+1. Démarrer MailClaw.
+2. Connecter une mailbox que vous utilisez déjà.
+3. Envoyer un email de test depuis une autre mailbox.
+4. Ouvrir l’onglet `Mail` dans le workbench style Gateway.
+5. Inspecter la room, le courrier interne des agents et l’état de livraison.
+
+Si vous voulez d’abord un démo locale :
+
+```bash
+pnpm demo:mail
+```
+
+Puis ouvrir `http://127.0.0.1:3020/workbench/mail`.
+
+## Ce Que Montre Le Workbench
+
+- `Accounts` : mailboxes connectées et état provider
+- `Rooms` : conversations externes durables
+- `Mailboxes` : boîtes virtuelles des agents publics et des rôles internes
+- `Approvals` : emails sortants en attente d’approbation
+- `Mail` : onglet Mail intégré dans la coque OpenClaw-style
+
+MailClaw garde la collaboration interne lisible. Vous pouvez voir quel agent a pris la tâche, quel worker a répondu, quelle review a bloqué un draft et quel résultat approuvé est finalement parti dans l’outbox.
+
+## Modèle Multi-Agent
+
+MailClaw sépare clairement trois choses :
+
+- `Room` : la vérité durable d’une conversation externe
+- `Virtual Mail` : le protocole de communication interne entre agents
+- `Pre` : l’état compact conservé après chaque tour de travail
+
+Les agents durables gardent leur propre `SOUL.md`, leurs mailboxes de rôle et leurs règles de collaboration. Les subagents ponctuels ne sont que des burst workers. Leur résultat ne devient vérité métier qu’après normalisation en internal reply mail puis fusion dans la room.
 
 ## Relation Avec OpenClaw
 
-MailClaw réutilise les points d’entrée de l’écosystème OpenClaw (Gateway, runtime substrate, packaging d’agents) et garde la compatibilité Gateway. MailClaw définit la couche de vérité des rooms, la sémantique de collaboration virtual mail, la gouvernance approval/outbox, et le modèle opérateur replay/recovery.
+MailClaw ne remplace pas OpenClaw. Il ajoute au-dessus de cet écosystème les capacités email-native qui manquent :
 
-## Fonctionnalités Disponibles Aujourd’hui
-
-- Kernel room thread-first adossé à SQLite
-- Identité room/session déterministe via headers de reply et indices de thread provider
-- Flux durables de replay, recovery, quarantaine, dead-letter, resend, approve et reject
-- Plan virtual mail pour la collaboration orchestrator/worker interne avec état de projection durable
-- Fetch IMAP intégré, contrôleurs watcher IMAP/Gmail, ingestion Gmail history recovery/watch, livraison sortante SMTP/Gmail
-- Réglages SMTP par compte pour les comptes non Gmail
-- Ingestion forward/raw RFC822 via `POST /api/inbound/raw`
-- Connexion OAuth Gmail/Outlook via `mailctl` et `/api/auth/:provider/*`
-- Catalogue provider/setup via `mailctl connect providers` et `GET /api/connect/providers`, couvrant Gmail, Outlook, QQ, iCloud, Yahoo, 163/126, IMAP générique, et le fallback forward/raw MIME
-- Les rooms liées à Gateway enregistrent désormais automatiquement les projections d’outcome pour les résultats de type `final_ready`, visibles dans le replay, l’API et le Mail workbench
-- Surfaces HTTP/CLI pour rooms, approvals, provider state, projections d’inbox, mailbox console/feed et traces de projection Gateway
-- Entrée workbench navigateur à `/workbench/mail`, avec la même coque Mail tab réutilisée à `/workbench/mail/tab` pour l’hébergement embarqué ; `/dashboard`, `/mail` et `/console/*` restent des alias de compatibilité
-
-## Parcours 3 Minutes Pour Le Premier Email
-
-Si vous venez d’un client mail classique, suivez ce flux simple "démarrage -> connexion -> premier mail -> vérification":
-
-1. Démarrer le runtime : `pnpm mailclaw`
-2. Demander d’abord à MailClaw le chemin le plus simple : `pnpm mailclaw onboard you@example.com`
-3. Connecter une mailbox : `pnpm mailclaw login`
-4. Envoyer un email de test depuis une autre mailbox vers cette mailbox connectée
-5. Ouvrir `http://127.0.0.1:3000/workbench/mail`
-6. Lire la room depuis la page du compte connecté
-
-Si vous voulez aussi une confirmation CLI :
-
-- `pnpm mailclaw accounts`
-- `pnpm mailclaw rooms`
-- `pnpm mailclaw inboxes <accountId>`
-- `pnpm mailclaw replay <roomKey>`
-
-Le même flux de recommandation existe aussi via `GET /api/connect/onboarding?emailAddress=you@example.com`.
-
-Si vous utilisez déjà OpenClaw, démarrez d’abord en mode bridge puis inspectez la vérité MailClaw au lieu de traiter la session transcript comme source de vérité :
-
-- `MAILCLAW_FEATURE_OPENCLAW_BRIDGE=true MAILCLAW_FEATURE_MAIL_INGEST=true pnpm dev`
-- `pnpm mailctl observe runtime`
-- `pnpm mailclaw workbench <accountId>`
-
-Pour inspecter les emails internes de collaboration agent :
-
-- `pnpm mailctl observe mailbox-view <roomKey> <mailboxId> virtual_internal`
-- `pnpm mailctl observe mailbox-feed <accountId> <mailboxId> 50 virtual_internal`
-
-## Limites Actuelles
-
-- Une entrée Mail workbench navigateur existe à `/workbench/mail`, et `/console/*` résout maintenant vers la même coque OpenClaw-style au lieu d’une console séparée.
-- Cette surface reste un Mail workbench opérateur, pas encore un client mailbox complet de type Outlook.
-- Les traces d’outcome Gateway se projettent désormais automatiquement quand une room est liée à Gateway, mais l’automatisation complète de l’ingress amont Gateway / Workbench reste incomplète dans ce repo.
-- Le guidage de connexion existe maintenant côté CLI/API, mais MailClaw ne provisionne pas encore pour vous le DNS provider, les topics Pub/Sub, les règles de forwarding, ou les politiques mailbox.
-- L’intégration first-class du couple embedded runtime/session-manager OpenClaw et la fermeture complète de l’enforcement backend restent dans le closeout résiduel (`plan12`).
+- room-first truth au lieu de session-first truth
+- threading email et ingest provider
+- virtual mail entre agents
+- gouvernance approval et outbox
+- replay et recovery des opérations mail
 
 ## Documentation
 
-- [Index de documentation (français)](./docs/index.fr.md)
-- [Getting Started (français)](./docs/getting-started.fr.md)
-- [Mail Workbench (français)](./docs/operator-console.fr.md)
-- [Guide opérateurs (français)](./docs/operators-guide.fr.md)
-- [Intégrations (français)](./docs/integrations.fr.md)
-- [Assets de release (français)](./docs/release-assets.fr.md)
+Le site de documentation est le guide produit canonique :
 
-Les versions anglaise et chinoise sont accessibles via les liens de langue en haut de chaque page.
+- Docs : <https://dangozhang.github.io/mailclaw/>
+- Prise en main : <https://dangozhang.github.io/mailclaw/fr/getting-started>
+- Concepts : <https://dangozhang.github.io/mailclaw/fr/concepts>
+- Flux multi-agent : <https://dangozhang.github.io/mailclaw/fr/multi-agent-workflows>
+- Console opérateur : <https://dangozhang.github.io/mailclaw/fr/operator-console>
 
-Lancer le site de documentation en local :
+Lancer la doc en local :
 
 ```bash
 pnpm docs:dev
@@ -99,58 +125,21 @@ Construire le site statique :
 pnpm docs:build
 ```
 
-## Démarrage Rapide
+## État Actuel
 
-Installer les dépendances :
+MailClaw livre déjà :
 
-```bash
-pnpm install
-```
+- room kernel et replay
+- onboarding provider et connexion mailbox
+- chemins d’ingest IMAP, SMTP, Gmail et raw RFC822
+- virtual mailboxes et projection internal mail
+- livraison sortante sous approval gate
+- intégration Mail workbench embarquée au style OpenClaw
 
-Démarrer en mode bridge OpenClaw :
+Limites et frontières actuelles :
 
-```bash
-MAILCLAW_RUNTIME_POLICY_MANIFEST_JSON='{"toolPolicies":["mail-orchestrator","mail-attachment-reader","mail-researcher","mail-drafter","mail-reviewer","mail-guard"],"sandboxPolicies":["mail-room-orchestrator","mail-room-worker"],"networkAccess":"allowlisted","filesystemAccess":"workspace-read","outboundMode":"approval_required"}' \
-MAILCLAW_FEATURE_MAIL_INGEST=true \
-MAILCLAW_FEATURE_OPENCLAW_BRIDGE=true \
-MAILCLAW_OPENCLAW_GATEWAY_TOKEN=dev-token \
-pnpm dev
-```
-
-Ensuite, suivez [Getting Started](./docs/getting-started.fr.md) pour la connexion de compte et les parcours de smoke end-to-end.
-
-Ordre recommande pour connecter une mailbox :
-
-```bash
-pnpm mailctl connect providers
-pnpm mailctl connect login
-pnpm mailctl observe accounts
-```
-
-Pour les flux OAuth sans navigateur :
-
-```bash
-pnpm mailctl connect login oauth gmail <accountId> [displayName] --no-browser
-pnpm mailctl connect login oauth outlook <accountId> [displayName] --no-browser
-```
-
-## Verification De Release
-
-Avant publication, executer au minimum :
-
-```bash
-pnpm build
-pnpm test:workflow
-pnpm test:security
-pnpm docs:build
-```
-
-Smoke live-provider optionnel :
-
-```bash
-pnpm test:live-providers
-```
+- <https://dangozhang.github.io/mailclaw/fr/security-boundaries>
 
 ## Licence
 
-MailClaw utilise la [licence MIT](./LICENSE), alignée sur [OpenClaw](https://github.com/openclaw/openclaw).
+MIT. Voir [LICENSE](./LICENSE).

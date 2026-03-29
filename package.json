@@ -7,7 +7,7 @@
   "type": "module",
   "packageManager": "pnpm@10.11.1",
   "main": "./dist/index.js",
-  "homepage": "https://github.com/dangoZhang/mailclaw",
+  "homepage": "https://dangozhang.github.io/mailclaw/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dangoZhang/mailclaw.git"

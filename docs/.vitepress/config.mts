@@ -1,8 +1,11 @@
 import { defineConfig } from "vitepress";
 
+const docsBase = process.env.MAILCLAW_DOCS_BASE ?? "/";
+
 export default defineConfig({
   title: "MailClaw",
   description: "MailClaw docs for rooms, virtual mail, pre-first memory, and governed email work.",
+  base: docsBase,
   cleanUrls: true,
   lastUpdated: true,
   lang: "en-US",
@@ -14,7 +17,7 @@ export default defineConfig({
     "**/release-assets.md"
   ],
   head: [
-    ["link", { rel: "icon", type: "image/svg+xml", href: "/mailclaw-mark.svg" }]
+    ["link", { rel: "icon", type: "image/svg+xml", href: `${docsBase}mailclaw-mark.svg` }]
   ],
   themeConfig: {
     search: {
