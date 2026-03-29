@@ -3,65 +3,105 @@ layout: home
 
 hero:
   name: MailClaw
-  text: 安装、连接一个邮箱，并从 Workbench 直接读邮件
-  tagline: MailClaw 把 room 真相、审批和内部 agent 邮件收进一条与 OpenClaw 对齐的 workbench 路由。
+  text: 让邮件工作真正有形状
+  tagline: MailClaw 把外部邮件变成 durable room，把内部多智能体协作变成虚拟邮件，并把长期记忆收敛成 Pre，而不是越滚越长的 transcript。
   actions:
     - theme: brand
-      text: 快速开始
+      text: 3 分钟开始
       link: /zh-CN/getting-started#three-minute-first-mail
     - theme: alt
-      text: 打开 Workbench Mail
-      link: /zh-CN/operator-console
+      text: 核心概念
+      link: /zh-CN/concepts
     - theme: alt
-      text: 登录方式
-      link: /zh-CN/integrations
+      text: Mail Workbench
+      link: /zh-CN/operator-console
 
 features:
-  - title: 邮件上下文可持久
-    details: 每封入站邮件都会进入 Room，带 revision、审批状态、投递轨迹和可重放事件。
-  - title: 内部 Agent 邮箱可观察
-    details: 内部协作通过虚拟 mailbox thread 进行，不污染外部线程，且可按 mailbox 回看过程。
-  - title: 默认安全外发
-    details: 真实发送只允许走 outbox + approval，worker 不能绕过治理链路。
-  - title: 一个 Workbench 看全链路
-    details: "`/workbench/mail` 和 `mailctl` 可以一起查看 rooms、mailboxes、approvals 与 gateway traces。"
+  - title: Room 是真相边界
+    details: 每个真实邮件会话都会落到一个 room 里，带 revision、timeline、审批和投递状态。
+  - title: 内部协作也是邮件
+    details: Agent 不共享一锅上下文，而是通过 virtual mailboxes、work threads 和 reducer 协作。
+  - title: Pre 优先，记忆更干净
+    details: MailClaw 长期保留的是 summary、facts、decisions、commitments 这类 Pre，而不是原始推理轨迹。
+  - title: 外发默认受治理
+    details: 真正的外发必须经过 draft、review、approval 和 outbox intent，worker 不能直接越权发送。
+  - title: 一个 Mail 标签看全链路
+    details: Accounts、Rooms、Mailboxes、Approvals 都在同一个 OpenClaw 风格 Mail 标签里可见。
 ---
 
-## 先走这 3 分钟
+## 为什么是 MailClaw
 
-1. 启动 MailClaw：`pnpm mailclaw`
-2. 让 MailClaw 推荐登录路径：`pnpm mailclaw onboard you@example.com`
-3. 登录邮箱：`pnpm mailclaw login`
-4. 打开 `http://127.0.0.1:3000/workbench/mail`
-5. 用另一个邮箱给已连接地址发一封测试邮件
+很多 agent 系统只是把邮件当 transport。MailClaw 不是。
 
-继续执行首封邮件路径：[快速开始](./getting-started.zh-CN.md#three-minute-first-mail)。
+MailClaw 直接把邮件工作本身建模成运行时：
 
-## 后面再看内部 Agent 协作
+- 外部邮件进入 room
+- 内部协作进入 virtual mail
+- 长期记忆保留为 Pre
+- 外发副作用进入 approval 和 outbox
 
-- `/workbench/mail/accounts/:accountId`：从账号页进入 room 或 mailbox 详情。
-- `/workbench/mail`：从邮箱地址出发拿推荐 provider 路径。
-- `/workbench/mail/mailboxes/:accountId/:mailboxId`：按 mailbox 观察单个 agent 的收件流。
-- `/workbench/mail/rooms/:roomKey`：把外部邮件状态与内部协作轨迹放在一个页面看。
-- CLI 对应命令：
-  - `pnpm mailctl observe mailbox-feed <accountId> <mailboxId>`
-  - `pnpm mailctl observe mailbox-view <roomKey> <mailboxId>`
+所以它既适合真实邮件用户，也适合需要追踪多智能体协作过程的团队。
 
-## 文档入口
+## 核心工作流
 
-- [快速开始](./getting-started.zh-CN.md)：3 分钟上手 + provider/gateway/internal-agent 路径。
-- [Mail Workbench](./operator-console.zh-CN.md)：`/workbench/mail` 路由、筛选和 mailbox 观察模型。
-- [运维指南](./operators-guide.zh-CN.md)：日常运维、审批、恢复、排障。
-- [集成指南](./integrations.zh-CN.md)：provider 覆盖、OAuth、入站/出站接线与 OpenClaw 兼容关系。
-- [安全边界](./security-boundaries.zh-CN.md)：信任模型、脱敏范围与当前未隔离能力。
+1. 连接一个你已经在用的邮箱
+2. 新邮件进入后创建或续接 room
+3. agents 在内部 mailbox/work thread 里协作
+4. 结果被压缩成 durable Pre
+5. 你从 Mail 标签里查看账户、room、mailbox 和审批
 
-## 发布事实
+## 四个核心特性
 
-- 已交付：runtime kernel、provider 入站/出站接缝、gateway projection API、replay/approval 流程，以及 `/workbench/mail` 浏览器入口。
-- 未交付：完整 Outlook 风格邮箱客户端、自动化 Gateway 全链路 round-trip。
-- 发版前建议：执行 [真实 Provider Smoke](./live-provider-smoke.zh-CN.md)，并对照 [ADR-001 架构决策](./adr/ADR-001-architecture.md) 检查约束。
+### Room
 
-## 当前边界
+Room 是外部邮件会话的 durable truth boundary。
 
-- 这个仓库现在已经能通过 `pnpm docs:dev` 和 `pnpm docs:build` 产出可浏览的文档网站。
-- 当前仍是 runtime + 浏览器 Mail workbench 入口，不是完整的 Outlook 风格邮箱客户端。
+- continuity 由 reply 结构和 provider hint 决定
+- room 承载 revision、参与者、附件证据、审批和 replay
+- 新回复到达时，旧的 stale work 会失效而不是静默混入
+
+### Virtual Mail
+
+内部多智能体协作通过虚拟邮件完成。
+
+- 每个 agent 可以有 public/internal mailbox
+- internal reply 是 single-parent
+- fan-in 交给 reducer 收敛
+- 外部线程保持干净，内部协作仍可回看
+
+### Pre
+
+MailClaw 用 pre-first memory，而不是 transcript-first。
+
+- 临时推理发生在 scratch 里
+- durable 结果压缩成 Pre
+- 后续 turn 默认只加载 latest inbound + latest Pre + refs
+
+### Governed Delivery
+
+真实外发不是 worker 直接做，而是通过治理链路：
+
+- draft
+- review / guard
+- approval
+- outbox intent
+- delivery attempt
+
+## 从这里开始
+
+- [快速开始](./getting-started.zh-CN.md)
+- [核心概念](./concepts.zh-CN.md)
+- [多智能体协作](./multi-agent-workflows.zh-CN.md)
+- [Mail Workbench](./operator-console.zh-CN.md)
+- [集成](./integrations.zh-CN.md)
+
+## 对 OpenClaw 用户
+
+推荐路径保持不变：
+
+- 先启动 MailClaw runtime，或者直接运行 `mailclaw gateway`
+- 再运行 `mailclaw dashboard`
+- 登录 OpenClaw/Gateway
+- 点击 `Mail`
+
+`mailclaw open` 才是直达兜底入口，不是主要叙事。

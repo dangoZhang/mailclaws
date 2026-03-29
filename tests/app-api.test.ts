@@ -1403,6 +1403,9 @@ describe("app api", () => {
         | {
             room: { roomKey: string; mailTaskKind: string | null; mailTaskStage: string | null };
             tasks: Array<{ kind: string; stage: string; status: string }>;
+            virtualMessages: Array<{ kind: string; fromMailboxId: string; toMailboxIds: string[]; originKind: string }>;
+            mailboxDeliveries: Array<{ mailboxId: string; status: string }>;
+            outboxIntents: Array<{ kind: string; status: string; subject: string }>;
             counts: { taskNodes: number };
           }
         | null;
@@ -1425,10 +1428,15 @@ describe("app api", () => {
         browserPath: "/workbench/mail",
         embeddedBrowserPath: "/workbench/mail/tab",
         onboardingApiPath: "/api/connect/onboarding",
-        recommendedStartCommand: "mailctl connect start you@example.com"
+        recommendedStartCommand: "mailclaw onboard you@example.com",
+        recommendedLoginCommand: "mailclaw login"
       },
       tabs: expect.arrayContaining([
-        expect.objectContaining({ id: "mail", href: "/workbench/mail", embeddedHref: "/workbench/mail/tab" }),
+        expect.objectContaining({
+          id: "mail",
+          href: "/workbench/mail?mode=connect",
+          embeddedHref: "/workbench/mail/tab?mode=connect"
+        }),
         expect.objectContaining({ id: "rooms", active: true, embeddedHref: expect.stringContaining("/workbench/mail/tab") })
       ])
     });
@@ -1461,9 +1469,21 @@ describe("app api", () => {
       counts: {
         taskNodes: expect.any(Number),
         preSnapshots: expect.any(Number)
-      }
+      },
+      virtualMessages: expect.any(Array),
+      mailboxDeliveries: expect.any(Array),
+      outboxIntents: expect.arrayContaining([
+        expect.objectContaining({
+          kind: expect.any(String),
+          status: expect.any(String),
+          subject: expect.any(String)
+        })
+      ])
     });
     expect(workbenchJson.roomDetail?.tasks.length).toBeGreaterThan(0);
+    expect(Array.isArray(workbenchJson.roomDetail?.virtualMessages)).toBe(true);
+    expect(Array.isArray(workbenchJson.roomDetail?.mailboxDeliveries)).toBe(true);
+    expect(workbenchJson.roomDetail?.outboxIntents.length).toBeGreaterThan(0);
     expect(workbenchJson.mailboxConsole).toMatchObject({
       account: {
         accountId: "acct-1"
@@ -1531,6 +1551,9 @@ describe("app api", () => {
 
     expect(roomResponse.status).toBe(200);
     expect(roomHtml).toContain(encodeURIComponent(ingested.ingested.roomKey));
+    expect(roomHtml).toContain("Virtual Mail");
+    expect(roomHtml).toContain("Mailbox Deliveries");
+    expect(roomHtml).toContain("Governed Outbox");
     expect(roomHtml).toContain("/console/workbench");
     expect(roomHtml).not.toContain("<iframe");
     expect(() => new vm.Script(extractModuleScript(roomHtml))).not.toThrow();
@@ -1599,7 +1622,17 @@ describe("app api", () => {
       integration: {
         tabId: "mailclaw.mail",
         embeddedPath: "/workbench/mail/tab",
-        defaultShell: "embedded"
+        defaultShell: "embedded",
+        capabilities: {
+          gatewayIngress: true,
+          outboundMailSync: true
+        },
+        apis: {
+          gatewayEvents: "/api/gateway/events",
+          gatewayHistoryImport: "/api/gateway/history/import",
+          roomMessageEmailSync: "/api/rooms/:roomKey/messages/:messageId/sync-email",
+          outboxDeliver: "/api/outbox/deliver"
+        }
       },
       entrypoints: {
         standalone: "/workbench/mail",
@@ -1610,10 +1643,134 @@ describe("app api", () => {
       expect.arrayContaining([
         expect.objectContaining({
           id: "mail",
-          href: "/workbench/mail",
-          embeddedHref: "/workbench/mail/tab"
+          href: "/workbench/mail?mode=connect",
+          embeddedHref: "/workbench/mail/tab?mode=connect"
+        }),
+        expect.objectContaining({
+          id: "accounts",
+          href: "/workbench/mail?mode=accounts",
+          embeddedHref: "/workbench/mail/tab?mode=accounts"
+        }),
+        expect.objectContaining({
+          id: "rooms",
+          href: "/workbench/mail?mode=rooms",
+          embeddedHref: "/workbench/mail/tab?mode=rooms"
         })
       ])
+    );
+
+    fixture.handle.close();
+  });
+
+  it("applies durable agent templates through the HTTP api and exposes them in the connect workbench", async () => {
+    const fixture = createFixture();
+    upsertMailAccount(fixture.handle.db, {
+      accountId: "acct-templates",
+      provider: "forward",
+      emailAddress: "mailclaw@example.com",
+      status: "active",
+      settings: {},
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+    const server = createAppServer({
+      config: fixture.config,
+      mailApi: fixture.runtime
+    });
+
+    servers.push(server);
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      throw new Error("Expected address info");
+    }
+
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const applyResponse = await fetch(`${baseUrl}/api/console/agent-templates/one-person-company/apply`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        accountId: "acct-templates"
+      })
+    });
+    const applyJson = (await applyResponse.json()) as {
+      templateId: string;
+      createdAgents: Array<{ agentId: string; soulPath: string }>;
+      agentDirectory: Array<{ agentId: string; publicMailboxId: string }>;
+    };
+
+    expect(applyResponse.status).toBe(200);
+    expect(applyJson.templateId).toBe("one-person-company");
+    expect(applyJson.createdAgents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ agentId: "assistant", soulPath: expect.stringContaining("/assistant/SOUL.md") }),
+        expect.objectContaining({ agentId: "research" }),
+        expect.objectContaining({ agentId: "ops" })
+      ])
+    );
+    expect(applyJson.agentDirectory).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ agentId: "assistant", publicMailboxId: "public:assistant" })
+      ])
+    );
+
+    const workbenchResponse = await fetch(`${baseUrl}/api/console/workbench?mode=connect&accountId=acct-templates`);
+    const workbenchJson = (await workbenchResponse.json()) as {
+      workspace: {
+        connect: {
+          templateApplyAccountId: string | null;
+          agentTemplates: Array<{ templateId: string }>;
+          agentDirectory: Array<{ agentId: string; virtualMailboxes: string[] }>;
+          headcountRecommendations: Array<{ templateId: string }>;
+        };
+      };
+    };
+
+    expect(workbenchResponse.status).toBe(200);
+    expect(workbenchJson.workspace.connect).toMatchObject({
+      templateApplyAccountId: "acct-templates",
+      agentTemplates: expect.arrayContaining([expect.objectContaining({ templateId: "one-person-company" })]),
+      agentDirectory: expect.arrayContaining([
+        expect.objectContaining({
+          agentId: "assistant",
+          virtualMailboxes: expect.arrayContaining(["public:assistant", "internal:assistant:orchestrator"])
+        })
+      ]),
+      headcountRecommendations: expect.arrayContaining([expect.objectContaining({ templateId: "one-person-company" })])
+    });
+
+    const directoryResponse = await fetch(`${baseUrl}/api/console/agent-directory?accountId=acct-templates&tenantId=acct-templates`);
+    const directoryJson = (await directoryResponse.json()) as Array<{ agentId: string }>;
+    expect(directoryResponse.status).toBe(200);
+    expect(directoryJson).toEqual(expect.arrayContaining([expect.objectContaining({ agentId: "research" })]));
+
+    const customResponse = await fetch(`${baseUrl}/api/console/agents`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        accountId: "acct-templates",
+        agentId: "ops-review",
+        displayName: "Ops Review",
+        publicMailboxId: "public:ops-review",
+        collaboratorAgentIds: ["assistant", "ops"],
+        purpose: "Review external commitments before they leave the governed outbox."
+      })
+    });
+    const customJson = (await customResponse.json()) as {
+      agentId: string;
+      agentDirectory: Array<{ agentId: string; publicMailboxId: string }>;
+    };
+
+    expect(customResponse.status).toBe(200);
+    expect(customJson.agentId).toBe("ops-review");
+    expect(customJson.agentDirectory).toEqual(
+      expect.arrayContaining([expect.objectContaining({ agentId: "ops-review", publicMailboxId: "public:ops-review" })])
     );
 
     fixture.handle.close();
@@ -2145,6 +2302,111 @@ describe("app api", () => {
         mode: "session_reply"
       }
     });
+
+    fixture.handle.close();
+  });
+
+  it("imports gateway thread history through the HTTP api", async () => {
+    const fixture = createFixture();
+    const roomKey = buildRoomSessionKey("acct-1", "thread-gateway-history-http");
+    saveThreadRoom(fixture.handle.db, {
+      roomKey,
+      accountId: "acct-1",
+      stableThreadId: "thread-gateway-history-http",
+      parentSessionKey: "gateway-session-history-http-parent",
+      state: "idle",
+      revision: 3,
+      lastInboundSeq: 1,
+      lastOutboundSeq: 0
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "public:assistant",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "public",
+      active: true,
+      createdAt: "2026-03-27T01:20:00.000Z",
+      updatedAt: "2026-03-27T01:20:00.000Z"
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "internal:assistant:orchestrator",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "internal_role",
+      role: "orchestrator",
+      active: true,
+      createdAt: "2026-03-27T01:20:00.000Z",
+      updatedAt: "2026-03-27T01:20:00.000Z"
+    });
+
+    const server = createAppServer({
+      config: fixture.config,
+      mailApi: fixture.runtime
+    });
+
+    servers.push(server);
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      throw new Error("Expected address info");
+    }
+
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const importResponse = await fetch(`${baseUrl}/api/gateway/history/import`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        roomKey,
+        sessionKey: "gateway-session-history-http",
+        sourceControlPlane: "openclaw",
+        turns: [
+          {
+            fromPrincipalId: "principal:assistant",
+            fromMailboxId: "public:assistant",
+            toMailboxIds: ["internal:assistant:orchestrator"],
+            kind: "question",
+            visibility: "internal",
+            subject: "Imported question",
+            bodyText: "What happened in this room?",
+            createdAt: "2026-03-27T01:21:00.000Z"
+          },
+          {
+            fromPrincipalId: "principal:assistant",
+            fromMailboxId: "internal:assistant:orchestrator",
+            toMailboxIds: ["public:assistant"],
+            kind: "claim",
+            visibility: "internal",
+            subject: "Imported answer",
+            bodyText: "The history import is wired.",
+            createdAt: "2026-03-27T01:22:00.000Z"
+          }
+        ]
+      })
+    });
+    const importJson = (await importResponse.json()) as Array<{ message: { messageId: string } }>;
+
+    expect(importResponse.status).toBe(200);
+    expect(importJson).toHaveLength(2);
+
+    const traceResponse = await fetch(
+      `${baseUrl}/api/rooms/${encodeURIComponent(roomKey)}/gateway-projection-trace`
+    );
+    const traceJson = (await traceResponse.json()) as {
+      roomKey: string;
+      sessionKeys: string[];
+      messages: Array<{ messageId: string }>;
+    };
+
+    expect(traceResponse.status).toBe(200);
+    expect(traceJson).toMatchObject({
+      roomKey,
+      sessionKeys: ["gateway-session-history-http"]
+    });
+    expect(traceJson.messages).toHaveLength(2);
 
     fixture.handle.close();
   });
@@ -3708,6 +3970,201 @@ describe("app api", () => {
     fixture.handle.close();
   });
 
+  it("syncs a room message into governed email through the HTTP api", async () => {
+    const deliveries: string[] = [];
+    const fixture = createFixture({
+      sender: {
+        async send(message) {
+          deliveries.push(message.outboxId);
+          return {
+            providerMessageId: `<${message.outboxId}@smtp.local>`
+          };
+        }
+      }
+    });
+    upsertMailAccount(fixture.handle.db, {
+      accountId: "acct-1",
+      provider: "forward",
+      emailAddress: "mailclaw@example.com",
+      status: "active",
+      settings: {},
+      createdAt: "2026-03-27T02:00:00.000Z",
+      updatedAt: "2026-03-27T02:00:00.000Z"
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "internal:assistant:orchestrator",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "internal_role",
+      role: "orchestrator",
+      active: true,
+      createdAt: "2026-03-27T02:00:00.000Z",
+      updatedAt: "2026-03-27T02:00:00.000Z"
+    });
+
+    const server = createAppServer({
+      config: fixture.config,
+      mailApi: fixture.runtime
+    });
+
+    servers.push(server);
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      throw new Error("Expected address info");
+    }
+
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const inboundResponse = await fetch(`${baseUrl}/api/inbound`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify(buildInboundPayload())
+    });
+    const inboundJson = (await inboundResponse.json()) as {
+      ingested: { roomKey: string };
+    };
+    const finalReady = fixture.runtime.submitVirtualMessage({
+      roomKey: inboundJson.ingested.roomKey,
+      threadKind: "work",
+      topic: "Gateway-to-mail sync",
+      fromPrincipalId: "principal:assistant",
+      fromMailboxId: "internal:assistant:orchestrator",
+      toMailboxIds: ["internal:assistant:orchestrator"],
+      kind: "final_ready",
+      visibility: "internal",
+      subject: "Ready to sync",
+      bodyRef: "body://virtual/ready-to-sync",
+      roomRevision: 1,
+      inputsHash: "hash-ready-to-sync",
+      createdAt: "2026-03-27T02:01:00.000Z"
+    });
+
+    const syncResponse = await fetch(
+      `${baseUrl}/api/rooms/${encodeURIComponent(inboundJson.ingested.roomKey)}/messages/${encodeURIComponent(finalReady.message.messageId)}/sync-email`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        }
+      }
+    );
+    const syncJson = (await syncResponse.json()) as { outboxId: string; status: string; headers: Record<string, string> };
+
+    expect(syncResponse.status).toBe(200);
+    expect(syncJson.status).toBe("queued");
+    expect(syncJson.headers["X-MailClaw-Sync-Source-Message-Id"]).toBe(finalReady.message.messageId);
+
+    const deliverResponse = await fetch(`${baseUrl}/api/outbox/deliver`, {
+      method: "POST"
+    });
+    const deliverJson = (await deliverResponse.json()) as { sent: number; failed: number };
+
+    expect(deliverResponse.status).toBe(200);
+    expect(deliverJson).toMatchObject({
+      sent: 1,
+      failed: 0
+    });
+    expect(deliveries).toEqual([syncJson.outboxId]);
+
+    fixture.handle.close();
+  });
+
+  it("syncs a gateway-only room message into governed email with explicit recipients through the HTTP api", async () => {
+    const fixture = createFixture();
+    const roomKey = buildRoomSessionKey("acct-1", "thread-gateway-explicit-http-sync");
+    saveThreadRoom(fixture.handle.db, {
+      roomKey,
+      accountId: "acct-1",
+      stableThreadId: "thread-gateway-explicit-http-sync",
+      parentSessionKey: "gateway-session-explicit-http-sync-parent",
+      frontAgentAddress: "assistant@ai.example.com",
+      state: "idle",
+      revision: 2,
+      lastInboundSeq: 0,
+      lastOutboundSeq: 0
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "internal:assistant:orchestrator",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "internal_role",
+      role: "orchestrator",
+      active: true,
+      createdAt: "2026-03-27T02:10:00.000Z",
+      updatedAt: "2026-03-27T02:10:00.000Z"
+    });
+
+    const finalReady = fixture.runtime.submitVirtualMessage({
+      roomKey,
+      threadKind: "work",
+      topic: "Gateway explicit HTTP sync",
+      fromPrincipalId: "principal:assistant",
+      fromMailboxId: "internal:assistant:orchestrator",
+      toMailboxIds: ["internal:assistant:orchestrator"],
+      kind: "final_ready",
+      visibility: "internal",
+      subject: "HTTP explicit sync",
+      bodyRef: "body://virtual/http-explicit-sync",
+      roomRevision: 2,
+      inputsHash: "hash-http-explicit-sync",
+      createdAt: "2026-03-27T02:11:00.000Z"
+    });
+
+    const server = createAppServer({
+      config: fixture.config,
+      mailApi: fixture.runtime
+    });
+
+    servers.push(server);
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      throw new Error("Expected address info");
+    }
+
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const syncResponse = await fetch(
+      `${baseUrl}/api/rooms/${encodeURIComponent(roomKey)}/messages/${encodeURIComponent(finalReady.message.messageId)}/sync-email`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          to: ["user@example.com", "team@example.com"],
+          cc: ["cc@example.com"],
+          bcc: ["audit@example.com"]
+        })
+      }
+    );
+    const syncJson = (await syncResponse.json()) as {
+      roomKey: string;
+      status: string;
+      to: string[];
+      cc: string[];
+      bcc: string[];
+      headers: Record<string, string>;
+    };
+
+    expect(syncResponse.status).toBe(200);
+    expect(syncJson).toMatchObject({
+      roomKey,
+      status: "queued",
+      to: ["user@example.com", "team@example.com"],
+      cc: ["cc@example.com"],
+      bcc: ["audit@example.com"]
+    });
+    expect(syncJson.headers["X-MailClaw-Sync-Source-Message-Id"]).toBe(finalReady.message.messageId);
+
+    fixture.handle.close();
+  });
+
   it("approves pending outbox mail and allows delivery", async () => {
     const deliveries: string[] = [];
     const fixture = createFixture({
@@ -3798,6 +4255,117 @@ describe("app api", () => {
     expect(deliverResponse.status).toBe(200);
     expect(deliverJson.sent).toBe(1);
     expect(deliveries).toEqual([outboxId]);
+
+    fixture.handle.close();
+  });
+
+  it("syncs a gateway-only room message to explicit email recipients through the HTTP api", async () => {
+    const fixture = createFixture();
+    const server = createAppServer({
+      config: fixture.config,
+      mailApi: fixture.runtime
+    });
+
+    servers.push(server);
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      throw new Error("Expected address info");
+    }
+
+    const roomKey = buildRoomSessionKey("acct-1", "thread-http-gateway-explicit-sync");
+    saveThreadRoom(fixture.handle.db, {
+      roomKey,
+      accountId: "acct-1",
+      stableThreadId: "thread-http-gateway-explicit-sync",
+      parentSessionKey: "gateway-session-http-explicit-sync",
+      frontAgentAddress: "assistant@ai.example.com",
+      state: "idle",
+      revision: 3,
+      lastInboundSeq: 1,
+      lastOutboundSeq: 0
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "public:assistant",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "public",
+      active: true,
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "internal:assistant:orchestrator",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "internal_role",
+      role: "orchestrator",
+      active: true,
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const importResponse = await fetch(`${baseUrl}/api/gateway/history/import`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        roomKey,
+        sessionKey: "gateway-session-http-explicit-sync",
+        turns: [
+          {
+            fromPrincipalId: "principal:assistant",
+            fromMailboxId: "internal:assistant:orchestrator",
+            toMailboxIds: ["public:assistant"],
+            kind: "final_ready",
+            visibility: "internal",
+            subject: "HTTP imported final",
+            bodyText: "Gateway-only room imported through HTTP.",
+            createdAt: "2026-03-27T02:02:00.000Z"
+          }
+        ]
+      })
+    });
+    const importJson = (await importResponse.json()) as Array<{ message: { messageId: string } }>;
+
+    expect(importResponse.status).toBe(200);
+    expect(importJson).toHaveLength(1);
+
+    const syncResponse = await fetch(
+      `${baseUrl}/api/rooms/${encodeURIComponent(roomKey)}/messages/${encodeURIComponent(importJson[0]!.message.messageId)}/sync-email`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          to: ["ops@example.com", "ceo@example.com"],
+          cc: ["audit@example.com"],
+          bcc: ["hidden@example.com"]
+        })
+      }
+    );
+    const syncJson = (await syncResponse.json()) as {
+      roomKey: string;
+      to: string[];
+      cc: string[];
+      bcc: string[];
+      headers: Record<string, string>;
+    };
+
+    expect(syncResponse.status).toBe(200);
+    expect(syncJson).toMatchObject({
+      roomKey,
+      to: ["ops@example.com", "ceo@example.com"],
+      cc: ["audit@example.com"],
+      bcc: ["hidden@example.com"]
+    });
+    expect(syncJson.headers.To).toContain("ops@example.com");
+    expect(syncJson.headers.To).toContain("ceo@example.com");
 
     fixture.handle.close();
   });

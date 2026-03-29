@@ -72,8 +72,10 @@ Quick start:
   mailclaw
   mailclaw onboard you@example.com
   mailclaw login
+  mailclaw gateway
   mailclaw dashboard
 
 Workbench:
-  http://127.0.0.1:3000/workbench/mail
+  OpenClaw/Gateway first via `mailclaw gateway`
+  Direct Mail tab fallback: http://127.0.0.1:3000/workbench/mail
 EOF

@@ -48,11 +48,22 @@ describe("loadConfig", () => {
       OPENCLAW_SESSION_PREFIX: "hook:gateway-mail"
     });
 
-    expect(config.http.publicBaseUrl).toBe("https://gateway.example.com");
+    expect(config.http.publicBaseUrl).toBe("");
     expect(config.openClaw.baseUrl).toBe("https://gateway.example.com/api");
+    expect(config.openClaw.publicBaseUrl).toBe("https://gateway.example.com");
     expect(config.openClaw.gatewayToken).toBe("gateway-token");
     expect(config.openClaw.agentId).toBe("mail");
     expect(config.openClaw.sessionPrefix).toBe("hook:gateway-mail");
+  });
+
+  it("keeps the direct MailClaw workbench URL separate from the OpenClaw host URL", () => {
+    const config = loadConfig({
+      MAILCLAW_PUBLIC_BASE_URL: "https://mail.example.com",
+      OPENCLAW_PUBLIC_BASE_URL: "https://gateway.example.com"
+    });
+
+    expect(config.http.publicBaseUrl).toBe("https://mail.example.com");
+    expect(config.openClaw.publicBaseUrl).toBe("https://gateway.example.com");
   });
 
   it("parses per-role OpenClaw agent overrides", () => {

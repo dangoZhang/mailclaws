@@ -2,6 +2,7 @@
 
 import { spawn } from "node:child_process";
 import { once } from "node:events";
+import fs from "node:fs";
 import http from "node:http";
 import process from "node:process";
 
@@ -641,6 +642,49 @@ async function handleGateway(
     return handleGatewayTrace(runtime, [arg1], stdout, stderr, mode);
   }
 
+  if (subcommand === "events" && arg1) {
+    const payload = JSON.parse(fs.readFileSync(arg1, "utf8")) as unknown;
+    const events = Array.isArray(payload) ? payload : [payload];
+    const processed = runtime.ingestGatewayEvents(events.map((event) => parseGatewayCliEvent(event)));
+    writePayload(stdout, mode, { processed }, `Gateway events processed: ${processed.length}`);
+    return 0;
+  }
+
+  if (subcommand === "import-history" && arg1 && arg2 && arg3) {
+    const payload = JSON.parse(fs.readFileSync(arg3, "utf8")) as unknown;
+    const parsed = parseGatewayHistoryFile(payload);
+    const imported = runtime.importGatewayThreadHistory({
+      sessionKey: arg1,
+      roomKey: arg2,
+      sourceControlPlane: arg4 ?? parsed.sourceControlPlane ?? "openclaw",
+      bindingKind: (arg5 as "room" | "work_thread" | "subagent" | undefined) ?? parsed.bindingKind,
+      frontAgentId: arg6 ?? parsed.frontAgentId,
+      turns: parsed.turns
+    });
+    writePayload(stdout, mode, imported, `Imported ${imported.length} gateway turns into ${arg2}`);
+    return 0;
+  }
+
+  if (subcommand === "sync-mail" && arg1 && arg2) {
+    const to = parseCliOptionalStringList(arg3);
+    const cc = parseCliOptionalStringList(arg4);
+    const bcc = parseCliOptionalStringList(arg5);
+    const payload = runtime.syncRoomMessageToEmail({
+      roomKey: arg1,
+      messageId: arg2,
+      ...(to.length > 0 ? { to } : {}),
+      ...(cc.length > 0 ? { cc } : {}),
+      ...(bcc.length > 0 ? { bcc } : {})
+    });
+    writePayload(
+      stdout,
+      mode,
+      payload,
+      `Queued governed email sync for ${arg2} as ${payload.outboxId} (${payload.status})`
+    );
+    return 0;
+  }
+
   if (subcommand === "dispatch") {
     const limit = arg2 ? Number.parseInt(arg2, 10) : undefined;
     if (arg2 && Number.isNaN(limit)) {
@@ -651,7 +695,7 @@ async function handleGateway(
   }
 
   stderr.write(
-    "usage: mailctl gateway <resolve <sessionKey> [roomKey]|bind <sessionKey> <roomKey> [bindingKind] [sourceControlPlane] [workThreadId] [parentMessageId]|trace <roomKey>|dispatch [roomKey] [limit]>\n"
+    "usage: mailctl gateway <resolve <sessionKey> [roomKey]|bind <sessionKey> <roomKey> [bindingKind] [sourceControlPlane] [workThreadId] [parentMessageId]|trace <roomKey>|events <jsonFile>|import-history <sessionKey> <roomKey> <jsonFile> [sourceControlPlane] [bindingKind] [frontAgentId]|sync-mail <roomKey> <messageId> [toCsv] [ccCsv] [bccCsv]|dispatch [roomKey] [limit]>\n"
   );
   return 1;
 }
@@ -673,6 +717,174 @@ async function handleGatewayDispatch(
     `Gateway dispatch attempted ${payload.attempted} | dispatched ${payload.dispatched} | failed ${payload.failed}`
   );
   return 0;
+}
+
+function parseGatewayCliEvent(event: unknown) {
+  const record = typeof event === "object" && event !== null ? (event as Record<string, unknown>) : null;
+  if (!record || typeof record.type !== "string") {
+    throw new Error("gateway event type is required");
+  }
+
+  switch (record.type) {
+    case "gateway.session.bind":
+      return {
+        type: record.type,
+        sessionKey: requireCliString(record.sessionKey, "sessionKey"),
+        roomKey: requireCliString(record.roomKey, "roomKey"),
+        bindingKind: (record.bindingKind as "room" | "work_thread" | "subagent" | undefined) ?? "room",
+        sourceControlPlane: typeof record.sourceControlPlane === "string" ? record.sourceControlPlane : "openclaw",
+        workThreadId: typeof record.workThreadId === "string" ? record.workThreadId : undefined,
+        parentMessageId: typeof record.parentMessageId === "string" ? record.parentMessageId : undefined,
+        frontAgentId: typeof record.frontAgentId === "string" ? record.frontAgentId : undefined,
+        now: typeof record.now === "string" ? record.now : undefined
+      } as const;
+    case "gateway.turn.project":
+      return {
+        type: record.type,
+        sessionKey: requireCliString(record.sessionKey, "sessionKey"),
+        sourceControlPlane: typeof record.sourceControlPlane === "string" ? record.sourceControlPlane : "openclaw",
+        sourceMessageId: typeof record.sourceMessageId === "string" ? record.sourceMessageId : undefined,
+        sourceRunId: typeof record.sourceRunId === "string" ? record.sourceRunId : undefined,
+        roomKey: typeof record.roomKey === "string" ? record.roomKey : undefined,
+        parentMessageId: typeof record.parentMessageId === "string" ? record.parentMessageId : undefined,
+        fromPrincipalId: requireCliString(record.fromPrincipalId, "fromPrincipalId"),
+        fromMailboxId: requireCliString(record.fromMailboxId, "fromMailboxId"),
+        toMailboxIds: parseCliRequiredStringList(record.toMailboxIds, "toMailboxIds"),
+        ccMailboxIds: parseCliOptionalStringList(record.ccMailboxIds),
+        kind:
+          (record.kind as
+            | "task"
+            | "question"
+            | "claim"
+            | "evidence"
+            | "draft"
+            | "review"
+            | "approval"
+            | "progress"
+            | "final_ready"
+            | "handoff"
+            | "system_notice"
+            | undefined) ?? "claim",
+        visibility: (record.visibility as "room" | "internal" | "private" | "governance" | undefined) ?? "internal",
+        subject: requireCliString(record.subject, "subject"),
+        bodyRef: requireCliString(record.bodyRef, "bodyRef"),
+        artifactRefs: parseCliOptionalStringList(record.artifactRefs),
+        memoryRefs: parseCliOptionalStringList(record.memoryRefs),
+        inputsHash: requireCliString(record.inputsHash, "inputsHash"),
+        createdAt: typeof record.createdAt === "string" ? record.createdAt : undefined,
+        threadKind: record.threadKind as "room" | "work" | undefined,
+        topic: typeof record.topic === "string" ? record.topic : undefined,
+        frontAgentId: typeof record.frontAgentId === "string" ? record.frontAgentId : undefined
+      } as const;
+    case "gateway.outcome.project":
+      return {
+        type: record.type,
+        roomKey: requireCliString(record.roomKey, "roomKey"),
+        messageId: requireCliString(record.messageId, "messageId"),
+        projectedAt: typeof record.projectedAt === "string" ? record.projectedAt : undefined
+      } as const;
+    case "gateway.history.import":
+      return {
+        type: record.type,
+        roomKey: requireCliString(record.roomKey, "roomKey"),
+        sessionKey: requireCliString(record.sessionKey, "sessionKey"),
+        sourceControlPlane: typeof record.sourceControlPlane === "string" ? record.sourceControlPlane : "openclaw",
+        frontAgentId: typeof record.frontAgentId === "string" ? record.frontAgentId : undefined,
+        bindingKind: (record.bindingKind as "room" | "work_thread" | "subagent" | undefined) ?? "room",
+        turns: parseCliGatewayHistoryTurns(record.turns)
+      } as const;
+    default:
+      throw new Error(`unsupported gateway event type: ${record.type}`);
+  }
+}
+
+function parseGatewayHistoryFile(payload: unknown) {
+  if (Array.isArray(payload)) {
+    return {
+      turns: parseCliGatewayHistoryTurns(payload)
+    };
+  }
+
+  const record = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>) : null;
+  if (!record) {
+    throw new Error("gateway history file must be an array of turns or an object with a turns field");
+  }
+
+  return {
+    turns: parseCliGatewayHistoryTurns(record.turns),
+    sourceControlPlane: typeof record.sourceControlPlane === "string" ? record.sourceControlPlane : undefined,
+    bindingKind: record.bindingKind as "room" | "work_thread" | "subagent" | undefined,
+    frontAgentId: typeof record.frontAgentId === "string" ? record.frontAgentId : undefined
+  };
+}
+
+function parseCliGatewayHistoryTurns(turns: unknown) {
+  if (!Array.isArray(turns) || turns.length === 0) {
+    throw new Error("gateway history turns are required");
+  }
+
+  return turns.map((turn, index) => {
+    const record = typeof turn === "object" && turn !== null ? (turn as Record<string, unknown>) : null;
+    if (!record) {
+      throw new Error(`gateway history turn ${index + 1} is invalid`);
+    }
+
+    return {
+      sourceMessageId: typeof record.sourceMessageId === "string" ? record.sourceMessageId : undefined,
+      sourceRunId: typeof record.sourceRunId === "string" ? record.sourceRunId : undefined,
+      fromPrincipalId: requireCliString(record.fromPrincipalId, `turns[${index}].fromPrincipalId`),
+      fromMailboxId: requireCliString(record.fromMailboxId, `turns[${index}].fromMailboxId`),
+      toMailboxIds: parseCliRequiredStringList(record.toMailboxIds, `turns[${index}].toMailboxIds`),
+      ccMailboxIds: parseCliOptionalStringList(record.ccMailboxIds),
+      kind:
+        (record.kind as
+          | "task"
+          | "question"
+          | "claim"
+          | "evidence"
+          | "draft"
+          | "review"
+          | "approval"
+          | "progress"
+          | "final_ready"
+          | "handoff"
+          | "system_notice"
+          | undefined) ?? "claim",
+      visibility: (record.visibility as "room" | "internal" | "private" | "governance" | undefined) ?? "internal",
+      subject: requireCliString(record.subject, `turns[${index}].subject`),
+      bodyText: requireCliString(record.bodyText, `turns[${index}].bodyText`),
+      createdAt: requireCliString(record.createdAt, `turns[${index}].createdAt`),
+      parentMessageId: typeof record.parentMessageId === "string" ? record.parentMessageId : undefined
+    };
+  });
+}
+
+function requireCliString(value: unknown, field: string) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(`${field} is required`);
+  }
+  return value;
+}
+
+function parseCliRequiredStringList(value: unknown, field: string) {
+  const parsed = parseCliOptionalStringList(value);
+  if (parsed.length === 0) {
+    throw new Error(`${field} is required`);
+  }
+  return parsed;
+}
+
+function parseCliOptionalStringList(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+  return [];
 }
 
 function handleRetrieve(
@@ -1754,7 +1966,16 @@ function writeUsage(stream: Pick<NodeJS.WriteStream, "write">) {
       "",
       "compatibility aliases:",
       "  rooms, replay, gateway-trace, gateway, retrieve, recover, drain, deliver-outbox, resend",
-      "  approve, reject, approvals, handoff, mailbox, quarantine, dead-letter, conflicts, accounts, memory, login"
+      "  approve, reject, approvals, handoff, mailbox, quarantine, dead-letter, conflicts, accounts, memory, login",
+      "",
+      "gateway:",
+      "  gateway resolve <sessionKey> [roomKey]",
+      "  gateway bind <sessionKey> <roomKey> [bindingKind] [sourceControlPlane] [workThreadId] [parentMessageId]",
+      "  gateway trace <roomKey>",
+      "  gateway events <jsonFile>",
+      "  gateway import-history <sessionKey> <roomKey> <jsonFile> [sourceControlPlane] [bindingKind] [frontAgentId]",
+      "  gateway sync-mail <roomKey> <messageId> [toCsv] [ccCsv] [bccCsv]",
+      "  gateway dispatch [roomKey] [limit]"
     ].join("\n") + "\n"
   );
 }

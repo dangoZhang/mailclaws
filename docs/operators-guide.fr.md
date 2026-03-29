@@ -1,187 +1,175 @@
 # Guide Opérateurs
 
-<p align="center">
-  <a href="./operators-guide.md">English</a> ·
-  <a href="./operators-guide.zh-CN.md">简体中文</a> ·
-  <a href="./operators-guide.fr.md"><strong>Français</strong></a>
-</p>
+Cette page s’adresse aux personnes qui doivent garder MailClaw en bonne santé au quotidien.
 
-Ce guide couvre les workflows opérateurs déjà implémentés, y compris la surface navigateur `/workbench/mail` ainsi que les opérations runtime et CLI/API ; ce n’est pas un guide de client mailbox complet.
+Elle se concentre sur ce qu’il faut vérifier quand les utilisateurs disent :
 
-## Portée Et Terminologie
+- « J’ai envoyé un email, est-ce que le système l’a reçu ? »
+- « Pourquoi cette room n’a-t-elle pas répondu ? »
+- « Pourquoi l’email sortant est-il encore en attente ? »
 
-Les surfaces opérateurs MailClaw sont organisées autour de :
+## Les Objets Principaux À Vérifier
 
-- `room` : frontière de collaboration durable
-- `virtual mail` : modèle de projection unifié pour messages internes/externes
-- `mailbox` : vue projetée des messages d’une room
-- `projection` : mapping des sources provider/Gateway/internal vers la vérité room
-- `approval` et `delivery` : gouvernance des effets sortants
-- `provider state` : santé compte (cursor/watch/checkpoint)
+Les opérations MailClaw sont plus simples si vous suivez le même modèle que le runtime :
 
-## Runbook Première Réponse (Vue Utilisateur Mailbox)
+- `account` : une boîte connectée et sa posture provider
+- `room` : la frontière de vérité durable d’une conversation
+- `mailbox` : la vue de collaboration interne ou publique
+- `approval` : les effets externes gouvernés
 
-À utiliser quand un utilisateur dit : "j’ai envoyé un email, est-ce bien reçu ?".
+## Triage De Première Ligne
 
-1. Vérifier la santé compte/provider :
-   - `pnpm mailctl observe accounts show <accountId>`
-   - `GET /api/accounts/:accountId/provider-state`
-2. Vérifier la création de room :
-   - `pnpm mailctl observe rooms`
-   - `pnpm mailctl observe room <roomKey>`
-3. Vérifier la projection inbox :
-   - `pnpm mailctl observe inboxes <accountId>`
-   - `pnpm mailctl observe mailbox-feed <accountId> <mailboxId>`
-4. Vérifier les emails de collaboration interne agent :
-   - `pnpm mailctl observe mailbox-view <roomKey> <mailboxId> virtual_internal`
-5. Vérifier l’état de gouvernance sortante :
-   - `pnpm mailctl observe approvals room <roomKey>`
-   - `pnpm mailctl operate deliver-outbox`
+Quand un utilisateur dit « J’ai envoyé un email, qu’est-ce qui s’est passé ? », vérifiez dans cet ordre.
 
-Chemins console équivalents :
+### 1. Account
 
+Confirmez que la boîte connectée existe et paraît saine.
+
+Commandes utiles :
+
+```bash
+mailclaw accounts
+mailclaw accounts show <accountId>
+```
+
+API utile :
+
+- `GET /api/accounts/:accountId/provider-state`
+
+### 2. Room
+
+Confirmez que MailClaw a créé ou mis à jour la room.
+
+Commandes utiles :
+
+```bash
+mailclaw rooms
+mailclaw replay <roomKey>
+```
+
+### 3. Mailbox View
+
+Si la room existe mais que le comportement reste flou, inspectez ensuite la mailbox ou l’inbox liée.
+
+Commandes utiles :
+
+```bash
+mailclaw inboxes <accountId>
+mailctl observe mailbox-feed <accountId> <mailboxId>
+mailctl observe mailbox-view <roomKey> <mailboxId>
+```
+
+### 4. Approval State
+
+Si le système a préparé une réponse mais ne l’a pas envoyée, vérifiez ensuite l’état d’approbation.
+
+Commandes utiles :
+
+```bash
+mailctl observe approvals room <roomKey>
+mailctl operate deliver-outbox
+```
+
+## Parcours Workbench
+
+Le workbench navigateur reflète le même flux de triage :
+
+1. ouvrir `Accounts`
+2. ouvrir le compte mailbox
+3. ouvrir la room
+4. sauter dans une mailbox si un détail de collaboration est nécessaire
+5. ouvrir `Approvals` si la delivery est bloquée
+
+Deep links utiles :
+
+- `/workbench/mail?mode=accounts`
+- `/workbench/mail?mode=rooms`
+- `/workbench/mail?mode=mailboxes`
+- `/workbench/mail?mode=approvals&approvalStatus=requested`
 - `/workbench/mail/accounts/:accountId`
 - `/workbench/mail/rooms/:roomKey`
 - `/workbench/mail/mailboxes/:accountId/:mailboxId`
 
-## Vérifications Quotidiennes
+## Situations Courantes
 
-Vérifications de base du service :
+### Un Email A Été Envoyé Mais Aucune Room N’Apparaît
 
-```bash
-curl -s http://127.0.0.1:3000/healthz
-curl -s http://127.0.0.1:3000/readyz
-```
+Vérifiez :
 
-Inventaire runtime :
+- la posture du compte et du provider
+- la configuration du chemin entrant
+- si le message a atteint MailClaw
 
-```bash
-pnpm mailctl observe accounts
-pnpm mailctl observe rooms
-pnpm mailctl operate quarantine
-pnpm mailctl operate dead-letter
-```
-
-Snapshots API de niveau console :
-
-- `GET /api/console/terminology`
-- `GET /api/console/accounts`
-- `GET /api/console/rooms`
-- `GET /api/console/approvals`
-- `GET /api/runtime/execution`
-- `GET /api/runtime/embedded-sessions`
-
-Workbench navigateur :
-
-- `GET /workbench/mail`
-- deep links stables sous `/workbench/mail/accounts/:accountId`, `/workbench/mail/inboxes/:accountId/:inboxId`, `/workbench/mail/rooms/:roomKey`, `/workbench/mail/mailboxes/:accountId/:mailboxId`
-
-Inspection runtime/operator :
+Commencez avec :
 
 ```bash
-pnpm mailctl observe runtime
-pnpm mailctl observe embedded-sessions [sessionKey]
+mailclaw accounts show <accountId>
+mailclaw rooms
 ```
 
-## Compte, Provider, Et Opérations D’Ingestion
+### La Room Existe Mais Il N’Y A Pas Encore De Réponse
 
-Connecter ou mettre à jour des comptes :
+Vérifiez :
+
+- le replay de la room
+- l’activité des mailboxes internes
+- l’état d’approbation
+
+Commencez avec :
 
 ```bash
-pnpm mailctl connect providers [provider]
-pnpm mailctl connect login
-pnpm mailctl connect login gmail <accountId> [displayName]
-pnpm mailctl connect login outlook <accountId> [displayName]
+mailclaw replay <roomKey>
+mailctl observe mailbox-view <roomKey> <mailboxId>
+mailctl observe approvals room <roomKey>
 ```
 
-Inspecter l’état compte/provider :
+### La Delivery Sortante Semble Bloquée
+
+Vérifiez :
+
+- si l’approbation est encore en attente
+- si une tentative de delivery a déjà eu lieu
+- si le chemin provider choisi est sain
+
+Commencez avec :
 
 ```bash
-pnpm mailctl observe accounts show <accountId>
-curl -s http://127.0.0.1:3000/api/accounts/<accountId>/provider-state
-curl -s http://127.0.0.1:3000/api/connect
-curl -s http://127.0.0.1:3000/api/connect/providers
+mailctl operate deliver-outbox
+mailctl observe approvals room <roomKey>
 ```
 
-Chemins d’ingestion :
+## APIs Utiles
 
-- Payload normalisé : `POST /api/inbound?processImmediately=true`
-- Payload MIME brut : `POST /api/inbound/raw?processImmediately=true`
-- Hooks Gmail Pub/Sub + recovery : `POST /api/accounts/:accountId/gmail/notifications`, `POST /api/accounts/:accountId/gmail/recover`
-
-## Inspection Room, Timeline, Mailbox, Et Projection
-
-Inspection principale de room :
-
-```bash
-pnpm mailctl observe room <roomKey>
-pnpm mailctl observe approvals room <roomKey>
-pnpm mailctl observe mailbox-view <roomKey> <mailboxId>
-```
-
-Surfaces mailbox/inbox multi-room :
-
-```bash
-pnpm mailctl observe inboxes <accountId>
-pnpm mailctl inboxes project <accountId> <agentId>
-pnpm mailctl inboxes console <accountId>
-pnpm mailctl observe mailbox-feed <accountId> <mailboxId>
-```
-
-Inspection de projection Gateway :
-
-```bash
-pnpm mailctl observe projection <roomKey>
-pnpm mailctl gateway resolve <sessionKey> [roomKey]
-```
-
-APIs associées :
+Inspection room et mailbox :
 
 - `GET /api/rooms/:roomKey/replay`
 - `GET /api/rooms/:roomKey/approvals`
 - `GET /api/rooms/:roomKey/mailboxes/:mailboxId`
-- `GET /api/rooms/:roomKey/gateway-projection-trace`
 - `GET /api/accounts/:accountId/inboxes`
 - `GET /api/accounts/:accountId/mailbox-console`
 - `GET /api/accounts/:accountId/mailboxes/:mailboxId/feed`
 
-## Contrôle Approval, Outbox, Recovery, Et Files
+Read models console :
 
-Actions approval/outbox :
+- `GET /api/console/workbench`
+- `GET /api/console/accounts`
+- `GET /api/console/rooms`
+- `GET /api/console/approvals`
 
-```bash
-pnpm mailctl operate approve <outboxId>
-pnpm mailctl operate reject <outboxId>
-pnpm mailctl operate resend <outboxId>
-pnpm mailctl operate deliver-outbox
-```
-
-Actions recovery et file :
-
-```bash
-pnpm mailctl operate recover [timestamp]
-pnpm mailctl operate drain [limit]
-pnpm mailctl operate dead-letter retry <jobId>
-```
-
-Équivalents HTTP :
+Delivery et recovery :
 
 - `POST /api/outbox/:outboxId/approve`
 - `POST /api/outbox/:outboxId/reject`
 - `POST /api/outbox/deliver`
 - `POST /api/recovery/room-queue`
-- `POST /api/dead-letter/room-jobs/:jobId/retry`
 
-## Raccourcis De Dépannage
+## Règle Pratique
 
-- Sortie bloquée en attente d’approbation : vérifier `mailctl approvals trace <roomKey>`, puis `approve`/`reject`.
-- État room ambigu : croiser `mailctl replay <roomKey>` avec mailbox view/feed.
-- Sync provider ambiguë : vérifier provider state et endpoints watcher/recovery.
-- Lignée Gateway ambiguë : inspecter ensemble `gateway trace` et room replay.
+Si quelque chose n’est pas clair, inspectez dans cet ordre :
 
-## Lacunes Opérateurs Connues
+1. account
+2. room
+3. mailbox
+4. approval
 
-- Un Mail workbench first-party existe à `/workbench/mail`, et `/console/*` résout vers la même coque, mais ce n’est pas encore un client mailbox complet et modifiable.
-- La sortie CLI reste majoritairement JSON et l’ergonomie de l’arbre de commandes est encore en évolution.
-- Les APIs de projection Gateway sont disponibles, mais l’auto-connexion complète aux flux d’événements Workbench amont n’est pas terminée.
-- Le câblage first-class embedded runtime/session-manager amont et la fermeture complète de l’enforcement backend restent dans le résiduel (`plan12`).
+Cet ordre suit la façon dont MailClaw est structuré, donc il mène généralement plus vite à la bonne réponse que de partir des traces d’exécution brutes.

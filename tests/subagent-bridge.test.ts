@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { loadConfig } from "../src/config.js";
+import { getAgentStateDir } from "../src/memory/agent-memory.js";
 import type { OpenClawSubAgentTransport } from "../src/subagent-bridge/openclaw.js";
 import { createMailSidecarRuntime } from "../src/orchestration/runtime.js";
 import { initializeDatabase } from "../src/storage/db.js";
@@ -180,6 +181,7 @@ describe("subagent bridge", () => {
     expect(calls.spawnInput?.targetAgentId).toBe("research-agent");
     expect(calls.spawnInput?.parentSessionKey).toBe(fixture.roomKey);
     expect(calls.spawnInput?.inputText).toContain("Never send external email");
+    expect(calls.spawnInput?.inputText).toContain("single-run compute worker");
 
     const runs = fixture.runtime.listSubAgentRuns(fixture.roomKey);
     expect(runs).toHaveLength(1);
@@ -220,6 +222,7 @@ describe("subagent bridge", () => {
     expect(replay.ledger.map((event) => event.type)).toEqual(
       expect.arrayContaining(["subagent.run.accepted", "subagent.run.completed", "virtual_mail.message_replied"])
     );
+    expect(fs.existsSync(getAgentStateDir(fixture.config, "acct-1", "research-agent"))).toBe(false);
 
     fixture.handle.close();
   });

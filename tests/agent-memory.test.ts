@@ -11,6 +11,7 @@ import {
   createAgentMemoryDraftFromLatestRoomSnapshot,
   ensureAgentWorkspace,
   getAgentStateDir,
+  getTenantAgentDirectoryPath,
   listAgentMemoryDrafts,
   reviewAgentMemoryDraft,
   rejectAgentMemoryDraft
@@ -273,6 +274,59 @@ describe("agent memory workspace", () => {
     expect(fs.readFileSync(path.join(workspace.rolesDir, "mail-write.default.md"), "utf8")).toContain(
       "Default Skill: Mail Write"
     );
+  });
+
+  it("renders richer SOUL and AGENTS files when a durable roster is known", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-agent-soul-"));
+    tempDirs.push(tempDir);
+
+    const config = loadConfig({
+      MAILCLAW_STATE_DIR: tempDir,
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+    });
+
+    const workspace = ensureAgentWorkspace(config, "tenant-c", "assistant", {
+      profile: {
+        displayName: "Founder Desk",
+        purpose: "Own the front inbox and split work across collaborators when the room needs help.",
+        publicMailboxId: "public:assistant",
+        collaboratorAgentIds: ["research", "ops"],
+        collaboratorNotes: [
+          {
+            agentId: "research",
+            reason: "evidence or attachment-heavy rooms need deeper verification"
+          }
+        ],
+        templateId: "one-person-company",
+        headcountNotes: ["Promote burst workers only after repeated inbox pressure."]
+      },
+      directoryEntries: [
+        {
+          agentId: "assistant",
+          displayName: "Founder Desk",
+          purpose: "Own the front inbox.",
+          publicMailboxId: "public:assistant",
+          virtualMailboxes: ["public:assistant", "internal:assistant:orchestrator"],
+          collaboratorAgentIds: ["research"],
+          templateId: "one-person-company"
+        },
+        {
+          agentId: "research",
+          displayName: "Research Lead",
+          purpose: "Verify claims.",
+          publicMailboxId: "public:research",
+          virtualMailboxes: ["public:research", "internal:research:orchestrator"],
+          collaboratorAgentIds: ["assistant"],
+          templateId: "one-person-company"
+        }
+      ]
+    });
+
+    expect(fs.readFileSync(workspace.soulPath, "utf8")).toContain("## Virtual Mail Addresses");
+    expect(fs.readFileSync(workspace.soulPath, "utf8")).toContain("public:assistant");
+    expect(fs.readFileSync(workspace.soulPath, "utf8")).toContain("one-person-company");
+    expect(fs.readFileSync(workspace.agentsPath, "utf8")).toContain("../research/SOUL.md");
+    expect(fs.readFileSync(getTenantAgentDirectoryPath(config, "tenant-c"), "utf8")).toContain("Research Lead");
   });
 
   it("sanitizes tenant, agent, room, and draft path segments before writing to disk", () => {

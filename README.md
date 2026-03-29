@@ -34,8 +34,10 @@ Runtime: Node.js 22+.
 3. Run `pnpm mailclaw login`
 4. Send one email from another mailbox to the connected mailbox
 5. Run `pnpm mailclaw dashboard`
+6. In OpenClaw/Gateway, sign in and click the `Mail` tab
+7. Use `pnpm mailclaw open` only when you need the direct Mail tab fallback
 
-That is the intended first-run path: start MailClaw, log in one mailbox, send one real test email, then read the conversation in the workbench. `mailclaw dashboard` opens the full `/workbench/mail` surface. `/workbench/mail/tab` uses the same Mail tab UI in embedded mode for a parent OpenClaw/Gateway workbench.
+That is the intended first-run path: start MailClaw, log in one mailbox, send one real test email, then read the conversation from the `Mail` tab inside OpenClaw/Gateway. `mailclaw` and `mailclaw gateway` start the local runtime. `mailclaw dashboard` opens the parent OpenClaw/Gateway console when `MAILCLAW_OPENCLAW_PUBLIC_BASE_URL` or `OPENCLAW_PUBLIC_BASE_URL` is configured, otherwise it falls back to the local Mail tab. `mailclaw open` always opens the direct `/workbench/mail` fallback, and `/workbench/mail/tab` exposes the same UI in embedded mode for the parent workbench.
 
 If you are not sure which provider path to choose, just run `pnpm mailclaw login`. The interactive wizard starts from your email address and uses common defaults when it recognizes the domain, otherwise it falls back to generic IMAP/SMTP prompts.
 
@@ -80,7 +82,7 @@ MailClaw reuses OpenClaw ecosystem entry points (Gateway, runtime substrate, and
 - Each agent workspace auto-bootstraps `SOUL.md`, `AGENTS.md`, `MEMORY.md`, plus default `roles/mail-read.default.md` and `roles/mail-write.default.md` guidance that is summarized into orchestration turns
 - Gateway-linked rooms now auto-record outcome projections for `final_ready` style results, expose a unified `POST /api/gateway/events` ingress seam, and show those traces in replay, API, and Mail workbench views
 - HTTP and CLI inspection surfaces for rooms, approvals, provider state, inbox projections, mailbox console/feed, gateway projection traces, and runtime execution boundaries / embedded sessions
-- Browser workbench entry at `/workbench/mail`, with the same Mail tab shell reused at `/workbench/mail/tab` for embedded hosting; `/dashboard`, `/mail`, and `/console/*` stay as compatibility aliases for accounts, rooms, approvals, mailboxes, and gateway trace inspection
+- OpenClaw-aligned browser flow: `mailclaw dashboard` opens the parent Gateway/Workbench when configured, while `mailclaw open` and `/workbench/mail` remain the direct Mail tab fallback and `/workbench/mail/tab` remains the embedded entry for host mounting
 - Host/workbench integration manifest at `GET /api/console/workbench-host`, so a parent Gateway/OpenClaw workbench can discover the Mail tab entrypoint and preferred embedded shell
 
 ## Agent Defaults
@@ -125,8 +127,10 @@ If you are used to normal mail clients, treat MailClaw setup as "start app -> lo
 2. Ask MailClaw for the easiest path first: `pnpm mailclaw onboard you@example.com`
 3. Log in a mailbox account: `pnpm mailclaw login`
 4. Send one test mail from another mailbox to that connected mailbox
-5. Open `http://127.0.0.1:3000/workbench/mail`
-6. Open the connected account page from the browser and read the room
+5. Run `pnpm mailclaw dashboard`
+6. In the OpenClaw/Gateway workbench, click `Mail`
+7. Open the connected account page and read the room
+8. If you need the direct fallback instead, run `pnpm mailclaw open` or open `http://127.0.0.1:3000/workbench/mail`
 
 If you want CLI confirmation after the browser flow:
 
@@ -155,7 +159,7 @@ To inspect the durable room summary that agents actually carry forward:
 
 ## Current Boundaries
 
-- A browser Mail workbench entry is shipped at `/workbench/mail`, and `/console/*` now resolves to the same OpenClaw-style shell instead of a separate legacy console.
+- A browser Mail workbench entry is shipped at `/workbench/mail`, but the intended host flow is now OpenClaw/Gateway first via `mailclaw dashboard`, then `Mail`.
 - This is still an operator/workbench Mail tab, not a full Outlook-like write-capable mailbox client yet.
 - Gateway outcome traces now auto-project once a room is Gateway-bound, but full upstream Gateway ingress/Workbench automation is still incomplete in this repo.
 - Mailbox connection guidance now exists in CLI/API form, but MailClaw still does not provision provider-side DNS, Pub/Sub topics, forwarding rules, or mailbox policies for you.
@@ -165,18 +169,19 @@ To inspect the durable room summary that agents actually carry forward:
 
 When MailClaw is deployed next to OpenClaw, it now inherits a safe subset of OpenClaw-style environment variables when the MailClaw-specific ones are unset:
 
-- `OPENCLAW_PUBLIC_BASE_URL -> MAILCLAW_PUBLIC_BASE_URL`
+- `OPENCLAW_PUBLIC_BASE_URL -> MAILCLAW_OPENCLAW_PUBLIC_BASE_URL`
 - `OPENCLAW_BASE_URL -> MAILCLAW_OPENCLAW_BASE_URL`
 - `OPENCLAW_GATEWAY_TOKEN -> MAILCLAW_OPENCLAW_GATEWAY_TOKEN`
 - `OPENCLAW_AGENT_ID -> MAILCLAW_OPENCLAW_AGENT_ID`
 - `OPENCLAW_SESSION_PREFIX -> MAILCLAW_OPENCLAW_SESSION_PREFIX`
 
-This keeps workbench links and bridge wiring aligned without forcing the same values to be duplicated in two env files.
+This keeps the parent Gateway URL and bridge wiring aligned without forcing the same values to be duplicated in two env files. MailClaw's own direct workbench URL stays separate under `MAILCLAW_PUBLIC_BASE_URL`.
 
 ## Documentation
 
 - [Docs Index (English)](./docs/index.md)
 - [Getting Started (English)](./docs/getting-started.md)
+- [Multi-Agent Collaboration (English)](./docs/multi-agent-workflows.md)
 - [Mail Workbench (English)](./docs/operator-console.md)
 - [Operators Guide (English)](./docs/operators-guide.md)
 - [Integrations (English)](./docs/integrations.md)
@@ -238,7 +243,7 @@ Then use the user-facing shortcuts:
 ```bash
 pnpm mailclaw onboard you@example.com
 pnpm mailclaw login
-pnpm mailclaw open
+pnpm mailclaw dashboard
 ```
 
 Use OpenClaw bridge mode when you want to hand execution over to an upstream OpenClaw runtime:

@@ -689,7 +689,9 @@ function emitSubAgentReply(
 function buildSubAgentInput(taskMessage: VirtualMessage, parentSessionKey: string) {
   return [
     "You are handling an internal MailClaw subagent task.",
+    "You are a single-run compute worker. Do not assume a durable SOUL.md, identity memory, or long-lived mailbox persona.",
     "Return only internal analysis output. Never send external email or invoke external side effects.",
+    "Your result only becomes business truth after MailClaw normalizes it into a single-parent internal reply mail.",
     "Respond with JSON when possible: { summary, status, facts[], openQuestions[], recommendedAction, draftReply }.",
     `Parent or child session: ${parentSessionKey}`,
     `Task message id: ${taskMessage.messageId}`,

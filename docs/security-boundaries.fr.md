@@ -27,5 +27,4 @@ Ces controles sont volontairement conservateurs pour limiter les boucles mail, l
 ## Validation de release
 
 - Executer `pnpm test:security` pour verifier les regressions de redaction/exposition.
-- Executer [Live Provider Smoke](./live-provider-smoke.fr.md) quand de vrais identifiants sont disponibles.
 - Garder les claims de frontiere alignes avec [ADR-001 Architecture](./adr/ADR-001-architecture.md).

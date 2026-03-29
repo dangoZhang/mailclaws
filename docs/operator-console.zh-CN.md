@@ -1,77 +1,142 @@
 # Mail Workbench
 
-<p align="center">
-  <a href="./operator-console.md">English</a> ·
-  <a href="./operator-console.zh-CN.md"><strong>简体中文</strong></a> ·
-  <a href="./operator-console.fr.md">Français</a>
-</p>
+Mail Workbench 是 MailClaw 面向用户的主界面。
 
-MailClaw 现在已经内置 `/workbench/mail` 的 OpenClaw 风格浏览器 workbench。它是 MailClaw 的邮件页，用来在一个浏览器视图里查看 rooms、approvals、provider state、mailbox projection 和 Gateway trace。
+在推荐形态里，它会作为 OpenClaw/Gateway 里的 `Mail` 标签页出现。`/workbench/mail` 只是直达兜底和 deep link 入口。
 
-当前规范入口是 `/workbench/mail`。`/workbench/mail/tab` 会以嵌入模式复用同一套 UI，`/mail` 与 `/console/*` 则作为指向同一 shell 的兼容别名。
+## 打开方式
 
-## 入口路由
+推荐：
+
+```bash
+mailclaw dashboard
+```
+
+然后登录 OpenClaw/Gateway，点击 `Mail`。
+
+兜底：
+
+```bash
+mailclaw open
+```
+
+## 每个标签页代表什么
+
+### Mail
+
+入口页。
+
+适合：
+
+- 第一次连接邮箱
+- 先看推荐 provider 路径
+- 从最短路径重新进入 Mail 标签
+
+### Accounts
+
+账号视图。
+
+适合：
+
+- 确认邮箱是否已经连接
+- 查看 provider 状态和总体健康度
+- 跳进该账号下的 room 或 mailbox 视图
+
+### Rooms
+
+Room 视图。
+
+适合：
+
+- 以 durable state 的方式查看会话
+- 检查 revision、参与者、审批和 timeline
+- 追踪为什么最新回复会长成现在这样
+- 在一个 room 里直接看清 virtual mail、mailbox delivery 和 governed outbox
+
+### Mailboxes
+
+内部协作视图。
+
+适合：
+
+- 查看某个 public 或 internal mailbox
+- 理解某个 agent role 实际看到了什么
+- 在不先读完整 room timeline 的情况下检查内部协作
+
+### Approvals
+
+审批视图。
+
+适合：
+
+- 查看待处理的外发审批
+- 在真实外发前检查治理链路
+
+## 一个典型用户路径
+
+最常见的是：
+
+1. 打开 `Accounts`
+2. 选中已连接账号
+3. 打开新 room
+4. 如有需要，跳到某个 mailbox participant
+5. 如有需要，打开 `Approvals`
+
+这和 MailClaw 的运行时模型是一致的：
+
+- account 给你 provider 和 mailbox 范围
+- room 给你 durable truth
+- mailbox 给你协作细节
+- approvals 给你副作用控制
+
+## 在一个 Room 里看多智能体协作
+
+打开 room 后，按这个顺序看：
+
+1. `Room Summary`
+2. `Virtual Mail`
+3. `Mailbox Deliveries`
+4. `Governed Outbox`
+5. `Gateway Projection`
+
+这能帮助你快速看清：
+
+- 哪些内部角色参与了协作
+- 哪条任务或回复被投递到哪个 mailbox
+- 哪些 delivery 被 consumed，哪些已经 stale
+- 哪个内部结果真正进入了外发候选
+
+如果你还想看某个角色自己的视角，再点击 room 里的 mailbox chip。
+
+## 常用深链
 
 - `/workbench/mail`
+- `/workbench/mail?mode=accounts`
+- `/workbench/mail?mode=rooms`
+- `/workbench/mail?mode=mailboxes`
+- `/workbench/mail?mode=approvals&approvalStatus=requested`
 - `/workbench/mail/accounts/:accountId`
-- `/workbench/mail/inboxes/:accountId/:inboxId`
 - `/workbench/mail/rooms/:roomKey`
 - `/workbench/mail/mailboxes/:accountId/:mailboxId`
 
-这些路由可以稳定深链。`/mail` 与 `/console/*` 仍可兼容访问。当前第一批 UI 过滤参数为：
+这些路径的目标是让你无论从 Gateway 进入还是从直达页进入，都能稳定落到同一视图。
 
-- `status`
-- `originKind`
-- `mailboxId`
-- `approvalStatus`
+## 这套界面的定位
 
-## 30 秒定位内部 Agent Mailbox
+Mail Workbench 不是普通聊天历史查看器。
 
-邮件用户建议按这个最短路径操作：
+它要展示的是：
 
-1. 打开 `/workbench/mail/accounts/:accountId`
-2. 点击刚收到邮件的 room
-3. 在 room 详情里打开一个 mailbox 参与者
-4. 跳转到 `/workbench/mail/mailboxes/:accountId/:mailboxId` 检查该 mailbox 的 feed 与投递状态
+- connected accounts
+- durable rooms
+- internal/public mailboxes
+- approval state
 
-CLI 对应命令：
+也就是 MailClaw 运行时真正关心的那套对象。
 
-- `pnpm mailctl mailbox feed <accountId> <mailboxId>`
-- `pnpm mailctl mailbox view <roomKey> <mailboxId>`
+## 延伸阅读
 
-## 第一阶段已覆盖内容
-
-- `Accounts`：账号健康、provider 模式、room 数量、待审批数量
-- `Rooms`：room 列表、状态、attention 等级、来源、审批数、delivery 数
-- `Detail`：room 摘要、timeline、包含自动 outcome projection 记录的 gateway projection trace、mailbox 参与情况、public inbox deep link 下的 inbox-first 详情，或者在 mailbox deep link 下显示 mailbox-first 详情
-- `Provider + Mailboxes`：provider state 摘要、public inbox 策略摘要、mailbox 列表、mailbox feed
-- `Approvals`：待处理或历史审批项，并可跳转回 room
-
-本轮发布打磨补充：
-
-- Hero 里新增了显式边界状态条（只读、是否邮箱客户端、Workbench tab 状态、Gateway round-trip 状态）。
-- workbench 风格 tab strip 现在会暴露 `Connect`、`Accounts`、`Rooms`、`Mailboxes`、`Approvals` 五个顶层视图。
-- Room 详情新增 timeline 分类计数（`provider`、`ledger`、`virtual_mail`、`approval`、`delivery`），方便排障。
-- Room 卡片新增 attention 标识（`stable | watch | critical`），便于优先级排序。
-
-## 数据来源
-
-该 Mail workbench 坚持 kernel-first、API-first：
-
-- `GET /api/console/workbench`
-- `GET /api/console/terminology`
-- `GET /api/console/accounts`
-- `GET /api/console/rooms`
-- `GET /api/console/approvals`
-- `GET /api/accounts/:accountId/mailbox-console`
-- `GET /api/accounts/:accountId/mailboxes/:mailboxId/feed`
-
-页面不会直接读取存储表，也不会把 Gateway transcript 当成业务真相源。
-最新一轮 UI 已可直接使用聚合的 `GET /api/console/workbench` 读取面，原来的细粒度接口继续保留给排障和兼容层使用。
-
-## 当前边界
-
-- 当前 Mail tab 在这一阶段仍然是只读的。
-- 它是浏览器里的邮件工作台，不是完整的 Outlook 风格邮箱客户端。
-- `/workbench/mail`、`/workbench/mail/tab` 与 `/console/*` 现在都会落到同一套 OpenClaw 风格 shell，而不是分裂成多套 UI。
-- 已绑定 Gateway 的 room 现在能看到自动 outcome trace，但完整的 Gateway 自动 ingress / Workbench 生产级接线仍未完成。
+- [核心概念](./concepts.zh-CN.md)
+- [多智能体协作](./multi-agent-workflows.zh-CN.md)
+- [快速开始](./getting-started.zh-CN.md)
+- [集成](./integrations.zh-CN.md)

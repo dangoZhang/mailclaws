@@ -28,17 +28,20 @@ server.listen(config.http.port, config.http.host, () => {
   });
   if (process.stdout.isTTY) {
     const baseUrl = config.http.publicBaseUrl.trim() || `http://${config.http.host}:${String(config.http.port)}`;
-    const consoleUrl = `${baseUrl}/workbench/mail`;
+    const mailTabUrl = `${baseUrl}/workbench/mail`;
+    const gatewayUrl = config.openClaw.publicBaseUrl.trim();
     console.log(
       [
         "",
         "MailClaw is ready.",
-        `Dashboard ${consoleUrl}`,
+        `Gateway ${gatewayUrl || "not configured"}`,
+        `Mail tab ${mailTabUrl}`,
         `Health ${baseUrl}/healthz`,
         "",
         "Next:",
         "  mailclaw onboard you@example.com",
         "  mailclaw login",
+        "  mailclaw gateway",
         "  mailclaw dashboard"
       ].join("\n")
     );

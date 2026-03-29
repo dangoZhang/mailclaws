@@ -1,5 +1,6 @@
-import path from "node:path";
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 
 import type { AppConfig } from "../config.js";
@@ -95,10 +96,19 @@ import {
   resolveOAuthProvider
 } from "../auth/oauth-providers.js";
 import {
+  buildAgentDirectoryEntry,
+  buildAgentVirtualMailboxes,
+  getAgentTemplate,
+  listAgentTemplateDefinitions,
+  listAgentTemplates as listConfiguredAgentTemplates,
+  recommendAgentHeadcount
+} from "../agents/templates.js";
+import {
   approveAgentMemoryDraft,
   createAgentMemoryDraftFromLatestRoomSnapshot,
   ensureAgentWorkspace,
   findAgentMemoryDraft,
+  getTenantStateDir,
   listAgentMemoryDrafts,
   rejectAgentMemoryDraft,
   resolveAgentMemoryDraftNamespaces,
@@ -144,9 +154,11 @@ import {
   type MailOutboxStatus,
   updateMailOutboxStatus
 } from "../storage/repositories/mail-outbox.js";
+import { persistOutboxArtifact } from "../storage/artifacts.js";
 import {
   findApprovalRequestByReferenceId,
   findControlPlaneOutboxByReferenceId,
+  insertControlPlaneOutboxRecord,
   listApprovalRequestsForRoom,
   listControlPlaneOutboxByStatus,
   listControlPlaneOutboxForRoom,
@@ -160,7 +172,21 @@ import {
   upsertMemoryNamespace,
   upsertMemoryPromotion
 } from "../storage/repositories/memory-registry.js";
-import { findLatestMailMessageForThread } from "../storage/repositories/mail-messages.js";
+import {
+  findLatestMailMessageForThread,
+  findMailMessageByDedupeKey,
+  insertMailMessage,
+  listMailMessagesForThread
+} from "../storage/repositories/mail-messages.js";
+import { getLatestRoomPreSnapshot } from "../storage/repositories/room-pre-snapshots.js";
+import { getVirtualMessage } from "../storage/repositories/virtual-messages.js";
+import { renderPreToMail } from "../reporting/compose.js";
+import {
+  normalizeAndValidateOutboundHeaders,
+  validateOutboundRecipients
+} from "../reporting/rfc.js";
+import { buildParticipantFingerprint, normalizeSubject } from "../threading/dedupe.js";
+import { filterInternalAliasRecipients } from "../threading/mailbox-routing.js";
 import {
   ingestIncomingMail,
   type LeasedRoomJob,
@@ -221,7 +247,6 @@ import {
   getOAuthLoginSessionByState,
   upsertOAuthLoginSession
 } from "../storage/repositories/oauth-login-sessions.js";
-import { getVirtualMessage } from "../storage/repositories/virtual-messages.js";
 import { listScheduledMailJobs } from "../storage/repositories/scheduled-mail-jobs.js";
 import {
   cancelScheduledMailJob,
@@ -289,7 +314,8 @@ export interface RuntimeWatcherOptions {
 type GatewayRuntimeEvent =
   | ({ type: "gateway.session.bind" } & Parameters<typeof bindGatewaySessionToRoom>[1])
   | ({ type: "gateway.turn.project" } & Parameters<typeof projectGatewayTurnToVirtualMail>[1])
-  | ({ type: "gateway.outcome.project" } & Parameters<typeof projectRoomOutcomeToGateway>[1]);
+  | ({ type: "gateway.outcome.project" } & Parameters<typeof projectRoomOutcomeToGateway>[1])
+  | ({ type: "gateway.history.import" } & Omit<Parameters<typeof importGatewayThreadHistory>[1], "stateDir">);
 
 export interface RuntimeIngestInput extends IngestIncomingMailInput {
   processImmediately?: boolean;
@@ -343,6 +369,21 @@ export interface RuntimeOAuthCompleteInput {
   error?: string;
   errorDescription?: string;
   signal?: AbortSignal;
+}
+
+export interface RuntimeRoomMailSyncInput {
+  roomKey: string;
+  messageId: string;
+  subject?: string;
+  body?: string;
+  kind?: MailOutboxRecord["kind"];
+  mailboxAddress?: string;
+  to?: string[];
+  cc?: string[];
+  bcc?: string[];
+  createdAt?: string;
+  approvalRequired?: boolean;
+  requireApproval?: boolean;
 }
 
 export type RuntimeGmailOAuthStartInput = Omit<RuntimeOAuthStartInput, "provider" | "tenant">;
@@ -1088,6 +1129,97 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
       virtualMailboxes: listVirtualMailboxesForAccount(deps.db, accountId)
     };
   };
+  const collectAccountSubagentRunCounts = (accountId: string) => {
+    const counts: Record<string, number> = {};
+    for (const room of listThreadRooms(deps.db).filter((entry) => entry.accountId === accountId)) {
+      for (const run of listSubAgentRunsForRoom(deps.db, room.roomKey)) {
+        const target = getSubAgentTarget(deps.db, run.targetId);
+        const key = target?.mailboxId ?? run.targetId;
+        counts[key] = (counts[key] ?? 0) + 1;
+      }
+    }
+    return counts;
+  };
+  const listAgentDirectory = (input: {
+    tenantId: string;
+    accountId?: string;
+  }) => {
+    const agentRoot = path.join(getTenantStateDir(deps.config, input.tenantId), "agents");
+    const knownTemplates = listAgentTemplateDefinitions();
+    const templateIndex = new Map(
+      knownTemplates.flatMap((template) =>
+        template.persistentAgents.map((agent) => [
+          agent.agentId,
+          {
+            templateId: template.templateId,
+            agent
+          }
+        ] as const)
+      )
+    );
+    const accountMailboxes = input.accountId ? listVirtualMailboxesForAccount(deps.db, input.accountId) : [];
+    const inboxes = input.accountId ? listPublicAgentInboxesForAccount(deps.db, input.accountId) : [];
+    const filesystemAgents = fs.existsSync(agentRoot)
+      ? fs
+          .readdirSync(agentRoot, { withFileTypes: true })
+          .filter((entry) => entry.isDirectory())
+          .map((entry) => entry.name)
+      : [];
+    const accountAgents = Array.from(
+      new Set([
+        ...inboxes.map((inbox) => inbox.agentId),
+        ...accountMailboxes
+          .filter((mailbox) => mailbox.kind !== "system")
+          .map((mailbox) => mailbox.principalId?.replace(/^principal:/, ""))
+          .filter((value): value is string => typeof value === "string" && value.length > 0)
+      ])
+    );
+    const agentIds = Array.from(new Set([...filesystemAgents, ...accountAgents])).sort((left, right) =>
+      left.localeCompare(right)
+    );
+
+    return agentIds.map((agentId) => {
+      const templateRecord = templateIndex.get(agentId);
+      const agentMailboxes = accountMailboxes
+        .filter(
+          (mailbox) =>
+            mailbox.principalId === `principal:${agentId}` ||
+            mailbox.mailboxId === templateRecord?.agent.publicMailboxId
+        )
+        .map((mailbox) => mailbox.mailboxId);
+      const entry = templateRecord
+        ? buildAgentDirectoryEntry({
+            templateId: templateRecord.templateId,
+            agent: templateRecord.agent
+          })
+        : {
+            agentId,
+            displayName: agentId,
+            purpose: "Durable MailClaw agent with its own workspace soul and memory boundary.",
+            publicMailboxId: `public:${agentId}`,
+            virtualMailboxes: [],
+            collaboratorAgentIds: []
+          };
+
+      return {
+        ...entry,
+        inbox: inboxes.find((inbox) => inbox.agentId === agentId) ?? null,
+        virtualMailboxes: Array.from(new Set([...entry.virtualMailboxes, ...agentMailboxes])).sort((left, right) =>
+          left.localeCompare(right)
+        )
+      };
+    });
+  };
+  const listHeadcountRecommendations = (accountId?: string) => {
+    const activeRoomCount = accountId
+      ? listThreadRooms(deps.db).filter((room) => room.accountId === accountId && room.state !== "done").length
+      : 0;
+
+    return recommendAgentHeadcount({
+      activeRoomCount,
+      subagentRunCounts: accountId ? collectAccountSubagentRunCounts(accountId) : {}
+    });
+  };
   const redactMailAccountSettings = (settings: Record<string, unknown>) => {
     const watch =
       settings.watch && typeof settings.watch === "object" ? (settings.watch as Record<string, unknown>) : null;
@@ -1250,8 +1382,24 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
     const connectPlan = buildConnectOnboardingPlan({
       emailAddress: selectedAccount?.emailAddress
     });
+    const templateAccountId = input.selectedAccountId ?? input.accounts[0]?.accountId ?? null;
+    const templateTenantId = templateAccountId ?? "default";
     const standaloneBasePath = "/workbench/mail";
     const embeddedBasePath = "/workbench/mail/tab";
+    const buildTabHref = (
+      basePath: string,
+      mode: string,
+      extraParams?: Record<string, string | null | undefined>
+    ) => {
+      const params = new URLSearchParams();
+      params.set("mode", mode);
+      for (const [key, value] of Object.entries(extraParams ?? {})) {
+        if (value) {
+          params.set(key, value);
+        }
+      }
+      return `${basePath}?${params.toString()}`;
+    };
 
     return {
       activeTab,
@@ -1271,63 +1419,78 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
           readOnly: true,
           approvals: true,
           internalMail: true,
-          gatewayTrace: true
+          gatewayTrace: true,
+          gatewayIngress: true,
+          outboundMailSync: true
+        },
+        apis: {
+          gatewayEvents: "/api/gateway/events",
+          gatewayHistoryImport: "/api/gateway/history/import",
+          gatewayOutcomeDispatch: "/api/gateway/outcomes/dispatch",
+          roomMessageEmailSync: "/api/rooms/:roomKey/messages/:messageId/sync-email",
+          outboxDeliver: "/api/outbox/deliver"
         }
       },
       tabs: [
         {
           id: "mail",
           label: "Mail",
-          href: standaloneBasePath,
-          embeddedHref: embeddedBasePath,
+          href: buildTabHref(standaloneBasePath, "connect"),
+          embeddedHref: buildTabHref(embeddedBasePath, "connect"),
           active: activeTab === "mail" || activeTab === "connect",
           count: null
         },
         {
           id: "accounts",
           label: "Accounts",
-          href: input.selectedAccountId ? `${standaloneBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}` : standaloneBasePath,
-          embeddedHref: input.selectedAccountId ? `${embeddedBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}` : embeddedBasePath,
+          href: buildTabHref(standaloneBasePath, "accounts", {
+            accountId: input.selectedAccountId
+          }),
+          embeddedHref: buildTabHref(embeddedBasePath, "accounts", {
+            accountId: input.selectedAccountId
+          }),
           active: activeTab === "accounts",
           count: input.accounts.length
         },
         {
           id: "rooms",
           label: "Rooms",
-          href: input.selectedRoomKey ? `${standaloneBasePath}/rooms/${encodeURIComponent(input.selectedRoomKey)}` : standaloneBasePath,
-          embeddedHref: input.selectedRoomKey ? `${embeddedBasePath}/rooms/${encodeURIComponent(input.selectedRoomKey)}` : embeddedBasePath,
+          href: buildTabHref(standaloneBasePath, "rooms", {
+            accountId: input.selectedAccountId,
+            roomKey: input.selectedRoomKey
+          }),
+          embeddedHref: buildTabHref(embeddedBasePath, "rooms", {
+            accountId: input.selectedAccountId,
+            roomKey: input.selectedRoomKey
+          }),
           active: activeTab === "rooms",
           count: input.rooms.length
         },
         {
           id: "mailboxes",
           label: "Mailboxes",
-          href:
-            input.selectedAccountId && input.selectedMailboxId
-              ? `${standaloneBasePath}/mailboxes/${encodeURIComponent(input.selectedAccountId)}/${encodeURIComponent(input.selectedMailboxId)}`
-              : input.selectedAccountId
-                ? `${standaloneBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}`
-                : standaloneBasePath,
-          embeddedHref:
-            input.selectedAccountId && input.selectedMailboxId
-              ? `${embeddedBasePath}/mailboxes/${encodeURIComponent(input.selectedAccountId)}/${encodeURIComponent(input.selectedMailboxId)}`
-              : input.selectedAccountId
-                ? `${embeddedBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}`
-                : embeddedBasePath,
+          href: buildTabHref(standaloneBasePath, "mailboxes", {
+            accountId: input.selectedAccountId,
+            mailboxId: input.selectedMailboxId
+          }),
+          embeddedHref: buildTabHref(embeddedBasePath, "mailboxes", {
+            accountId: input.selectedAccountId,
+            mailboxId: input.selectedMailboxId
+          }),
           active: activeTab === "mailboxes",
           count: input.mailboxConsole?.virtualMailboxes?.length ?? 0
         },
         {
           id: "approvals",
           label: "Approvals",
-          href:
-            input.selectedAccountId
-              ? `${standaloneBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}?approvalStatus=requested`
-              : `${standaloneBasePath}?approvalStatus=requested`,
-          embeddedHref:
-            input.selectedAccountId
-              ? `${embeddedBasePath}/accounts/${encodeURIComponent(input.selectedAccountId)}?approvalStatus=requested`
-              : `${embeddedBasePath}?approvalStatus=requested`,
+          href: buildTabHref(standaloneBasePath, "approvals", {
+            accountId: input.selectedAccountId,
+            approvalStatus: "requested"
+          }),
+          embeddedHref: buildTabHref(embeddedBasePath, "approvals", {
+            accountId: input.selectedAccountId,
+            approvalStatus: "requested"
+          }),
           active: activeTab === "approvals",
           count: input.approvals.length
         }
@@ -1336,14 +1499,22 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
         browserPath: standaloneBasePath,
         embeddedBrowserPath: embeddedBasePath,
         onboardingApiPath: "/api/connect/onboarding",
-        recommendedStartCommand: "mailctl connect start you@example.com",
-        recommendedLoginCommand: "mailctl connect login",
+        recommendedStartCommand: "mailclaw onboard you@example.com",
+        recommendedLoginCommand: "mailclaw login",
+        templateApplyAccountId: templateAccountId,
+        templateApplyTenantId: templateTenantId,
         defaultPlan: connectPlan,
         providerOptions: listConnectProviderGuides().map((guide) => ({
           id: guide.id,
           displayName: guide.displayName,
           setupKind: guide.setupKind
-        }))
+        })),
+        agentTemplates: listConfiguredAgentTemplates(),
+        agentDirectory: listAgentDirectory({
+          tenantId: templateTenantId,
+          accountId: templateAccountId ?? undefined
+        }),
+        headcountRecommendations: listHeadcountRecommendations(templateAccountId ?? undefined)
       },
       mailboxWorkspace: input.selectedAccountId
         ? {
@@ -1906,6 +2077,15 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
                 type: event.type,
                 result: projectGatewayTurnToVirtualMail(deps.db, event)
               };
+            case "gateway.history.import":
+              return {
+                index,
+                type: event.type,
+                result: importGatewayThreadHistory(deps.db, {
+                  ...event,
+                  stateDir: deps.config.storage.stateDir
+                })
+              };
             case "gateway.outcome.project": {
               const projected = projectRoomOutcomeToGateway(deps.db, event);
               void autoDispatchGatewayOutcomesForRoom(projected.roomKey);
@@ -1929,6 +2109,13 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
         ...input,
         stateDir: deps.config.storage.stateDir
       });
+    },
+    syncRoomMessageToEmail(input: RuntimeRoomMailSyncInput & { htmlBody?: string; approvalRequired?: boolean }) {
+      try {
+        return queueRoomMessageEmailSync(deps.db, deps.config, input);
+      } catch (error) {
+        throw coerceRuntimeApiError(error);
+      }
     },
     getGatewayProjectionTrace(roomKey: string) {
       const replay = replayRoom(deps.db, roomKey);
@@ -2129,6 +2316,224 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
           href: tab.href,
           embeddedHref: tab.embeddedHref ?? tab.href
         }))
+      };
+    },
+    listAgentTemplates() {
+      return listConfiguredAgentTemplates();
+    },
+    getAgentDirectory(input: {
+      tenantId: string;
+      accountId?: string;
+    }) {
+      return listAgentDirectory(input);
+    },
+    getHeadcountRecommendations(accountId?: string) {
+      return listHeadcountRecommendations(accountId);
+    },
+    applyAgentTemplate(input: {
+      templateId: string;
+      accountId: string;
+      tenantId?: string;
+      now?: string;
+    }) {
+      const template = getAgentTemplate(input.templateId);
+      if (!template) {
+        throw new RuntimeApiError(`agent template not found: ${input.templateId}`, 404);
+      }
+
+      const now = input.now ?? new Date().toISOString();
+      const tenantId = input.tenantId ?? input.accountId;
+      const directoryEntries = template.persistentAgents.map((agent) =>
+        buildAgentDirectoryEntry({
+          templateId: template.templateId,
+          agent
+        })
+      );
+
+      const createdAgents = template.persistentAgents.map((agent) => {
+        const workspace = ensureAgentWorkspace(deps.config, tenantId, agent.agentId, {
+          profile: {
+            displayName: agent.displayName,
+            purpose: agent.purpose,
+            publicMailboxId: agent.publicMailboxId,
+            collaboratorAgentIds: agent.collaborators.map((entry) => entry.agentId),
+            collaboratorNotes: agent.collaborators,
+            templateId: template.templateId,
+            headcountNotes: template.headcount.notes
+          },
+          directoryEntries
+        });
+
+        for (const mailbox of buildAgentVirtualMailboxes({
+          accountId: input.accountId,
+          agentId: agent.agentId,
+          publicMailboxId: agent.publicMailboxId,
+          now,
+          visibilityPolicyRef: agent.visibilityPolicyRef,
+          capabilityPolicyRef: agent.capabilityPolicyRef
+        })) {
+          upsertVirtualMailbox(deps.db, mailbox);
+        }
+
+        ensurePublicAgentInbox(deps.db, {
+          accountId: input.accountId,
+          agentId: agent.agentId,
+          activeRoomLimit: agent.inbox.activeRoomLimit,
+          ackSlaSeconds: agent.inbox.ackSlaSeconds,
+          burstCoalesceSeconds: agent.inbox.burstCoalesceSeconds,
+          now
+        });
+
+        return {
+          agentId: agent.agentId,
+          displayName: agent.displayName,
+          workspace
+        };
+      });
+
+      for (const target of template.subagentTargets) {
+        upsertVirtualMailbox(deps.db, {
+          mailboxId: target.mailboxId,
+          accountId: input.accountId,
+          kind: "system",
+          principalId: `principal:${target.mailboxId}`,
+          active: true,
+          createdAt: now,
+          updatedAt: now
+        });
+        saveSubAgentTarget(deps.db, {
+          targetId: target.targetId,
+          accountId: input.accountId,
+          mailboxId: target.mailboxId,
+          openClawAgentId: target.openClawAgentId,
+          mode: "burst",
+          sandboxMode: target.sandboxMode,
+          maxActivePerRoom: target.maxActivePerRoom,
+          maxQueuedPerInbox: target.maxQueuedPerInbox,
+          allowExternalSend: false,
+          resultSchema: target.resultSchema,
+          enabled: true,
+          createdAt: now,
+          updatedAt: now
+        });
+      }
+
+      return {
+        templateId: template.templateId,
+        accountId: input.accountId,
+        tenantId,
+        createdAgents: createdAgents.map((agent) => ({
+          agentId: agent.agentId,
+          displayName: agent.displayName,
+          soulPath: agent.workspace.soulPath,
+          agentsPath: agent.workspace.agentsPath
+        })),
+        agentDirectory: listAgentDirectory({
+          tenantId,
+          accountId: input.accountId
+        }),
+        headcountRecommendations: listHeadcountRecommendations(input.accountId)
+      };
+    },
+    createCustomAgent(input: {
+      accountId: string;
+      tenantId?: string;
+      agentId: string;
+      displayName?: string;
+      purpose?: string;
+      publicMailboxId?: string;
+      collaboratorAgentIds?: string[];
+      activeRoomLimit?: number;
+      ackSlaSeconds?: number;
+      burstCoalesceSeconds?: number;
+      now?: string;
+    }) {
+      const now = input.now ?? new Date().toISOString();
+      const tenantId = input.tenantId ?? input.accountId;
+      const publicMailboxId = input.publicMailboxId?.trim() || `public:${input.agentId}`;
+      const existingDirectory = listAgentDirectory({
+        tenantId,
+        accountId: input.accountId
+      });
+      const directoryEntries = [
+        ...existingDirectory.map((entry) => ({
+          agentId: entry.agentId,
+          displayName: entry.displayName,
+          purpose: entry.purpose,
+          publicMailboxId: entry.publicMailboxId,
+          virtualMailboxes: entry.virtualMailboxes,
+          collaboratorAgentIds: entry.collaboratorAgentIds,
+          ...(entry.templateId ? { templateId: entry.templateId } : {})
+        })),
+        {
+          agentId: input.agentId,
+          displayName: input.displayName?.trim() || input.agentId,
+          purpose:
+            input.purpose?.trim() ||
+            "Custom durable MailClaw agent for work splitting, review, and reusable inbox ownership.",
+          publicMailboxId,
+          virtualMailboxes: buildAgentVirtualMailboxes({
+            accountId: input.accountId,
+            agentId: input.agentId,
+            publicMailboxId,
+            now
+          }).map((mailbox) => mailbox.mailboxId),
+          collaboratorAgentIds: input.collaboratorAgentIds ?? []
+        }
+      ].filter(
+        (entry, index, array) => array.findIndex((candidate) => candidate.agentId === entry.agentId) === index
+      );
+
+      const workspace = ensureAgentWorkspace(deps.config, tenantId, input.agentId, {
+        profile: {
+          displayName: input.displayName,
+          purpose: input.purpose,
+          publicMailboxId,
+          collaboratorAgentIds: input.collaboratorAgentIds,
+          collaboratorNotes: (input.collaboratorAgentIds ?? []).map((agentId) => ({
+            agentId,
+            reason: "this durable collaborator can receive internal task mail when the room needs help"
+          })),
+          templateId: "custom",
+          headcountNotes: [
+            "Custom agents should own a clear mailbox and a narrow operating contract.",
+            "Keep burst subagents for elastic compute; keep durable agents for recurring inbox ownership."
+          ]
+        },
+        directoryEntries
+      });
+
+      for (const mailbox of buildAgentVirtualMailboxes({
+        accountId: input.accountId,
+        agentId: input.agentId,
+        publicMailboxId,
+        now
+      })) {
+        upsertVirtualMailbox(deps.db, mailbox);
+      }
+
+      ensurePublicAgentInbox(deps.db, {
+        accountId: input.accountId,
+        agentId: input.agentId,
+        activeRoomLimit: input.activeRoomLimit ?? 3,
+        ackSlaSeconds: input.ackSlaSeconds ?? 300,
+        burstCoalesceSeconds: input.burstCoalesceSeconds ?? 90,
+        now
+      });
+
+      return {
+        accountId: input.accountId,
+        tenantId,
+        agentId: input.agentId,
+        workspace: {
+          soulPath: workspace.soulPath,
+          agentsPath: workspace.agentsPath
+        },
+        agentDirectory: listAgentDirectory({
+          tenantId,
+          accountId: input.accountId
+        }),
+        headcountRecommendations: listHeadcountRecommendations(input.accountId)
       };
     },
     projectRoomOutcomeToGateway(input: Parameters<typeof projectRoomOutcomeToGateway>[1]) {
@@ -3173,6 +3578,383 @@ function updateControlPlaneOutboxStatus(
   }
 
   updateMailOutboxStatus(db, referenceId, input);
+}
+
+function queueRoomMessageEmailSync(
+  db: DatabaseSync,
+  config: AppConfig,
+  input: {
+    roomKey: string;
+    messageId: string;
+    mailboxAddress?: string;
+    to?: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject?: string;
+    body?: string;
+    htmlBody?: string;
+    kind?: "ack" | "progress" | "final";
+    approvalRequired?: boolean;
+    createdAt?: string;
+  }
+) {
+  const room = getThreadRoom(db, input.roomKey);
+  if (!room) {
+    throw new RuntimeApiError(`thread room not found: ${input.roomKey}`, 404);
+  }
+
+  const message = getVirtualMessage(db, input.messageId);
+  if (!message || message.roomKey !== room.roomKey) {
+    throw new RuntimeApiError(`virtual message not found in room ${room.roomKey}: ${input.messageId}`, 404);
+  }
+
+  const latestMailMessage = findLatestRoomEmailSyncAnchor(db, room.stableThreadId, input.mailboxAddress);
+  const existing = listOutboxIntentsForRoom(db, room.roomKey).find(
+    (intent) => intent.headers["X-MailClaw-Sync-Source-Message-Id"] === message.messageId
+  );
+  if (existing) {
+    return mapOutboxIntentToMailOutboxRecord(existing);
+  }
+
+  const createdAt = input.createdAt ?? new Date().toISOString();
+  const mailboxAddress =
+    input.mailboxAddress?.trim() ||
+    room.frontAgentAddress ||
+    latestMailMessage?.mailboxAddress ||
+    getMailAccount(db, room.accountId)?.emailAddress ||
+    "mailclaw@example.com";
+  const recipients = buildEmailSyncRecipients({
+    latestMailMessage,
+    mailboxAddress,
+    explicitTo: input.to,
+    explicitCc: input.cc,
+    explicitBcc: input.bcc
+  });
+  if (recipients.to.length === 0) {
+    throw new RuntimeApiError(
+      `room ${room.roomKey} does not have a visible reply recipient for email sync`,
+      latestMailMessage ? 409 : 400
+    );
+  }
+
+  const outboxKind = input.kind ?? resolveOutboxSyncKind(message.kind);
+  const displayBody =
+    input.body?.trim() ||
+    readRoomMessageDisplayBody(db, room.roomKey, message).trim() ||
+    message.subject.trim();
+  const rendered = latestMailMessage
+    ? renderPreToMail(
+        {
+          subject: input.subject?.trim() || latestMailMessage.rawSubject || message.subject,
+          from: mailboxAddress,
+          to: recipients.to,
+          cc: recipients.cc,
+          messageId: `<mailclaw-${randomUUID()}@local>`,
+          inReplyTo: latestMailMessage.internetMessageId,
+          references: [...latestMailMessage.references, latestMailMessage.internetMessageId]
+        },
+        {
+          kind: outboxKind,
+          summary: displayBody,
+          draftBody: displayBody
+        }
+      )
+    : {
+        kind: outboxKind,
+        body: displayBody,
+        headers: buildStandaloneEmailSyncHeaders({
+          subject: input.subject?.trim() || message.subject,
+          from: mailboxAddress,
+          to: recipients.to,
+          cc: recipients.cc,
+          messageId: `<mailclaw-${randomUUID()}@local>`
+        })
+      };
+  const status = input.approvalRequired ?? config.features.approvalGate ? "pending_approval" : "queued";
+  const record: MailOutboxRecord = {
+    outboxId: randomUUID(),
+    roomKey: room.roomKey,
+    kind: outboxKind,
+    status,
+    subject: rendered.headers.Subject,
+    textBody: rendered.body,
+    htmlBody: input.htmlBody?.trim() || undefined,
+    to: recipients.to,
+    cc: recipients.cc,
+    bcc: recipients.bcc,
+    headers: {
+      ...rendered.headers,
+      "X-MailClaw-Sync-Source-Message-Id": message.messageId,
+      "X-MailClaw-Sync-Origin": message.originKind
+    },
+    createdAt,
+    updatedAt: createdAt
+  };
+
+  const artifactPath = persistOutboxArtifact(config, {
+    accountId: room.accountId,
+    stableThreadId: room.stableThreadId,
+    outboxId: record.outboxId,
+    payload: record
+  });
+  insertControlPlaneOutboxRecord(db, record);
+  persistRoomMessageSyncOutboundIndex(db, {
+    accountId: room.accountId,
+    stableThreadId: room.stableThreadId,
+    mailboxAddress,
+    record
+  });
+
+  if (record.status === "pending_approval") {
+    appendThreadLedgerEvent(db, {
+      roomKey: room.roomKey,
+      revision: room.revision,
+      type: "approval.requested",
+      payload: {
+        outboxId: record.outboxId,
+        runId: null,
+        kind: record.kind,
+        subject: record.subject,
+        to: record.to,
+        cc: record.cc,
+        bcc: record.bcc,
+        status: record.status,
+        artifactPath,
+        sourceMessageId: message.messageId,
+        sourceOriginKind: message.originKind
+      }
+    });
+  }
+
+  appendThreadLedgerEvent(db, {
+    roomKey: room.roomKey,
+    revision: room.revision,
+    type:
+      record.kind === "ack"
+        ? "mail.ack_sent"
+        : record.kind === "progress"
+          ? "mail.progress_sent"
+          : "mail.final_sent",
+    payload: {
+      outboxId: record.outboxId,
+      subject: record.subject,
+      artifactPath,
+      sourceMessageId: message.messageId,
+      syncMode: "room_message_projection"
+    }
+  });
+
+  return record;
+}
+
+function resolveOutboxSyncKind(kind: VirtualMessage["kind"]): MailOutboxRecord["kind"] {
+  if (kind === "progress") {
+    return "progress";
+  }
+  return "final";
+}
+
+function readRoomMessageDisplayBody(
+  db: DatabaseSync,
+  roomKey: string,
+  message: VirtualMessage
+) {
+  if (message.bodyRef && !message.bodyRef.startsWith("virtual-body://") && fs.existsSync(message.bodyRef)) {
+    try {
+      const text = fs.readFileSync(message.bodyRef, "utf8").trim();
+      if (text.length > 0) {
+        return text;
+      }
+    } catch {
+      // Fall back to persisted room pre state or the message subject below.
+    }
+  }
+
+  const latestSnapshot = getLatestRoomPreSnapshot(db, roomKey);
+  if (latestSnapshot && latestSnapshot.roomRevision === message.roomRevision) {
+    return (latestSnapshot.draftBody ?? latestSnapshot.summary).trim();
+  }
+
+  return message.subject.trim();
+}
+
+function findLatestRoomEmailSyncAnchor(
+  db: DatabaseSync,
+  stableThreadId: string,
+  mailboxAddress?: string
+) {
+  const messages = listMailMessagesForThread(db, stableThreadId);
+  if (messages.length === 0) {
+    return null;
+  }
+
+  const normalizedMailboxAddress =
+    typeof mailboxAddress === "string" && mailboxAddress.trim().length > 0
+      ? normalizeEmailRecipient(mailboxAddress)
+      : null;
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index]!;
+    const fromAddress = typeof message.from === "string" ? normalizeEmailRecipient(message.from) : "";
+    if (message.providerMessageId || (normalizedMailboxAddress && fromAddress && fromAddress !== normalizedMailboxAddress)) {
+      return message;
+    }
+  }
+
+  return messages.at(-1) ?? findLatestMailMessageForThread(db, stableThreadId);
+}
+
+function buildStandaloneEmailSyncHeaders(input: {
+  subject: string;
+  from: string;
+  to: string[];
+  cc?: string[];
+  messageId: string;
+}) {
+  validateOutboundRecipients({
+    to: input.to,
+    cc: input.cc
+  });
+
+  return normalizeAndValidateOutboundHeaders({
+    From: input.from,
+    To: input.to.join(", "),
+    ...((input.cc ?? []).length > 0 ? { Cc: (input.cc ?? []).join(", ") } : {}),
+    Subject: input.subject,
+    "Message-ID": input.messageId,
+    "Auto-Submitted": "auto-generated"
+  });
+}
+
+function buildEmailSyncRecipients(input: {
+  latestMailMessage: ReturnType<typeof findLatestMailMessageForThread>;
+  mailboxAddress: string;
+  explicitTo?: string[];
+  explicitCc?: string[];
+  explicitBcc?: string[];
+}) {
+  const explicitTo = uniqueVisibleEmailRecipients(input.explicitTo ?? [], input.mailboxAddress);
+  const explicitCc = uniqueVisibleEmailRecipients(input.explicitCc ?? [], input.mailboxAddress);
+  const explicitBcc = uniqueVisibleEmailRecipients(input.explicitBcc ?? [], input.mailboxAddress);
+  if (explicitTo.length > 0) {
+    const toSet = new Set(explicitTo);
+    const cc = explicitCc.filter((recipient) => !toSet.has(recipient));
+    const bcc = explicitBcc.filter((recipient) => !toSet.has(recipient) && !cc.includes(recipient));
+    return {
+      to: explicitTo,
+      cc,
+      bcc
+    };
+  }
+
+  const message = input.latestMailMessage;
+  if (!message) {
+    return {
+      to: [],
+      cc: explicitCc,
+      bcc: explicitBcc
+    };
+  }
+
+  const to = uniqueVisibleEmailRecipients(
+    Array.isArray(message.replyTo) && message.replyTo.length > 0
+      ? message.replyTo
+      : message.from
+        ? [message.from]
+        : [],
+    input.mailboxAddress
+  );
+  const toSet = new Set(to);
+  const cc = uniqueVisibleEmailRecipients(
+    [...explicitCc, ...(message.from ? [message.from] : []), ...(message.to ?? []), ...(message.cc ?? [])],
+    input.mailboxAddress
+  ).filter((recipient) => !toSet.has(recipient));
+  const ccSet = new Set(cc);
+  const bcc = uniqueVisibleEmailRecipients(explicitBcc, input.mailboxAddress).filter(
+    (recipient) => !toSet.has(recipient) && !ccSet.has(recipient)
+  );
+
+  return {
+    to,
+    cc,
+    bcc
+  };
+}
+
+function uniqueEmailRecipients(values: string[]) {
+  const seen = new Set<string>();
+  const recipients: string[] = [];
+
+  for (const value of values) {
+    const normalized = normalizeEmailRecipient(value);
+    if (!normalized || seen.has(normalized)) {
+      continue;
+    }
+
+    seen.add(normalized);
+    recipients.push(normalized);
+  }
+
+  return recipients;
+}
+
+function uniqueVisibleEmailRecipients(values: string[], mailboxAddress: string) {
+  return uniqueEmailRecipients(filterInternalAliasRecipients(values, mailboxAddress)).filter(
+    (recipient) => recipient !== normalizeEmailRecipient(mailboxAddress)
+  );
+}
+
+function normalizeEmailRecipient(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function persistRoomMessageSyncOutboundIndex(
+  db: DatabaseSync,
+  input: {
+    accountId: string;
+    stableThreadId: string;
+    mailboxAddress: string;
+    record: MailOutboxRecord;
+  }
+) {
+  const dedupeKey = `outbox:${input.record.outboxId}`;
+  if (findMailMessageByDedupeKey(db, dedupeKey)) {
+    return;
+  }
+
+  const internetMessageId = input.record.headers["Message-ID"];
+  if (!internetMessageId) {
+    return;
+  }
+  if (!getMailAccount(db, input.accountId)) {
+    return;
+  }
+
+  const participants = [input.mailboxAddress, ...input.record.to, ...input.record.cc, ...input.record.bcc];
+  insertMailMessage(db, {
+    dedupeKey,
+    accountId: input.accountId,
+    stableThreadId: input.stableThreadId,
+    internetMessageId,
+    inReplyTo: input.record.headers["In-Reply-To"],
+    references: parseReferencesHeader(input.record.headers.References),
+    mailboxAddress: input.mailboxAddress,
+    rawSubject: input.record.subject,
+    textBody: input.record.textBody,
+    htmlBody: input.record.htmlBody,
+    from: input.mailboxAddress,
+    to: input.record.to,
+    cc: input.record.cc,
+    bcc: input.record.bcc,
+    replyTo: [],
+    normalizedSubject: normalizeSubject(input.record.subject),
+    participantFingerprint: buildParticipantFingerprint(participants),
+    receivedAt: input.record.createdAt,
+    createdAt: input.record.createdAt
+  });
+}
+
+function parseReferencesHeader(value: string | undefined) {
+  return value?.split(/\s+/).map((entry) => entry.trim()).filter(Boolean) ?? [];
 }
 
 function getWatchSettings(settings: Record<string, unknown>) {

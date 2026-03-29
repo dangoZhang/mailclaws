@@ -1,141 +1,158 @@
 # 集成指南
 
-<p align="center">
-  <a href="./integrations.md">English</a> ·
-  <a href="./integrations.zh-CN.md"><strong>简体中文</strong></a> ·
-  <a href="./integrations.fr.md">Français</a>
-</p>
+这一页说明 MailClaw 怎么和外部系统连接。
 
-本指南说明当前已经支持的集成路径，以及明确的边界。
+MailClaw 的定位不是替代邮箱 provider，而是站在真实邮件系统之上，提供 room、virtual mail、Pre 和记治理后的外发。
 
-## 兼容定位
+## 集成模型
 
-MailClaw 与 OpenClaw 生态兼容，并保留 Gateway 入口兼容性。当前分工如下：
+MailClaw 把职责拆开：
 
-- OpenClaw 继续提供 Gateway/runtime/agent packaging 等上游基座。
-- MailClaw 负责 room 真相层、virtual mail 协作语义、approval/outbox 治理，以及 replay/recovery 投影视图。
+- provider 负责收发邮件
+- room 负责 durable truth
+- virtual mail 负责内部协作
+- approval 和 outbox 负责治理外部副作用
+- Mail 标签页负责把这套模型展示给用户和运营
 
-## 普通邮箱用户接入策略
+因此，MailClaw 可以接入现有邮箱系统，但不会把任何一个 provider 当成业务真相源。
 
-建议按以下优先级接入：
+## 当前支持哪些邮箱接入路径
 
-1. Gmail/Outlook OAuth（`mailctl connect login gmail|outlook`），接入成本最低。
-2. 无 OAuth 时走密码/IMAP 预设（`mailctl connect login imap|qq|icloud|yahoo|163|126`）。
-3. provider 原生接入暂不可行时，用转发/raw MIME 回退（`provider: "forward"` + `POST /api/inbound/raw`）。
+MailClaw 现在主要支持三类实用接入方式。
 
-这套顺序与当前 `plan12` 收口方向一致，也便于后续迁移到面向普通用户的引导式接入（`plan13`）。
+### 1. OAuth 邮箱
 
-如果你只知道邮箱地址，还不知道该走哪条接入路径，先用：
+优先推荐。
 
-- `pnpm mailctl connect start you@example.com`
-- `GET /api/connect/onboarding?emailAddress=you@example.com`
+当前支持：
 
-如果你已经在跑 OpenClaw，建议先保留 bridge 模式，把 MailClaw 当作 room/approval/replay 层接上来：
+- Gmail
+- Outlook / Microsoft 365
 
-- `MAILCLAW_FEATURE_OPENCLAW_BRIDGE=true MAILCLAW_FEATURE_MAIL_INGEST=true pnpm dev`
-- `pnpm mailctl observe runtime`
-- `pnpm mailctl observe workbench <accountId>`
+适合原因：
 
-## 入站集成路径
+- 接入阻力最低
+- 更适合普通用户
+- 与 provider 原生 watch / send 的配合更自然
 
-Provider 驱动入站：
+### 2. IMAP / SMTP 邮箱
 
-- 内建 IMAP 抓取与 watcher 控制器
-- Gmail watch/history recovery 入站
+适合 OAuth 不可用或不方便时。
 
-API 驱动入站：
+常见预设包括：
 
-- 规范化消息：`POST /api/inbound`
-- 原始 RFC822/MIME：`POST /api/inbound/raw`
+- QQ
+- iCloud
+- Yahoo
+- 163 / 126
+- 通用 IMAP / SMTP
 
-Gateway 驱动入站：
+适合原因：
 
-- 单一事件 / 批处理入口：`POST /api/gateway/events`
-- 会话到 room 的 resolve/bind：`GET /api/gateway/sessions/:sessionKey`、`POST /api/gateway/sessions/:sessionKey/bind`
-- Gateway turn 投影为 virtual mail：`POST /api/gateway/project`
-- 已绑定 Gateway 的 room 现在会对符合条件的 `final_ready / progress / handoff / approval / system_notice` 消息自动记录 `gateway.outcome.projected`
+- 可以覆盖很多传统邮箱
+- 适合沿用已有账号密码体系
 
-边界说明：room outcome 的 Gateway 回投留痕现在已自动化，但本仓库里尚未完成完整上游 Gateway 事件流的自动接线。
+### 3. 转发 / Raw MIME 入站
 
-## 外发集成路径
+适合 provider 原生集成暂时做不到时。
 
-MailClaw 的外发路径以治理为先：
+适合原因：
 
-- 对 outbox 待处理项执行批准/拒绝：`POST /api/outbox/:outboxId/approve|reject`
-- 投递待发送外邮：`POST /api/outbox/deliver`
-- 重发路径可通过 CLI 使用（`mailctl resend <outboxId>`）
+- 便于渐进迁移
+- 可以先让 MailClaw 收到真实邮件
+- 后续再切到 provider-native 路径
 
-Provider 外发后端：
+## 普通用户应该怎么选
 
-- Gmail OAuth 账户走 Gmail API 外发
-- SMTP 外发（支持进程级与 account 级配置）
-
-Gateway 结果回投：
-
-- `POST /api/gateway/outcome` 可把 room outcome 投影给外部 Gateway 侧消费。
-- outcome 分类已实现，但上游通知/投递适配器仍是部分落地状态。
-
-## OAuth、账号与 Provider 配置
-
-Gmail OAuth 变量：
-
-- `MAILCLAW_GMAIL_OAUTH_CLIENT_ID`
-- `MAILCLAW_GMAIL_OAUTH_TOPIC_NAME`（登录后立刻可 watch/recovery）
-- 可选：`MAILCLAW_GMAIL_OAUTH_CLIENT_SECRET`、`MAILCLAW_GMAIL_OAUTH_USER_ID`、`MAILCLAW_GMAIL_OAUTH_LABEL_IDS`、`MAILCLAW_GMAIL_OAUTH_SCOPES`
-
-Outlook/Microsoft OAuth 变量：
-
-- `MAILCLAW_MICROSOFT_OAUTH_CLIENT_ID`
-- 可选：`MAILCLAW_MICROSOFT_OAUTH_CLIENT_SECRET`、`MAILCLAW_MICROSOFT_OAUTH_TENANT`、`MAILCLAW_MICROSOFT_OAUTH_SCOPES`
-
-CLI 配置命令：
+如果你只知道邮箱地址，不知道走哪条路：
 
 ```bash
-pnpm mailctl connect providers [provider]
-pnpm mailctl connect login
-pnpm mailctl connect login gmail <accountId> [displayName]
-pnpm mailctl connect login outlook <accountId> [displayName]
+mailclaw onboard you@example.com
+mailclaw login
 ```
 
-API 配置入口：
+如果你想先看支持哪些 provider：
+
+```bash
+mailclaw providers
+```
+
+总建议顺序：
+
+1. 能用 Gmail / Outlook OAuth 就先用它
+2. 不能用 OAuth 时走 IMAP / SMTP
+3. 实在不行再用 forward / raw MIME
+
+## 和 OpenClaw / Gateway 的关系
+
+MailClaw 的目标是适配 OpenClaw 风格工作流。
+
+推荐方式：
+
+1. 先启动 MailClaw
+2. 运行 `mailclaw dashboard`
+3. 登录 OpenClaw/Gateway
+4. 点击 `Mail`
+
+在这套路径里：
+
+- OpenClaw/Gateway 仍然是宿主 shell
+- MailClaw 提供 Mail 标签页和 email-native runtime
+- `mailclaw open` 与 `/workbench/mail` 保留为直达兜底入口
+
+## 入站方式
+
+MailClaw 可以通过这些方式接收入站邮件：
+
+- provider-native watcher / fetcher
+- 规范化 API 入站
+- raw MIME 入站
+- Gateway 事件投影
+
+典型入口：
+
+- Gmail watch/history
+- IMAP fetch / polling
+- `POST /api/inbound`
+- `POST /api/inbound/raw`
+- `POST /api/gateway/events`
+
+## 外发方式
+
+MailClaw 可以通过这些方式完成外发：
+
+- Gmail API send
+- SMTP
+- 受治理的 outbox 投递
+
+核心规则不变：
+
+真实外发必须经过 approval 和 outbox，不能由 worker 直接触发。
+
+## OAuth 与账号配置
+
+常用命令：
+
+```bash
+mailclaw providers
+mailclaw login
+mailctl connect providers [provider]
+mailctl connect login gmail <accountId> [displayName]
+mailctl connect login outlook <accountId> [displayName]
+```
+
+常用 API：
 
 - `GET /api/connect`
 - `GET /api/connect/providers`
 - `GET /api/connect/providers/:provider`
 - `POST /api/accounts`
-- 浏览器重定向入口：`GET /api/auth/:provider/start`
-- 带 secret 或程序化启动：`POST /api/auth/:provider/start`
+- `GET /api/auth/:provider/start`
+- `POST /api/auth/:provider/start`
 
-发布说明：
+## 接下来读什么
 
-- `GET /api/auth/:provider/start` 会拒绝 query 里的 `clientSecret`；请改用 POST 或 env 驱动的 CLI 流程。
-
-如果是 forward/export 入站场景，使用 `provider: "forward"`，并配置 account 级 `settings.smtp` 用于外发。
-
-## 观察与投影视图
-
-账号与 provider 状态：
-
-- `GET /api/accounts`
-- `GET /api/accounts/:accountId/provider-state`
-
-Room、mailbox、approval 投影视图：
-
-- `GET /api/rooms/:roomKey/replay`
-- `GET /api/rooms/:roomKey/approvals`
-- `GET /api/rooms/:roomKey/mailboxes/:mailboxId`
-- `GET /api/accounts/:accountId/inboxes`
-- `GET /api/accounts/:accountId/mailbox-console`
-- `GET /api/accounts/:accountId/mailboxes/:mailboxId/feed`
-
-Gateway 投影追踪：
-
-- `GET /api/rooms/:roomKey/gateway-projection-trace`
-
-## 当前集成缺口
-
-- 已有 `/workbench/mail` 浏览器 Mail workbench，而且 `/console/*` 现在也会落到同一套 shell。
-- 当前它仍不是完整邮箱客户端。
-- Gateway 自动入站/回投的生产级接线尚未完成。
-- Provider 覆盖已比早期更广，但还没有达到长期目标的完整集合。
-- upstream embedded runtime/session-manager 一等接线与 backend policy enforcement 完整收口仍未完成（`plan12`）。
+- [快速开始](./getting-started.zh-CN.md)
+- [核心概念](./concepts.zh-CN.md)
+- [Mail Workbench](./operator-console.zh-CN.md)
+- [运维指南](./operators-guide.zh-CN.md)

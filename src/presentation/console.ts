@@ -102,6 +102,9 @@ export interface ConsoleRoomDetail {
   room: ConsoleRoomSummary;
   tasks: ConsoleMailTaskSummary[];
   preSnapshots: RoomPreSnapshot[];
+  virtualMessages: ConsoleVirtualMessageSummary[];
+  mailboxDeliveries: ConsoleMailboxDeliverySummary[];
+  outboxIntents: ConsoleOutboxIntentSummary[];
   timeline: ConsoleTimelineEntry[];
   approvals: ConsoleApprovalSummary[];
   mailboxes: ConsoleMailboxSummary[];
@@ -135,6 +138,47 @@ export interface ConsoleTimelineEntry {
   detail?: string;
   revision?: number;
   status?: string;
+}
+
+export interface ConsoleVirtualMessageSummary {
+  messageId: string;
+  threadId: string;
+  parentMessageId: string | null;
+  kind: string;
+  visibility: string;
+  originKind: VirtualMessageOriginKind;
+  subject: string;
+  fromMailboxId: string;
+  toMailboxIds: string[];
+  ccMailboxIds: string[];
+  roomRevision: number;
+  createdAt: string;
+}
+
+export interface ConsoleMailboxDeliverySummary {
+  deliveryId: string;
+  messageId: string;
+  mailboxId: string;
+  status: MailboxDeliveryStatus;
+  leaseOwner: string | null;
+  leaseUntil: string | null;
+  consumedAt: string | null;
+  updatedAt: string;
+}
+
+export interface ConsoleOutboxIntentSummary {
+  intentId: string;
+  legacyOutboxId: string;
+  kind: OutboxIntentRecord["kind"];
+  status: OutboxIntentRecord["status"];
+  subject: string;
+  to: string[];
+  cc: string[];
+  bcc: string[];
+  providerMessageId: string | null;
+  errorText: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ConsoleGatewayTraceSummary {
@@ -256,6 +300,9 @@ export function getConsoleRoom(db: DatabaseSync, roomKey: string): ConsoleRoomDe
     room: buildConsoleRoomSummary(snapshot),
     tasks: buildRoomTaskSummaries(snapshot),
     preSnapshots: snapshot.preSnapshots,
+    virtualMessages: buildConsoleVirtualMessageSummaries(snapshot),
+    mailboxDeliveries: buildConsoleMailboxDeliverySummaries(snapshot),
+    outboxIntents: buildConsoleOutboxIntentSummaries(snapshot),
     timeline,
     approvals: buildApprovalSummaries(snapshot.room.accountId, snapshot.room.roomKey, snapshot.approvalRequests, snapshot.outboxIntents),
     mailboxes: buildRoomMailboxSummaries(db, snapshot.room.accountId, snapshot.room.roomKey),
@@ -586,6 +633,59 @@ function buildApprovalSummaries(
       errorText: request.errorText ?? null
     } satisfies ConsoleApprovalSummary;
   });
+}
+
+function buildConsoleVirtualMessageSummaries(snapshot: ReturnType<typeof replayRoom>) {
+  return [...snapshot.virtualMessages]
+    .sort((left, right) => compareDescending(left.createdAt, right.createdAt))
+    .map((message) => ({
+      messageId: message.messageId,
+      threadId: message.threadId,
+      parentMessageId: message.parentMessageId ?? null,
+      kind: message.kind,
+      visibility: message.visibility,
+      originKind: message.originKind,
+      subject: message.subject,
+      fromMailboxId: message.fromMailboxId,
+      toMailboxIds: [...message.toMailboxIds],
+      ccMailboxIds: [...message.ccMailboxIds],
+      roomRevision: message.roomRevision,
+      createdAt: message.createdAt
+    }) satisfies ConsoleVirtualMessageSummary);
+}
+
+function buildConsoleMailboxDeliverySummaries(snapshot: ReturnType<typeof replayRoom>) {
+  return [...snapshot.mailboxDeliveries]
+    .sort((left, right) => compareDescending(left.updatedAt, right.updatedAt))
+    .map((delivery) => ({
+      deliveryId: delivery.deliveryId,
+      messageId: delivery.messageId,
+      mailboxId: delivery.mailboxId,
+      status: delivery.status,
+      leaseOwner: delivery.leaseOwner ?? null,
+      leaseUntil: delivery.leaseUntil ?? null,
+      consumedAt: delivery.consumedAt ?? null,
+      updatedAt: delivery.updatedAt
+    }) satisfies ConsoleMailboxDeliverySummary);
+}
+
+function buildConsoleOutboxIntentSummaries(snapshot: ReturnType<typeof replayRoom>) {
+  return [...snapshot.outboxIntents]
+    .sort((left, right) => compareDescending(left.updatedAt, right.updatedAt))
+    .map((intent) => ({
+      intentId: intent.intentId,
+      legacyOutboxId: intent.legacyOutboxId,
+      kind: intent.kind,
+      status: intent.status,
+      subject: intent.subject,
+      to: [...intent.to],
+      cc: [...intent.cc],
+      bcc: [...intent.bcc],
+      providerMessageId: intent.providerMessageId ?? null,
+      errorText: intent.errorText ?? null,
+      createdAt: intent.createdAt,
+      updatedAt: intent.updatedAt
+    }) satisfies ConsoleOutboxIntentSummary);
 }
 
 function buildRoomMailboxSummaries(db: DatabaseSync, accountId: string, roomKey: string) {

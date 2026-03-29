@@ -3,90 +3,106 @@ layout: home
 
 hero:
   name: MailClaw
-  text: Install, Connect One Mailbox, And Read Mail From The Workbench
-  tagline: MailClaw keeps room truth, approvals, and internal agent mail behind one OpenClaw-aligned workbench route.
+  text: Email Work That Keeps Its Shape
+  tagline: MailClaw turns email conversations into durable rooms, lets agents collaborate through internal mail, and keeps long-term memory as compact Pre state instead of a growing transcript.
   actions:
     - theme: brand
-      text: Quick Start
+      text: Start In 3 Minutes
       link: /getting-started#three-minute-first-mail
     - theme: alt
-      text: Workbench Mail
-      link: /operator-console
+      text: Core Concepts
+      link: /concepts
     - theme: alt
-      text: Release Bundle
-      link: /getting-started#release-bundle
+      text: Mail Workbench
+      link: /operator-console
 
 features:
-  - title: Email Context That Sticks
-    details: Every inbound email lands in a room with revision history, replay, approvals, and delivery traces.
-  - title: Pre-First Room Memory
-    details: Agents carry forward durable room pre snapshots and facts, not an ever-growing transcript.
-  - title: Internal Agent Mailboxes
-    details: Agents collaborate through virtual mailbox threads, so you can inspect internal collaboration without polluting external email threads.
-  - title: Safe Outbound By Default
-    details: Real sends are governed by outbox intents and approval flow, not direct worker side effects.
-  - title: One Workbench Surface
-    details: "`/workbench/mail` and `mailctl` expose rooms, inboxes, mailbox feeds, approvals, and gateway projection traces in one workflow."
+  - title: Rooms Are The Truth Boundary
+    details: Each real conversation becomes a room with revisioned state, replayable history, and stable continuity across inbound mail, drafts, approvals, and delivery.
+  - title: Internal Agent Mail Uses Mail Semantics
+    details: Agents do not share one giant transcript. They collaborate through virtual mailboxes, work threads, single-parent replies, and reducer-based fan-in.
+  - title: Pre-First Memory Stays Small
+    details: MailClaw keeps durable summaries, facts, decisions, and commitments as Pre state. Scratch traces and failed attempts stay out of long-term memory by default.
+  - title: Outbound Is Governed
+    details: External side effects go through drafts, review, approval, and outbox intents. Worker runs and internal mail cannot bypass that gate.
+  - title: One Mail Tab For The Whole Story
+    details: Accounts, rooms, mailboxes, and approvals stay visible from the same OpenClaw-aligned Mail tab, with direct deep links when you need them.
 ---
 
-## Start Here (3 Minutes)
+## Why MailClaw
 
-1. Start MailClaw: `pnpm mailclaw`
-2. Ask MailClaw for the easiest login path: `pnpm mailclaw onboard you@example.com`
-3. Connect your mailbox: `pnpm mailclaw login`
-4. Open `http://127.0.0.1:3000/workbench/mail`
-5. Send one email from another mailbox to the connected address
+Most agent systems treat email as just another transport. MailClaw does not.
 
-Then run the first-mail flow in [Getting Started](./getting-started.md#three-minute-first-mail).
+MailClaw treats email as the working surface itself:
 
-## Fastest Install Choices
+- external email becomes durable room state
+- internal multi-agent collaboration becomes virtual mail
+- memory becomes compact Pre snapshots instead of raw transcript accumulation
+- outbound delivery stays behind approval and outbox control
 
-- From source:
-  `pnpm install && pnpm dev`
-- Build static docs locally:
-  `pnpm docs:build`
-- Build a distributable runtime bundle:
-  `pnpm package:release`
-- Install from the generated local artifacts:
-  `npm install -g ./output/release/npm/mailclaw-<version>.tgz`
-  `pnpm setup && pnpm add -g "file://$PWD/output/release/npm/mailclaw-<version>.tgz"`
-  `brew install ./output/release/homebrew/mailclaw.rb`
+That gives you a model that fits how email users already work, while still staying inspectable for operators and extensible for multi-agent systems.
 
-The release bundle writes both an unpacked directory and a `.tar.gz` archive under `output/release/`.
+## The Core Loop
 
-## Discover Internal Agent Mailboxes Later
+1. Connect one mailbox you already use.
+2. A new inbound message opens or updates a room.
+3. Agents work through internal mailboxes and work threads.
+4. Durable Pre state records what should be carried forward.
+5. The Mail tab lets you inspect rooms, mailboxes, and approvals in one place.
 
-- Open `/workbench/mail/accounts/:accountId` to pick an account and jump into room or mailbox detail.
-- Open `/workbench/mail` to start from a mailbox address and get a recommended provider path.
-- Open `/workbench/mail/mailboxes/:accountId/:mailboxId` to inspect one agent mailbox feed.
-- Open `/workbench/mail/rooms/:roomKey` to correlate external mail state with internal agent collaboration traces.
-- CLI mirror:
-  - `pnpm mailctl observe mailbox-feed <accountId> <mailboxId>`
-  - `pnpm mailctl observe mailbox-view <roomKey> <mailboxId>`
+See [Getting Started](./getting-started.md) for the shortest setup path.
 
-## Agent Behavior Defaults
+## The Four Core Ideas
 
-- Every agent workspace auto-creates `SOUL.md`, `AGENTS.md`, `MEMORY.md`, plus `roles/mail-read.default.md` and `roles/mail-write.default.md`.
-- Prompt assembly now favors latest inbound + latest room pre snapshot + refs, instead of replaying a full transcript by default.
-- ACK, progress, and final messages are rendered from persisted Pre state so replay and operator views line up with what the agent actually carried forward.
-- The shipped prompt-footprint benchmark currently measures roughly `62%` to `78%` less orchestrator prompt volume than conservative transcript-first baselines. See [Prompt Footprint](./prompt-footprint.md).
+### 1. Room
 
-## Reference Paths
+A room is the durable context for one external conversation.
 
-- [Getting Started](./getting-started.md): 3-minute path plus provider/gateway/internal-agent smoke paths.
-- [Prompt Footprint](./prompt-footprint.md): reproducible benchmark for prompt-volume savings versus transcript-first baselines.
-- [Mail Workbench](./operator-console.md): `/workbench/mail` routes, filters, and inbox/mailbox inspection model.
-- [Operators Guide](./operators-guide.md): day-2 operations, replay, resend, approvals, recovery, and troubleshooting.
-- [Integrations](./integrations.md): provider coverage, OAuth, inbound/outbound wiring, and OpenClaw compatibility.
-- [Security Boundaries](./security-boundaries.md): trust model, redaction scope, and what is intentionally not isolated yet.
+- continuity comes from reply structure and provider hints, not a chat transcript
+- the room carries revision, participants, artifacts, approvals, and replay history
+- when a new reply arrives, old stale work is invalidated instead of silently merged
 
-## Release Reality
+### 2. Virtual Mail
 
-- Shipped now: runtime kernel, provider ingestion/delivery seams, gateway projection APIs, replay and approval flows, and a browser workbench entry at `/workbench/mail`.
-- Not shipped yet: a full Outlook-like mailbox client, first-class upstream OpenClaw mail-tab integration, and automatic end-to-end Gateway round-trip wiring.
-- Validate before release: run [Live Provider Smoke](./live-provider-smoke.md) and review [ADR-001 Architecture](./adr/ADR-001-architecture.md) for design constraints.
+Agents collaborate through virtual mail, not a shared blob of context.
 
-## Current Boundary
+- each agent can have public and internal mailboxes
+- internal replies are single-parent
+- fan-out and fan-in are explicit, with reducers responsible for convergence
+- internal collaboration is inspectable without polluting the external thread
 
-- A documentation website now ships from this repository via `pnpm docs:dev` and `pnpm docs:build`.
-- The runtime and browser Mail workbench are documented; a full Outlook-like mailbox client inside upstream OpenClaw Workbench is still not shipped in this repository.
+### 3. Pre
+
+MailClaw uses a pre-first memory model.
+
+- agents work in temporary scratch space
+- at the end of a turn, the useful result is compressed into durable Pre state
+- the next turn loads latest inbound + latest room Pre + selected refs
+- this keeps prompts smaller and memory cleaner over long-running rooms
+
+### 4. Governed Delivery
+
+MailClaw separates thinking from side effects.
+
+- workers can produce drafts, evidence, and recommendations
+- real external delivery only happens through review, approval, and outbox
+- replay, audit, and approval lineage stay attached to the room
+
+## Start Here
+
+- [Getting Started](./getting-started.md): install, connect one mailbox, send one email, and read the thread
+- [Core Concepts](./concepts.md): room, virtual mail, Pre, approval, and workbench model
+- [Multi-Agent Collaboration](./multi-agent-workflows.md): how internal mailboxes, work threads, deliveries, and reducers appear in the workbench
+- [Mail Workbench](./operator-console.md): what each tab shows and how to navigate it
+- [Integrations](./integrations.md): provider coverage, OAuth, and OpenClaw/Gateway fit
+
+## For OpenClaw Users
+
+MailClaw is designed to fit into an OpenClaw-shaped workflow:
+
+- start the runtime with `mailclaw` or `mailclaw gateway`
+- open the host console with `mailclaw dashboard`
+- click `Mail` to enter the MailClaw workbench
+- use `mailclaw open` only as the direct fallback route
+
+The goal is not to replace the OpenClaw shell. The goal is to add an email-native runtime and Mail tab that understands rooms, virtual mail, Pre memory, and governed delivery.

@@ -1,141 +1,158 @@
 # Intégrations
 
-<p align="center">
-  <a href="./integrations.md">English</a> ·
-  <a href="./integrations.zh-CN.md">简体中文</a> ·
-  <a href="./integrations.fr.md"><strong>Français</strong></a>
-</p>
+Cette page explique comment MailClaw se connecte au monde extérieur.
 
-Ce guide décrit les chemins d’intégration actuellement supportés et leurs limites.
+MailClaw est conçu pour fonctionner au-dessus de vrais systèmes email et, quand il le faut, à l’intérieur d’un workflow hôte OpenClaw/Gateway.
 
-## Positionnement De Compatibilité
+## Modèle D’Intégration
 
-MailClaw est compatible avec l’écosystème OpenClaw et conserve la compatibilité d’entrée Gateway. Dans ce découpage :
+MailClaw sépare les responsabilités :
 
-- OpenClaw reste le socle amont pour Gateway/runtime/packaging d’agents.
-- MailClaw porte la vérité room, la sémantique de collaboration virtual mail, la gouvernance approval/outbox et les surfaces de projection replay/recovery.
+- les providers déplacent les emails en entrée et en sortie
+- les rooms gardent la vérité durable
+- le virtual mail gère la collaboration interne des agents
+- approvals et outbox gouvernent les effets externes
+- l’onglet Mail permet d’inspecter l’ensemble du système
 
-## Stratégie D’Onboarding Pour Utilisateurs Mailbox
+Cela permet à MailClaw de se connecter à des providers existants sans traiter l’un d’eux comme système d’enregistrement.
 
-Pour un utilisateur email classique, suivre cet ordre de connexion :
+## Quels Chemins Mailbox Sont Pris En Charge
 
-1. OAuth Gmail/Outlook (`mailctl connect login gmail|outlook`) pour minimiser la friction.
-2. Presets mot de passe/IMAP (`mailctl connect login imap|qq|icloud|yahoo|163|126`) si OAuth n’est pas disponible.
-3. Fallback forward/raw MIME (`provider: "forward"` + `POST /api/inbound/raw`) si l’intégration provider native n’est pas encore faisable.
+MailClaw prend aujourd’hui en charge trois chemins pratiques de connexion.
 
-Cet ordre est aligné avec les priorités de closeout `plan12` et simplifie la transition vers un onboarding guide plus "grand public" (`plan13`).
+### 1. Boîtes OAuth
 
-Si vous connaissez l’adresse mailbox mais pas encore le bon parcours, commencez par :
+Le meilleur choix quand il est disponible.
 
-- `pnpm mailctl connect start you@example.com`
-- `GET /api/connect/onboarding?emailAddress=you@example.com`
+Pris en charge :
 
-Si vous utilisez déjà OpenClaw, gardez d’abord le mode bridge et branchez MailClaw comme couche room/approval/replay :
+- Gmail
+- Outlook / Microsoft 365
 
-- `MAILCLAW_FEATURE_OPENCLAW_BRIDGE=true MAILCLAW_FEATURE_MAIL_INGEST=true pnpm dev`
-- `pnpm mailctl observe runtime`
-- `pnpm mailctl observe workbench <accountId>`
+Pourquoi choisir ce chemin :
 
-## Chemins D’Intégration Entrante
+- friction de configuration plus faible
+- meilleure delivery provider-native et meilleure intégration watch
+- meilleur choix pour les utilisateurs finaux classiques
 
-Entrée pilotée par provider :
+### 2. Boîtes IMAP / SMTP
 
-- Fetch IMAP intégré et contrôleurs watcher
-- Ingestion Gmail watch/history recovery
+Le meilleur choix quand OAuth n’est pas disponible ou pas pratique.
 
-Entrée pilotée par API :
+Presets courants :
 
-- Ingestion message normalisé : `POST /api/inbound`
-- Ingestion RFC822/MIME brut : `POST /api/inbound/raw`
+- QQ
+- iCloud
+- Yahoo
+- 163 / 126
+- IMAP / SMTP générique
 
-Entrée pilotée par Gateway :
+Pourquoi choisir ce chemin :
 
-- Couture d’ingestion événementielle unifiée : `POST /api/gateway/events`
-- Resolve/bind session vers room : `GET /api/gateway/sessions/:sessionKey`, `POST /api/gateway/sessions/:sessionKey/bind`
-- Projection d’un turn Gateway vers virtual mail : `POST /api/gateway/project`
-- Les outcomes d’une room liée à Gateway enregistrent maintenant automatiquement des entrées `gateway.outcome.projected` pour les messages `final_ready / progress / handoff / approval / system_notice` éligibles
+- fonctionne avec beaucoup de providers email traditionnels
+- utile pour les équipes qui veulent réutiliser des identifiants mailbox existants
 
-Limite connue : la projection d’outcome room vers Gateway est maintenant automatique une fois la room liée, mais le câblage automatique complet au flux d’événements amont Gateway reste incomplet dans ce repository.
+### 3. Ingress Forward / MIME Brut
 
-## Chemins D’Intégration Sortante
+Le meilleur choix quand l’intégration mailbox provider-native n’est pas encore possible.
 
-Le contrôle sortant MailClaw est gouvernance-first :
+Pourquoi choisir ce chemin :
 
-- Approuver/rejeter les entrées outbox en attente : `POST /api/outbox/:outboxId/approve|reject`
-- Livrer les messages sortants en file : `POST /api/outbox/deliver`
-- Les flux de resend sont disponibles via CLI (`mailctl resend <outboxId>`)
+- chemin de migration simple
+- utile pour une adoption progressive
+- permet à MailClaw de recevoir des emails même quand le support natif de watch n’est pas encore disponible
 
-Backends de livraison provider :
+## Ordre Recommandé Pour Les Utilisateurs
 
-- Envoi Gmail API pour comptes Gmail OAuth
-- Envoi SMTP (global process et réglages par compte)
-
-Projection d’outcome vers Gateway :
-
-- `POST /api/gateway/outcome` projette les outcomes room pour traitement externe côté Gateway.
-- La classification des outcomes existe, mais le câblage de l’adaptateur amont de notification/livraison reste partiel.
-
-## OAuth, Compte, Et Configuration Provider
-
-Variables OAuth Gmail :
-
-- `MAILCLAW_GMAIL_OAUTH_CLIENT_ID`
-- `MAILCLAW_GMAIL_OAUTH_TOPIC_NAME` (pour watch/recovery immédiatement prête)
-- Optionnelles : `MAILCLAW_GMAIL_OAUTH_CLIENT_SECRET`, `MAILCLAW_GMAIL_OAUTH_USER_ID`, `MAILCLAW_GMAIL_OAUTH_LABEL_IDS`, `MAILCLAW_GMAIL_OAUTH_SCOPES`
-
-Variables OAuth Outlook/Microsoft :
-
-- `MAILCLAW_MICROSOFT_OAUTH_CLIENT_ID`
-- Optionnelles : `MAILCLAW_MICROSOFT_OAUTH_CLIENT_SECRET`, `MAILCLAW_MICROSOFT_OAUTH_TENANT`, `MAILCLAW_MICROSOFT_OAUTH_SCOPES`
-
-Commandes CLI de configuration :
+Si vous ne connaissez que l’adresse mailbox et voulez le chemin le plus simple :
 
 ```bash
-pnpm mailctl connect providers [provider]
-pnpm mailctl connect login
-pnpm mailctl connect login gmail <accountId> [displayName]
-pnpm mailctl connect login outlook <accountId> [displayName]
+mailclaw onboard you@example.com
+mailclaw login
 ```
 
-Endpoint API de configuration :
+Si vous voulez d’abord voir les chemins pris en charge :
+
+```bash
+mailclaw providers
+```
+
+Recommandation générale :
+
+1. utiliser Gmail ou Outlook OAuth quand c’est possible
+2. utiliser IMAP / SMTP quand OAuth n’est pas disponible
+3. utiliser forward/raw MIME comme chemin de secours
+
+## Intégration Avec OpenClaw / Gateway
+
+MailClaw est conçu pour s’insérer dans un workflow de forme OpenClaw.
+
+Utilisez-le ainsi :
+
+1. démarrez MailClaw
+2. lancez `mailclaw dashboard`
+3. connectez-vous à OpenClaw/Gateway
+4. cliquez sur `Mail`
+
+Dans cette configuration :
+
+- OpenClaw/Gateway reste la coque hôte
+- MailClaw fournit l’onglet Mail et la sémantique runtime orientée email
+- `mailclaw open` et l’accès direct `/workbench/mail` restent disponibles comme secours
+
+## Chemins Entrants
+
+MailClaw peut recevoir des emails via :
+
+- watchers et fetchers provider-natifs
+- ingress API normalisé
+- ingress MIME brut
+- projection d’événements Gateway
+
+Exemples typiques :
+
+- Gmail watch/history
+- IMAP fetch et polling
+- `POST /api/inbound`
+- `POST /api/inbound/raw`
+- `POST /api/gateway/events`
+
+## Chemins Sortants
+
+MailClaw peut livrer des emails externes via :
+
+- Gmail API send
+- SMTP
+- des flux outbox gouvernés
+
+La règle de design ne change pas :
+
+l’envoi externe réel passe par approval et outbox, jamais directement depuis un worker.
+
+## OAuth Et Configuration De Compte
+
+Commandes utiles :
+
+```bash
+mailclaw providers
+mailclaw login
+mailctl connect providers [provider]
+mailctl connect login gmail <accountId> [displayName]
+mailctl connect login outlook <accountId> [displayName]
+```
+
+APIs utiles :
 
 - `GET /api/connect`
 - `GET /api/connect/providers`
 - `GET /api/connect/providers/:provider`
 - `POST /api/accounts`
-- `GET /api/auth/:provider/start` pour les redirections navigateur
-- `POST /api/auth/:provider/start` pour les starts programmatiques ou porteurs de secret
+- `GET /api/auth/:provider/start`
+- `POST /api/auth/:provider/start`
 
-Note de release :
+## Lire Ensuite
 
-- `GET /api/auth/:provider/start` rejette volontairement `clientSecret` en query string ; utiliser POST ou un flux CLI pilote par env a la place.
-
-Pour les setups d’entrée forward/export, utiliser `provider: "forward"` et configurer `settings.smtp` au niveau compte pour la livraison sortante.
-
-## Surfaces D’Inspection Et Projection
-
-État compte et provider :
-
-- `GET /api/accounts`
-- `GET /api/accounts/:accountId/provider-state`
-
-Projections room, mailbox et approval :
-
-- `GET /api/rooms/:roomKey/replay`
-- `GET /api/rooms/:roomKey/approvals`
-- `GET /api/rooms/:roomKey/mailboxes/:mailboxId`
-- `GET /api/accounts/:accountId/inboxes`
-- `GET /api/accounts/:accountId/mailbox-console`
-- `GET /api/accounts/:accountId/mailboxes/:mailboxId/feed`
-
-Trace de projection Gateway :
-
-- `GET /api/rooms/:roomKey/gateway-projection-trace`
-
-## Lacunes D’Intégration Actuelles
-
-- Une surface navigateur MailClaw existe à `/workbench/mail`, et `/console/*` résout maintenant vers la même coque.
-- Ce n’est toujours pas un client mailbox complet.
-- Le câblage de production auto-ingress/egress Gateway reste incomplet.
-- La couverture provider est plus large qu’aux premières versions, mais pas encore au jeu cible long terme.
-- L’intégration first-class embedded runtime/session-manager amont et la fermeture complète de l’enforcement backend sont encore en attente (`plan12`).
+- [Prise en main](./getting-started.fr.md)
+- [Concepts](./concepts.fr.md)
+- [Mail Workbench](./operator-console.fr.md)
+- [Guide opérateurs](./operators-guide.fr.md)

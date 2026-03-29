@@ -27,5 +27,4 @@ MailClaw 将所有入站邮件、头部和附件都视为不可信输入。
 ## 发布验证
 
 - 运行 `pnpm test:security` 检查脱敏与暴露回归。
-- 有真实凭据时执行 [Live Provider Smoke](./live-provider-smoke.zh-CN.md)。
 - 架构边界声明请与 [ADR-001 架构决策](./adr/ADR-001-architecture.md) 保持一致。

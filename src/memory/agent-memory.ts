@@ -3,6 +3,8 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 
 import type { AppConfig } from "../config.js";
+import type { AgentDirectoryEntry } from "../agents/templates.js";
+import { buildAgentVirtualMailboxIds } from "../agents/templates.js";
 import { toSafeStorageFileName, toSafeStoragePathSegment } from "../storage/path-safety.js";
 import {
   assertMemoryPromotionTransitionAllowed,
@@ -51,15 +53,40 @@ export interface DefaultMailSkillDescriptor {
   path: string;
 }
 
+export interface AgentWorkspaceProfile {
+  displayName?: string;
+  purpose?: string;
+  publicMailboxId?: string;
+  collaboratorAgentIds?: string[];
+  collaboratorNotes?: Array<{
+    agentId: string;
+    reason: string;
+  }>;
+  templateId?: string;
+  headcountNotes?: string[];
+}
+
 export function getTenantStateDir(config: AppConfig, tenantId: string) {
   return path.join(config.storage.stateDir, "tenants", toSafeStoragePathSegment(tenantId, "tenant"));
+}
+
+export function getTenantAgentDirectoryPath(config: AppConfig, tenantId: string) {
+  return path.join(getTenantStateDir(config, tenantId), "AGENT_DIRECTORY.md");
 }
 
 export function getAgentStateDir(config: AppConfig, tenantId: string, agentId: string) {
   return path.join(getTenantStateDir(config, tenantId), "agents", toSafeStoragePathSegment(agentId, "agent"));
 }
 
-export function ensureAgentWorkspace(config: AppConfig, tenantId: string, agentId: string) {
+export function ensureAgentWorkspace(
+  config: AppConfig,
+  tenantId: string,
+  agentId: string,
+  options?: {
+    profile?: AgentWorkspaceProfile;
+    directoryEntries?: AgentDirectoryEntry[];
+  }
+) {
   const agentDir = getAgentStateDir(config, tenantId, agentId);
   const rolesDir = path.join(agentDir, "roles");
   const directories = [
@@ -74,16 +101,40 @@ export function ensureAgentWorkspace(config: AppConfig, tenantId: string, agentI
     fs.mkdirSync(directory, { recursive: true });
   }
 
-  ensureMarkdownFile(path.join(agentDir, "SOUL.md"), `# ${agentId} Soul\n`);
-  ensureMarkdownFile(path.join(agentDir, "AGENTS.md"), `# ${agentId} Operating Notes\n`);
-  ensureMarkdownFile(path.join(agentDir, "MEMORY.md"), `# ${agentId} Memory\n`);
+  const soulPath = path.join(agentDir, "SOUL.md");
+  const agentsPath = path.join(agentDir, "AGENTS.md");
+  const memoryPath = path.join(agentDir, "MEMORY.md");
   const defaultSkills = ensureDefaultMailSkills(rolesDir);
+  const profile = buildAgentWorkspaceProfile(agentId, options?.profile);
+
+  ensureGeneratedMarkdownFile(
+    soulPath,
+    renderAgentSoulMarkdown({
+      agentId,
+      profile,
+      defaultSkills
+    })
+  );
+  ensureGeneratedMarkdownFile(
+    agentsPath,
+    renderAgentOperatingNotesMarkdown({
+      agentId,
+      profile,
+      directoryEntries: options?.directoryEntries ?? [],
+      defaultSkills
+    })
+  );
+  ensureMarkdownFile(path.join(agentDir, "MEMORY.md"), `# ${agentId} Memory\n`);
+  if (options?.directoryEntries && options.directoryEntries.length > 0) {
+    writeTenantAgentDirectory(config, tenantId, options.directoryEntries);
+  }
 
   return {
     agentDir,
-    soulPath: path.join(agentDir, "SOUL.md"),
-    agentsPath: path.join(agentDir, "AGENTS.md"),
-    memoryPath: path.join(agentDir, "MEMORY.md"),
+    soulPath,
+    agentsPath,
+    memoryPath,
+    directoryPath: getTenantAgentDirectoryPath(config, tenantId),
     promotionsDir: path.join(agentDir, "promotions"),
     rolesDir,
     defaultSkills
@@ -414,6 +465,119 @@ function ensureDefaultMailSkills(rolesDir: string): DefaultMailSkillDescriptor[]
   ];
 }
 
+function buildAgentWorkspaceProfile(agentId: string, profile?: AgentWorkspaceProfile): Required<AgentWorkspaceProfile> {
+  return {
+    displayName: profile?.displayName?.trim() || agentId,
+    purpose:
+      profile?.purpose?.trim() ||
+      "Own a durable MailClaw role, keep the room kernel as truth, and collaborate through virtual mail.",
+    publicMailboxId: profile?.publicMailboxId?.trim() || `public:${agentId}`,
+    collaboratorAgentIds: profile?.collaboratorAgentIds ?? [],
+    collaboratorNotes: profile?.collaboratorNotes ?? [],
+    templateId: profile?.templateId?.trim() || "custom",
+    headcountNotes:
+      profile?.headcountNotes?.length && profile.headcountNotes.some((note) => note.trim().length > 0)
+        ? profile.headcountNotes
+        : ["Stay inbox-first: triage the room, delegate by mail, and only persist reusable Pre."]
+  };
+}
+
+function renderAgentSoulMarkdown(input: {
+  agentId: string;
+  profile: Required<AgentWorkspaceProfile>;
+  defaultSkills: DefaultMailSkillDescriptor[];
+}) {
+  const mailboxes = buildAgentVirtualMailboxIds(input.agentId, input.profile.publicMailboxId);
+
+  return [
+    `# ${input.profile.displayName} Soul`,
+    "",
+    `Agent ID: \`${input.agentId}\``,
+    `Template: \`${input.profile.templateId}\``,
+    "",
+    "## Mission",
+    input.profile.purpose,
+    "",
+    "## Virtual Mail Addresses",
+    ...mailboxes.map((mailboxId) => `- \`${mailboxId}\``),
+    "",
+    "## Collaboration",
+    ...(input.profile.collaboratorNotes.length > 0
+      ? input.profile.collaboratorNotes.map(
+          (note) => `- Ask \`${note.agentId}\` when ${note.reason.replace(/\.$/, "")}.`
+        )
+      : ["- Work from the room's latest Pre, then ask collaborators by internal mail when evidence or review is needed."]),
+    "",
+    "## Default Skills",
+    ...input.defaultSkills.map((skill) => `- \`${path.basename(skill.path)}\`: ${skill.title}`),
+    "",
+    "## HeadCount Guidance",
+    ...input.profile.headcountNotes.map((note) => `- ${note}`),
+    ""
+  ].join("\n");
+}
+
+function renderAgentOperatingNotesMarkdown(input: {
+  agentId: string;
+  profile: Required<AgentWorkspaceProfile>;
+  directoryEntries: AgentDirectoryEntry[];
+  defaultSkills: DefaultMailSkillDescriptor[];
+}) {
+  const collaborators = input.directoryEntries.filter((entry) => entry.agentId !== input.agentId);
+
+  return [
+    `# ${input.profile.displayName} Operating Notes`,
+    "",
+    "## Collaboration Directory",
+    ...(collaborators.length > 0
+      ? collaborators.map(
+          (entry) =>
+            `- \`${entry.agentId}\` at \`${entry.publicMailboxId}\` for ${entry.purpose} (see \`../${entry.agentId}/SOUL.md\`).`
+        )
+      : ["- No other durable agents are registered yet."]),
+    "",
+    "## Working Contract",
+    "- Keep long-lived truth in room events, room pre snapshots, and approved memory only.",
+    "- Use virtual mail for tasking, review, approvals, and handoff. Do not bypass outbox for real external send.",
+    "- Read the latest inbound, latest room Pre, and specific refs before asking for more history.",
+    "",
+    "## Role Files",
+    ...input.defaultSkills.map((skill) => `- \`${path.basename(skill.path)}\``),
+    "",
+    "## Shared Directory",
+    `- Tenant directory: \`../../AGENT_DIRECTORY.md\``,
+    ""
+  ].join("\n");
+}
+
+function writeTenantAgentDirectory(config: AppConfig, tenantId: string, entries: AgentDirectoryEntry[]) {
+  const directoryPath = getTenantAgentDirectoryPath(config, tenantId);
+  const sorted = [...entries].sort((left, right) => left.agentId.localeCompare(right.agentId));
+  const contents = [
+    "# Agent Directory",
+    "",
+    "Durable MailClaw agents can inspect this roster to decide who should own a room, who should review it, and when a burst subagent is enough.",
+    "",
+    ...sorted.flatMap((entry) => [
+      `## ${entry.displayName}`,
+      `- Agent ID: \`${entry.agentId}\``,
+      `- Public mailbox: \`${entry.publicMailboxId}\``,
+      `- Purpose: ${entry.purpose}`,
+      `- Virtual mailboxes: ${entry.virtualMailboxes.map((mailboxId) => `\`${mailboxId}\``).join(", ")}`,
+      `- Collaborators: ${
+        entry.collaboratorAgentIds.length > 0
+          ? entry.collaboratorAgentIds.map((agentId) => `\`${agentId}\``).join(", ")
+          : "(none)"
+      }`,
+      `- Soul: \`agents/${entry.agentId}/SOUL.md\``,
+      ""
+    ])
+  ].join("\n");
+
+  fs.mkdirSync(path.dirname(directoryPath), { recursive: true });
+  fs.writeFileSync(directoryPath, contents, "utf8");
+}
+
 export function resolveAgentMemoryDraftNamespaces(draft: Pick<
   AgentMemoryDraft,
   "tenantId" | "agentId" | "roomKey" | "sourceKind" | "sourceNamespace" | "targetNamespace"
@@ -447,6 +611,18 @@ export function resolveAgentMemoryDraftNamespaces(draft: Pick<
 
 function ensureMarkdownFile(filePath: string, contents: string) {
   if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, contents, "utf8");
+  }
+}
+
+function ensureGeneratedMarkdownFile(filePath: string, contents: string) {
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, contents, "utf8");
+    return;
+  }
+
+  const existing = fs.readFileSync(filePath, "utf8");
+  if (existing.trim().length === 0 || /^# [^\n]+ (Soul|Operating Notes)\s*$/.test(existing.trim())) {
     fs.writeFileSync(filePath, contents, "utf8");
   }
 }

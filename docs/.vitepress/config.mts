@@ -2,11 +2,17 @@ import { defineConfig } from "vitepress";
 
 export default defineConfig({
   title: "MailClaw",
-  description: "Email-native runtime docs for durable rooms, virtual mail, approvals, and replay.",
+  description: "MailClaw docs for rooms, virtual mail, pre-first memory, and governed email work.",
   cleanUrls: true,
   lastUpdated: true,
   lang: "en-US",
-  srcExclude: ["**/*.zh-CN.md", "**/*.fr.md"],
+  srcExclude: [
+    "**/*.zh-CN.md",
+    "**/*.fr.md",
+    "**/live-provider-smoke.md",
+    "**/prompt-footprint.md",
+    "**/release-assets.md"
+  ],
   head: [
     ["link", { rel: "icon", type: "image/svg+xml", href: "/mailclaw-mark.svg" }]
   ],
@@ -15,7 +21,7 @@ export default defineConfig({
       provider: "local"
     },
     socialLinks: [
-      { icon: "github", link: "https://github.com/openclaw/openclaw" }
+      { icon: "github", link: "https://github.com/dangoZhang/mailclaw" }
     ],
     footer: {
       message: "Room truth, virtual mail collaboration, and governed delivery.",
@@ -60,12 +66,11 @@ function buildNav(base: string, locale: "en" | "zh-CN" | "fr") {
   return [
     { text: labels.home, link: base },
     { text: labels.quickStart, link: withBase(base, "getting-started#three-minute-first-mail") },
-    { text: labels.gettingStarted, link: withBase(base, "getting-started") },
-    { text: labels.promptFootprint, link: withBase(base, "prompt-footprint") },
-    { text: labels.security, link: withBase(base, "security-boundaries") },
+    { text: labels.concepts, link: withBase(base, "concepts") },
+    { text: labels.multiAgent, link: withBase(base, "multi-agent-workflows") },
     { text: labels.console, link: withBase(base, "operator-console") },
     { text: labels.integrations, link: withBase(base, "integrations") },
-    { text: "GitHub", link: "https://github.com/openclaw/openclaw" }
+    { text: "GitHub", link: "https://github.com/dangoZhang/mailclaw" }
   ];
 }
 
@@ -77,31 +82,24 @@ function buildSidebar(base: string, locale: "en" | "zh-CN" | "fr") {
       items: [
         { text: labels.docsHome, link: base },
         { text: labels.quickStart, link: withBase(base, "getting-started#three-minute-first-mail") },
-        { text: labels.gettingStarted, link: withBase(base, "getting-started") },
-        { text: labels.promptFootprint, link: withBase(base, "prompt-footprint") },
-        { text: labels.securityBoundaries, link: withBase(base, "security-boundaries") },
-        { text: labels.liveProviderSmoke, link: withBase(base, "live-provider-smoke") }
+        { text: labels.gettingStarted, link: withBase(base, "getting-started") }
       ]
     },
     {
-      text: labels.operate,
+      text: labels.product,
       items: [
+        { text: labels.concepts, link: withBase(base, "concepts") },
+        { text: labels.multiAgentGuide, link: withBase(base, "multi-agent-workflows") },
         { text: labels.operatorConsole, link: withBase(base, "operator-console") },
-        { text: labels.operatorsGuide, link: withBase(base, "operators-guide") },
         { text: labels.integrations, link: withBase(base, "integrations") }
       ]
     },
     {
-      text: labels.architecture,
+      text: labels.reference,
       items: [
-        { text: labels.integrations, link: withBase(base, "integrations") },
+        { text: labels.operatorsGuide, link: withBase(base, "operators-guide") },
+        { text: labels.securityBoundaries, link: withBase(base, "security-boundaries") },
         { text: "ADR-001 Architecture", link: withBase(base, "adr/ADR-001-architecture") }
-      ]
-    },
-    {
-      text: labels.release,
-      items: [
-        { text: labels.releaseAssets, link: withBase(base, "release-assets") }
       ]
     }
   ];
@@ -118,63 +116,54 @@ function localeLabels(locale: "en" | "zh-CN" | "fr") {
         home: "首页",
         quickStart: "3 分钟起步",
         gettingStarted: "快速开始",
-        security: "安全边界",
+        concepts: "核心概念",
+        multiAgent: "多智能体",
         console: "控制台",
         integrations: "集成",
-        promptFootprint: "Prompt 体积",
         start: "起步",
-        operate: "运维",
-        architecture: "架构",
+        product: "核心能力",
+        reference: "参考",
         docsHome: "文档首页",
+        multiAgentGuide: "多智能体协作",
         operatorConsole: "运维控制台",
         operatorsGuide: "运维指南",
-        runtime: "运行时",
         securityBoundaries: "安全边界",
-        liveProviderSmoke: "真实 Provider Smoke",
-        release: "发布",
-        releaseAssets: "发布素材"
       };
     case "fr":
       return {
         home: "Accueil",
         quickStart: "Démarrage 3 min",
         gettingStarted: "Prise en main",
-        security: "Sécurité",
+        concepts: "Concepts",
+        multiAgent: "Multi-agent",
         console: "Console",
         integrations: "Intégrations",
-        promptFootprint: "Empreinte prompt",
         start: "Démarrage",
-        operate: "Exploitation",
-        architecture: "Architecture",
+        product: "Produit",
+        reference: "Référence",
         docsHome: "Accueil docs",
+        multiAgentGuide: "Collaboration multi-agent",
         operatorConsole: "Console opérateur",
         operatorsGuide: "Guide opérateur",
-        runtime: "Runtime",
         securityBoundaries: "Limites de sécurité",
-        liveProviderSmoke: "Smoke providers réels",
-        release: "Release",
-        releaseAssets: "Assets de release"
       };
     default:
       return {
         home: "Home",
         quickStart: "3-Min Start",
         gettingStarted: "Getting Started",
-        security: "Security",
+        concepts: "Core Concepts",
+        multiAgent: "Multi-Agent",
         console: "Console",
         integrations: "Integrations",
-        promptFootprint: "Prompt Footprint",
         start: "Start",
-        operate: "Operate",
-        architecture: "Architecture",
+        product: "Product",
+        reference: "Reference",
         docsHome: "Docs Home",
+        multiAgentGuide: "Multi-Agent Collaboration",
         operatorConsole: "Operator Console",
         operatorsGuide: "Operators Guide",
-        runtime: "Runtime",
         securityBoundaries: "Security Boundaries",
-        liveProviderSmoke: "Live Provider Smoke",
-        release: "Release",
-        releaseAssets: "Release Assets"
       };
   }
 }

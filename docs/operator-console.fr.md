@@ -1,77 +1,121 @@
 # Mail Workbench
 
-<p align="center">
-  <a href="./operator-console.md">English</a> ·
-  <a href="./operator-console.zh-CN.md">简体中文</a> ·
-  <a href="./operator-console.fr.md"><strong>Français</strong></a>
-</p>
+Le Mail workbench est la surface utilisateur de MailClaw.
 
-MailClaw livre maintenant une surface workbench navigateur de style OpenClaw à l’URL `/workbench/mail`. C’est l’onglet mail MailClaw pour inspecter rooms, approvals, provider state, projections mailbox et traces Gateway depuis une seule vue navigateur.
+Dans la configuration visée, il apparaît comme l’onglet `Mail` dans OpenClaw/Gateway. La route directe `/workbench/mail` existe comme secours et comme cible de deep link.
 
-Le point d’entrée canonique est `/workbench/mail`. `/workbench/mail/tab` réutilise la même UI en mode embedded, et `/mail` plus `/console/*` restent des alias de compatibilité vers cette même coque.
+## L’Ouvrir
 
-## Points D’Entrée
+Chemin recommandé :
+
+```bash
+mailclaw dashboard
+```
+
+Ensuite, connectez-vous à OpenClaw/Gateway et cliquez sur `Mail`.
+
+Secours direct :
+
+```bash
+mailclaw open
+```
+
+## Ce Que Signifie Chaque Onglet
+
+### Mail
+
+La surface d’entrée pour la configuration et la connexion des boîtes mail.
+
+Utilisez-la lorsque :
+
+- vous connectez une boîte pour la première fois
+- vous voulez le chemin provider recommandé
+- vous voulez le chemin le plus court pour revenir dans l’onglet Mail
+
+### Accounts
+
+La vue au niveau compte.
+
+Utilisez-la lorsque :
+
+- vous voulez confirmer qu’une boîte est bien connectée
+- vous voulez vérifier la posture provider et l’état général
+- vous voulez sauter vers les rooms récentes ou les vues mailbox de ce compte
+
+### Rooms
+
+La vue au niveau room.
+
+Utilisez-la lorsque :
+
+- vous voulez inspecter une conversation comme état durable
+- vous voulez voir la révision, les participants, les approvals et la timeline visible au replay
+- vous voulez comprendre pourquoi la dernière réponse a cette forme
+
+### Mailboxes
+
+La vue de collaboration interne.
+
+Utilisez-la lorsque :
+
+- vous voulez inspecter une mailbox publique ou interne
+- vous voulez comprendre ce qu’un rôle d’agent a vu
+- vous voulez inspecter la collaboration interne sans relire toute la timeline room
+
+### Approvals
+
+La vue des effets de bord gouvernés.
+
+Utilisez-la lorsque :
+
+- vous voulez inspecter le travail sortant en attente d’approbation
+- vous voulez revoir ou tracer ce qui doit se passer avant la delivery externe
+
+## Flux Utilisateur Typique
+
+Le chemin le plus courant est :
+
+1. ouvrir `Accounts`
+2. sélectionner le compte mailbox connecté
+3. ouvrir la nouvelle room
+4. si nécessaire, sauter vers un participant mailbox
+5. si nécessaire, inspecter `Approvals` avant la delivery
+
+Cela reflète le modèle runtime :
+
+- le compte donne le périmètre provider et mailbox
+- la room donne la vérité durable
+- la mailbox donne le détail de collaboration
+- les approvals donnent le contrôle des effets externes
+
+## Deep Links
+
+Routes directes utiles :
 
 - `/workbench/mail`
+- `/workbench/mail?mode=accounts`
+- `/workbench/mail?mode=rooms`
+- `/workbench/mail?mode=mailboxes`
+- `/workbench/mail?mode=approvals&approvalStatus=requested`
 - `/workbench/mail/accounts/:accountId`
-- `/workbench/mail/inboxes/:accountId/:inboxId`
 - `/workbench/mail/rooms/:roomKey`
 - `/workbench/mail/mailboxes/:accountId/:mailboxId`
 
-Ces routes sont stables pour les deep links. `/mail` et `/console/*` restent disponibles pour compatibilité. La première vague de filtres UI couvre :
+Ces routes sont faites pour garder une navigation stable, que vous arriviez depuis Gateway ou via l’URL directe de secours.
 
-- `status`
-- `originKind`
-- `mailboxId`
-- `approvalStatus`
+## À Quoi Sert Cette Surface
 
-## Trouver Une Mailbox Agent En 30 Secondes
+Le Mail workbench est conçu pour expliquer le système avec des objets utiles opérationnellement :
 
-Pour un usage orienté email, prenez ce chemin court :
+- les comptes connectés
+- les rooms durables
+- les mailboxes internes et publiques
+- l’état des approvals
 
-1. Ouvrir `/workbench/mail/accounts/:accountId`
-2. Cliquer une room qui vient de recevoir un email
-3. Depuis le détail room, ouvrir un participant mailbox
-4. Arriver sur `/workbench/mail/mailboxes/:accountId/:mailboxId` pour inspecter feed et état de delivery
+Ce n’est pas juste un autre visualiseur générique de transcript.
 
-Équivalent CLI :
+## Lire Aussi
 
-- `pnpm mailctl mailbox feed <accountId> <mailboxId>`
-- `pnpm mailctl mailbox view <roomKey> <mailboxId>`
-
-## Ce Que Couvre Cette Première Tranche
-
-- `Accounts` : santé du compte, mode provider, nombre de rooms, approbations en attente
-- `Rooms` : liste des rooms avec état, niveau d’attention, origines, approbations et compteurs de delivery
-- `Detail` : résumé de room, timeline, gateway projection trace avec enregistrements automatiques d’outcome projection, participation des mailboxes, vue inbox-first lorsqu’un deep link de public inbox est ouvert, ou vue mailbox-first lorsqu’un deep link mailbox est ouvert
-- `Provider + Mailboxes` : résumé provider state, résumé de politique inbox, cartes mailbox, mailbox feed
-- `Approvals` : items d’approbation en attente ou historiques avec sauts vers la room
-
-Améliorations de release dans cette tranche :
-
-- Le hero affiche maintenant un bandeau explicite de limites (lecture seule, frontière mailbox client, statut Workbench tab, statut gateway round-trip).
-- Une barre d’onglets façon workbench expose désormais `Connect`, `Accounts`, `Rooms`, `Mailboxes` et `Approvals`.
-- Le détail room inclut des compteurs par catégorie timeline (`provider`, `ledger`, `virtual_mail`, `approval`, `delivery`) pour accélérer le diagnostic.
-- Les cartes room affichent un niveau d’attention explicite (`stable | watch | critical`) pour faciliter la priorisation opérateur.
-
-## Sources De Données
-
-La console reste kernel-first et API-first :
-
-- `GET /api/console/workbench`
-- `GET /api/console/terminology`
-- `GET /api/console/accounts`
-- `GET /api/console/rooms`
-- `GET /api/console/approvals`
-- `GET /api/accounts/:accountId/mailbox-console`
-- `GET /api/accounts/:accountId/mailboxes/:mailboxId/feed`
-
-La page ne lit pas directement les tables de stockage et ne traite pas le transcript Gateway comme source de vérité.
-La tranche UI la plus récente peut désormais s’hydrater depuis le read model agrégé `GET /api/console/workbench`, tandis que les endpoints plus fins restent disponibles pour l’inspection et la compatibilité.
-
-## Limites Actuelles
-
-- Le Mail tab est en lecture seule dans cette phase.
-- C’est une surface mail navigateur, pas un client mailbox complet de type Outlook.
-- `/workbench/mail`, `/workbench/mail/tab` et `/console/*` atterrissent maintenant sur la même coque OpenClaw-style au lieu de piles UI séparées.
-- Les traces d’outcome Gateway sont maintenant visibles une fois la room liée, mais le câblage de production auto-ingress/Workbench Gateway reste incomplet.
+- [Concepts](./concepts.fr.md)
+- [Prise en main](./getting-started.fr.md)
+- [Intégrations](./integrations.fr.md)

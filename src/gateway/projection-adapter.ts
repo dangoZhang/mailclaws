@@ -23,6 +23,7 @@ import {
   saveGatewaySessionBinding
 } from "../storage/repositories/gateway-session-bindings.js";
 import { getSubAgentRunByChildSessionKey } from "../storage/repositories/subagent-runs.js";
+import { getVirtualMailbox } from "../storage/repositories/virtual-mailboxes.js";
 import { getVirtualMessage } from "../storage/repositories/virtual-messages.js";
 import { getVirtualThread } from "../storage/repositories/virtual-threads.js";
 import { getWorkerSession } from "../storage/repositories/worker-sessions.js";
@@ -238,6 +239,12 @@ export function projectGatewayTurnToVirtualMail(
     }
   };
   const parentMessageId = input.parentMessageId ?? binding.parentMessageId;
+  const visibility = coerceGatewayTurnVisibility(db, {
+    fromMailboxId: input.fromMailboxId,
+    toMailboxIds: input.toMailboxIds,
+    ccMailboxIds: input.ccMailboxIds,
+    visibility: input.visibility
+  });
 
   const result = parentMessageId
     ? replyVirtualMessage(db, parentMessageId, {
@@ -246,7 +253,7 @@ export function projectGatewayTurnToVirtualMail(
         toMailboxIds: input.toMailboxIds,
         ccMailboxIds: input.ccMailboxIds,
         kind: input.kind,
-        visibility: input.visibility,
+        visibility,
         ...baseProjection,
         subject: input.subject,
         bodyRef: input.bodyRef,
@@ -266,7 +273,7 @@ export function projectGatewayTurnToVirtualMail(
         toMailboxIds: input.toMailboxIds,
         ccMailboxIds: input.ccMailboxIds,
         kind: input.kind,
-        visibility: input.visibility,
+        visibility,
         ...baseProjection,
         subject: input.subject,
         bodyRef: input.bodyRef,
@@ -388,6 +395,28 @@ export function resolveGatewayOutcomeProjectionMode(message: VirtualMessage): Ga
   }
 
   return "no_external_projection";
+}
+
+function coerceGatewayTurnVisibility(
+  db: DatabaseSync,
+  input: {
+    fromMailboxId: string;
+    toMailboxIds: string[];
+    ccMailboxIds?: string[];
+    visibility: VirtualMessage["visibility"];
+  }
+) {
+  if (input.visibility !== "internal") {
+    return input.visibility;
+  }
+
+  const participantMailboxIds = [input.fromMailboxId, ...input.toMailboxIds, ...(input.ccMailboxIds ?? [])];
+  const hasVisibleParticipant = participantMailboxIds.some((mailboxId) => {
+    const mailbox = getVirtualMailbox(db, mailboxId);
+    return mailbox?.kind === "public" || mailbox?.kind === "human";
+  });
+
+  return hasVisibleParticipant ? "room" : input.visibility;
 }
 
 function requireRoom(db: DatabaseSync, roomKey: string) {

@@ -27,5 +27,4 @@ These checks are intentionally conservative to stop mail loops, spam amplificati
 ## Release Validation
 
 - Run `pnpm test:security` for redaction and exposure regressions.
-- Run [Live Provider Smoke](./live-provider-smoke.md) when real credentials are available.
 - Keep architectural truth claims aligned with [ADR-001 Architecture](./adr/ADR-001-architecture.md).

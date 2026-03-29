@@ -1,226 +1,135 @@
-# Getting Started
+# Prise En Main
 
-<p align="center">
-  <a href="./getting-started.md">English</a> ·
-  <a href="./getting-started.zh-CN.md">简体中文</a> ·
-  <a href="./getting-started.fr.md"><strong>Français</strong></a>
-</p>
+Cette page est le chemin le plus court pour passer de zéro à une première conversation email fonctionnelle.
 
-Ce guide commence par le parcours normal d’un utilisateur mailbox : installer, connecter une boîte, envoyer un email de test, puis lire la conversation dans le navigateur. Les flux opérateur et développeur viennent ensuite.
+Si vous savez déjà ce qu’est MailClaw, allez directement à [Envoyer Votre Premier Vrai Email](#three-minute-first-mail).
 
-## Prérequis
+## Ce Qu’il Vous Faut
 
-- Node.js 22+ et `pnpm`
-- Un checkout de ce repository
-- Optionnel : identifiants de vraie boîte mail (pour les tests live provider)
+- Node.js 22+
+- une boîte mail que vous voulez connecter à MailClaw
+- une autre boîte mail ou un autre client mail pour envoyer un message de test
 
-Installation locale la plus rapide :
+MailClaw n’est pas lié à un seul provider. Les chemins intégrés couvrent Gmail, Outlook, QQ, iCloud, Yahoo, 163/126, ainsi que les comptes IMAP/SMTP génériques.
+
+## Installer
+
+Recommandé :
 
 ```bash
 ./install.sh
 ```
 
-Ou installer depuis les sources :
+Autres chemins pris en charge :
+
+```bash
+npm install -g mailclaw
+pnpm setup && pnpm add -g mailclaw
+brew install mailclaw
+```
+
+Si vous lancez depuis les sources :
 
 ```bash
 pnpm install
 ```
 
-MailClaw utilise `node:sqlite`, donc les anciennes versions de Node ne suffisent pas pour le runtime ou les binaires packagés.
-
-## 1. Démarrer MailClaw
-
-Mode embedded par défaut :
+## Démarrer MailClaw
 
 ```bash
 MAILCLAW_FEATURE_MAIL_INGEST=true \
-pnpm mailclaw
+mailclaw
 ```
 
-Mode bridge (compatible OpenClaw) :
+Cela démarre le runtime local ainsi que le backend du Mail tab.
+
+## Connecter Une Boîte Mail
+
+Chemin recommandé :
 
 ```bash
-MAILCLAW_RUNTIME_POLICY_MANIFEST_JSON='{"toolPolicies":["mail-orchestrator","mail-attachment-reader","mail-researcher","mail-drafter","mail-reviewer","mail-guard"],"sandboxPolicies":["mail-room-orchestrator","mail-room-worker"],"networkAccess":"allowlisted","filesystemAccess":"workspace-read","outboundMode":"approval_required"}' \
-MAILCLAW_FEATURE_MAIL_INGEST=true \
-MAILCLAW_FEATURE_OPENCLAW_BRIDGE=true \
-MAILCLAW_OPENCLAW_GATEWAY_TOKEN=dev-token \
-pnpm dev
+mailclaw onboard you@example.com
+mailclaw login
 ```
 
-Mode command (commande runtime locale) :
+Ce que font ces commandes :
+
+- `mailclaw onboard` recommande le chemin provider le plus simple à partir de l’adresse
+- `mailclaw login` vous guide dans la connexion réelle du compte
+
+Si vous savez déjà quel chemin provider utiliser :
 
 ```bash
-MAILCLAW_RUNTIME_POLICY_MANIFEST_JSON='{"toolPolicies":["mail-orchestrator","mail-attachment-reader","mail-researcher","mail-drafter","mail-reviewer","mail-guard"],"sandboxPolicies":["mail-room-orchestrator","mail-room-worker"],"networkAccess":"allowlisted","filesystemAccess":"workspace-read","outboundMode":"approval_required"}' \
-MAILCLAW_RUNTIME_MODE=command \
-MAILCLAW_RUNTIME_COMMAND='mail-runtime --stdio' \
-MAILCLAW_FEATURE_MAIL_INGEST=true \
-pnpm dev
+mailclaw providers
 ```
 
-`MAILCLAW_RUNTIME_POLICY_MANIFEST_JSON` est requis pour les modes bridge/command quand un tour runtime porte des métadonnées `executionPolicy`.
+## Ouvrir L’Onglet Mail
 
-Après démarrage, ouvrez le Mail workbench :
+Chemin hôte recommandé :
+
+```bash
+mailclaw dashboard
+```
+
+Ensuite, connectez-vous à OpenClaw/Gateway et cliquez sur `Mail`.
+
+Secours direct :
+
+```bash
+mailclaw open
+```
+
+ou ouvrez :
 
 ```text
 http://127.0.0.1:3000/workbench/mail
 ```
 
-## 2. Connecter Un Compte
-
-Chemins possibles :
-
-- Inspecter d’abord la matrice provider/setup : `pnpm mailclaw providers [provider]`
-- Demander d’abord une recommandation mailbox-first : `pnpm mailclaw onboard you@example.com`
-- Assistant terminal interactif : `pnpm mailclaw login`
-- OAuth Gmail : `pnpm mailctl connect login gmail <accountId> [displayName]`
-- OAuth Outlook : `pnpm mailctl connect login outlook <accountId> [displayName]`
-- OAuth Gmail headless : `pnpm mailctl connect login oauth gmail <accountId> [displayName] --no-browser`
-- OAuth Outlook headless : `pnpm mailctl connect login oauth outlook <accountId> [displayName] --no-browser`
-- Enregistrement via API : `POST /api/accounts`
-
-Ordre de bootstrap recommande :
-
-```bash
-pnpm mailclaw onboard you@example.com
-pnpm mailclaw login
-pnpm mailclaw accounts
-```
-
-Vérifier les comptes connectés :
-
-```bash
-pnpm mailclaw accounts
-```
-
-API du catalogue provider/setup :
-
-```bash
-curl -s http://127.0.0.1:3000/api/connect
-curl -s "http://127.0.0.1:3000/api/connect/onboarding?emailAddress=you@example.com"
-curl -s http://127.0.0.1:3000/api/connect/providers
-curl -s http://127.0.0.1:3000/api/connect/providers/gmail
-```
-
 <a id="three-minute-first-mail"></a>
 
-## 3. Premier Email Réel (Parcours Utilisateur Mailbox) {#three-minute-first-mail}
+## Envoyer Votre Premier Vrai Email {#three-minute-first-mail}
 
-Après la connexion du compte, commencez par un flux normal d’utilisateur email :
+1. Connectez une boîte mail avec `mailclaw login`.
+2. Copiez l’adresse connectée depuis l’onglet Mail ou `mailclaw accounts`.
+3. Envoyez un email à cette adresse depuis une autre boîte.
+4. Ouvrez l’onglet Mail.
+5. Ouvrez le compte connecté, puis la nouvelle room.
 
-1. Récupérer l’adresse mailbox connectée :
-   - `pnpm mailclaw accounts show <accountId>`
-2. Envoyer un email de test vers cette adresse depuis un autre compte/client mail.
-3. Vérifier la room et l’inbox créées :
-   - `pnpm mailclaw rooms`
-   - `pnpm mailclaw inboxes <accountId>`
-   - `pnpm mailclaw replay <roomKey>`
-4. Ouvrir les vues workbench :
-   - `http://127.0.0.1:3000/workbench/mail/accounts/<accountId>`
-   - `http://127.0.0.1:3000/workbench/mail/rooms/<roomKey>`
-5. Vérifier les messages de collaboration interne des agents :
-   - `pnpm mailctl mailbox view <roomKey> <mailboxId>`
-   - `pnpm mailctl mailbox feed <accountId> <mailboxId>`
+C’est la boucle centrale de MailClaw :
 
-C’est le chemin le plus court "connexion -> réception -> inspection -> gouvernance".
+- un vrai email arrive
+- MailClaw crée ou met à jour une room
+- les agents travaillent à l’intérieur de cette room
+- vous inspectez le résultat depuis l’onglet Mail
 
-## 4. Parcours A : provider mail -> room -> approval -> delivery
+## Ce Que Vous Verrez
 
-Injecter un message entrant normalisé :
+Après l’arrivée du premier message, l’onglet Mail vous donne quatre vues utiles :
 
-```bash
-curl -X POST 'http://127.0.0.1:3000/api/inbound?processImmediately=true' \
-  -H 'content-type: application/json' \
-  -d '{
-    "accountId": "acct-1",
-    "mailboxAddress": "mailclaw@example.com",
-    "envelope": {
-      "providerMessageId": "provider-1",
-      "messageId": "<msg-1@example.com>",
-      "subject": "API room",
-      "from": { "email": "sender@example.com" },
-      "to": [{ "email": "mailclaw@example.com" }],
-      "text": "Hello from the API",
-      "headers": [{ "name": "Message-ID", "value": "<msg-1@example.com>" }]
-    }
-  }'
-```
+- `Accounts` : quelles boîtes sont connectées et en bonne santé
+- `Rooms` : l’état durable des conversations
+- `Mailboxes` : les vues de collaboration interne et publique des agents
+- `Approvals` : le travail sortant gouverné en attente de validation
 
-Inspecter la room et les approbations :
+Si vous voulez inspecter la collaboration interne des agents après le premier message :
 
-```bash
-pnpm mailctl observe rooms
-pnpm mailctl observe room <roomKey>
-pnpm mailctl observe approvals room <roomKey>
-```
+- ouvrez une room
+- cliquez sur un participant mailbox
+- inspectez le feed mailbox et l’état local de collaboration de la room
 
-Livrer les messages outbox en attente :
+## Pour Les Utilisateurs OpenClaw
 
-```bash
-pnpm mailctl operate deliver-outbox
-```
+Si vous utilisez déjà OpenClaw, gardez le même workflow externe :
 
-## 5. Parcours B : Gateway turn -> virtual mail -> room -> final outcome
+1. démarrez MailClaw
+2. lancez `mailclaw dashboard`
+3. entrez dans la console hôte
+4. cliquez sur `Mail`
 
-Projeter un turn Gateway dans MailClaw :
+MailClaw doit ressembler à un onglet Mail supplémentaire dans la coque OpenClaw existante, pas à une console séparée qu’il faut apprendre d’abord.
 
-```bash
-curl -X POST 'http://127.0.0.1:3000/api/gateway/project' \
-  -H 'content-type: application/json' \
-  -d '{
-    "sessionKey": "gw-session-1",
-    "sourceControlPlane": "openclaw",
-    "fromPrincipalId": "agent:front",
-    "fromMailboxId": "front-mailbox",
-    "toMailboxIds": ["mail-orchestrator"],
-    "kind": "claim",
-    "visibility": "internal",
-    "subject": "Gateway projection smoke",
-    "bodyRef": "gateway message body",
-    "inputsHash": "smoke-hash-1"
-  }'
-```
+## Étapes Suivantes
 
-Inspecter la trace de projection et la timeline room :
-
-```bash
-pnpm mailctl gateway trace <roomKey>
-pnpm mailctl replay <roomKey>
-```
-
-Limite connue : les API de projection existent, mais le branchement automatique à un flux d’événements Gateway amont complet n’est pas fini dans ce repository.
-
-## 6. Parcours C : internal multi-agent -> reducer/reviewer/guard -> projected outcome
-
-Activer les flags worker/gouvernance en local :
-
-```bash
-MAILCLAW_FEATURE_SWARM_WORKERS=true \
-MAILCLAW_FEATURE_APPROVAL_GATE=true \
-MAILCLAW_FEATURE_IDENTITY_TRUST_GATE=true \
-pnpm dev
-```
-
-Inspecter ensuite les artefacts de collaboration interne via mailbox/feed :
-
-```bash
-pnpm mailctl mailbox view <roomKey> <mailboxId>
-pnpm mailctl mailbox feed <accountId> <mailboxId>
-pnpm mailctl approvals trace <roomKey>
-```
-
-Vous pouvez filtrer par origines (`provider_mail`, `gateway_chat`, `virtual_internal`) pour vérifier les transitions multi-agents internes.
-
-## 7. Suite
-
-- Opérations et dépannage : [Guide opérateurs](./operators-guide.fr.md)
-- Branchages provider/Gateway/OpenClaw : [Intégrations](./integrations.fr.md)
-- Procédures smoke avec vrais identifiants : [Live Provider Smoke](./live-provider-smoke.md)
-
-Baseline de verification release :
-
-```bash
-pnpm build
-pnpm test:workflow
-pnpm test:security
-pnpm docs:build
-```
+- [Concepts](./concepts.fr.md)
+- [Mail Workbench](./operator-console.fr.md)
+- [Intégrations](./integrations.fr.md)

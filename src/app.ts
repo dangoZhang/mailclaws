@@ -76,7 +76,6 @@ function mapWorkbenchBrowserPath(pathname: string, search: string) {
 }
 
 function mapConsoleWorkbenchPath(pathname: string, search: string) {
-  const suffix = search || "";
   const params = new URLSearchParams(search);
   const embedded = params.get("shell") === "embedded";
   params.delete("shell");
@@ -312,6 +311,28 @@ async function handleRequest(options: {
 
     if (mailApi && request.method === "GET" && requestUrl.pathname === "/api/console/workbench-host") {
       writeJson(response, 200, mailApi.getConsoleWorkbenchHost());
+      return;
+    }
+
+    if (mailApi && request.method === "GET" && requestUrl.pathname === "/api/console/agent-templates") {
+      writeJson(response, 200, mailApi.listAgentTemplates());
+      return;
+    }
+
+    if (mailApi && request.method === "GET" && requestUrl.pathname === "/api/console/agent-directory") {
+      writeJson(
+        response,
+        200,
+        mailApi.getAgentDirectory({
+          tenantId: requestUrl.searchParams.get("tenantId") ?? requestUrl.searchParams.get("accountId") ?? "default",
+          accountId: requestUrl.searchParams.get("accountId") ?? undefined
+        })
+      );
+      return;
+    }
+
+    if (mailApi && request.method === "GET" && requestUrl.pathname === "/api/console/headcount") {
+      writeJson(response, 200, mailApi.getHeadcountRecommendations(requestUrl.searchParams.get("accountId") ?? undefined));
       return;
     }
 
@@ -630,6 +651,43 @@ async function handleRequest(options: {
         return;
       }
 
+      if (requestUrl.pathname === "/api/gateway/history/import") {
+        const body = (await readJsonBody(request)) as {
+          roomKey?: string;
+          sessionKey?: string;
+          sourceControlPlane?: string;
+          frontAgentId?: string;
+          bindingKind?: "room" | "work_thread" | "subagent";
+          turns?: Array<{
+            sourceMessageId?: string;
+            sourceRunId?: string;
+            fromPrincipalId?: string;
+            fromMailboxId?: string;
+            toMailboxIds?: string[] | string;
+            ccMailboxIds?: string[] | string;
+            kind?: "task" | "question" | "claim" | "evidence" | "draft" | "review" | "approval" | "progress" | "final_ready" | "handoff" | "system_notice";
+            visibility?: "room" | "internal" | "private" | "governance";
+            subject?: string;
+            bodyText?: string;
+            createdAt?: string;
+            parentMessageId?: string;
+          }>;
+        };
+        writeJson(
+          response,
+          200,
+          mailApi.importGatewayThreadHistory({
+            roomKey: requireStringBody(body.roomKey, "roomKey"),
+            sessionKey: requireStringBody(body.sessionKey, "sessionKey"),
+            sourceControlPlane: typeof body.sourceControlPlane === "string" ? body.sourceControlPlane : "openclaw",
+            frontAgentId: typeof body.frontAgentId === "string" ? body.frontAgentId : undefined,
+            bindingKind: body.bindingKind,
+            turns: parseRequiredGatewayHistoryTurns(body.turns)
+          })
+        );
+        return;
+      }
+
       if (requestUrl.pathname === "/api/gateway/outcome") {
         const body = (await readJsonBody(request)) as {
           roomKey?: string;
@@ -705,10 +763,103 @@ async function handleRequest(options: {
         writeJson(response, 200, mailApi.retryRoomJob(decodeURIComponent(roomJobRetryMatch[1] ?? "")));
         return;
       }
+
+      const applyTemplateMatch = requestUrl.pathname.match(/^\/api\/console\/agent-templates\/([^/]+)\/apply$/);
+      if (applyTemplateMatch) {
+        const body = (await readJsonBody(request)) as {
+          accountId?: string;
+          tenantId?: string;
+          now?: string;
+        };
+        writeJson(
+          response,
+          200,
+          mailApi.applyAgentTemplate({
+            templateId: decodeURIComponent(applyTemplateMatch[1] ?? ""),
+            accountId: requireStringBody(body.accountId, "accountId"),
+            tenantId: typeof body.tenantId === "string" ? body.tenantId : undefined,
+            now: typeof body.now === "string" ? body.now : undefined
+          })
+        );
+        return;
+      }
+
+      if (requestUrl.pathname === "/api/console/agents") {
+        const body = (await readJsonBody(request)) as {
+          accountId?: string;
+          tenantId?: string;
+          agentId?: string;
+          displayName?: string;
+          purpose?: string;
+          publicMailboxId?: string;
+          collaboratorAgentIds?: string[] | string;
+          activeRoomLimit?: number;
+          ackSlaSeconds?: number;
+          burstCoalesceSeconds?: number;
+          now?: string;
+        };
+        writeJson(
+          response,
+          200,
+          mailApi.createCustomAgent({
+            accountId: requireStringBody(body.accountId, "accountId"),
+            tenantId: typeof body.tenantId === "string" ? body.tenantId : undefined,
+            agentId: requireStringBody(body.agentId, "agentId"),
+            displayName: typeof body.displayName === "string" ? body.displayName : undefined,
+            purpose: typeof body.purpose === "string" ? body.purpose : undefined,
+            publicMailboxId: typeof body.publicMailboxId === "string" ? body.publicMailboxId : undefined,
+            collaboratorAgentIds: parseOptionalBodyStringList(body.collaboratorAgentIds),
+            activeRoomLimit: typeof body.activeRoomLimit === "number" ? body.activeRoomLimit : undefined,
+            ackSlaSeconds: typeof body.ackSlaSeconds === "number" ? body.ackSlaSeconds : undefined,
+            burstCoalesceSeconds:
+              typeof body.burstCoalesceSeconds === "number" ? body.burstCoalesceSeconds : undefined,
+            now: typeof body.now === "string" ? body.now : undefined
+          })
+        );
+        return;
+      }
     }
 
     if (mailApi && request.method === "POST" && requestUrl.pathname === "/api/outbox/deliver") {
       writeJson(response, 200, await mailApi.deliverOutbox());
+      return;
+    }
+
+    const roomMessageEmailSyncMatch =
+      mailApi && request.method === "POST"
+        ? requestUrl.pathname.match(/^\/api\/rooms\/(.+)\/messages\/(.+)\/sync-email$/)
+        : null;
+    if (mailApi && roomMessageEmailSyncMatch) {
+      const body = (await readJsonBody(request)) as {
+        mailboxAddress?: string;
+        to?: string[] | string;
+        cc?: string[] | string;
+        bcc?: string[] | string;
+        subject?: string;
+        body?: string;
+        htmlBody?: string;
+        kind?: "ack" | "progress" | "final";
+        approvalRequired?: boolean;
+        createdAt?: string;
+      };
+      writeJson(
+        response,
+        200,
+        mailApi.syncRoomMessageToEmail({
+          roomKey: decodeURIComponent(roomMessageEmailSyncMatch[1] ?? ""),
+          messageId: decodeURIComponent(roomMessageEmailSyncMatch[2] ?? ""),
+          mailboxAddress: typeof body.mailboxAddress === "string" ? body.mailboxAddress : undefined,
+          to: parseOptionalBodyStringList(body.to),
+          cc: parseOptionalBodyStringList(body.cc),
+          bcc: parseOptionalBodyStringList(body.bcc),
+          subject: typeof body.subject === "string" ? body.subject : undefined,
+          body: typeof body.body === "string" ? body.body : undefined,
+          htmlBody: typeof body.htmlBody === "string" ? body.htmlBody : undefined,
+          kind: body.kind,
+          approvalRequired: typeof body.approvalRequired === "boolean" ? body.approvalRequired : undefined,
+          createdAt: typeof body.createdAt === "string" ? body.createdAt : undefined
+        })
+      );
       return;
     }
 
@@ -1089,7 +1240,63 @@ function parseGatewayEvent(event: unknown) {
         messageId: requireStringBody(record.messageId, "messageId"),
         projectedAt: typeof record.projectedAt === "string" ? record.projectedAt : undefined
       } as const;
+    case "gateway.history.import":
+      return {
+        type: record.type,
+        roomKey: requireStringBody(record.roomKey, "roomKey"),
+        sessionKey: requireStringBody(record.sessionKey, "sessionKey"),
+        sourceControlPlane: typeof record.sourceControlPlane === "string" ? record.sourceControlPlane : "openclaw",
+        frontAgentId: typeof record.frontAgentId === "string" ? record.frontAgentId : undefined,
+        bindingKind: (record.bindingKind as "room" | "work_thread" | "subagent" | undefined) ?? "room",
+        turns: parseRequiredGatewayHistoryTurns(record.turns as unknown)
+      } as const;
     default:
       throw new RuntimeApiError(`unsupported gateway event type: ${record.type}`, 400);
   }
+}
+
+function parseRequiredGatewayHistoryTurns(turns: unknown) {
+  if (!Array.isArray(turns) || turns.length === 0) {
+    throw new RuntimeApiError("gateway history turns are required", 400);
+  }
+
+  return turns.map((turn, index) => {
+    const record =
+      typeof turn === "object" && turn !== null ? (turn as Record<string, unknown>) : null;
+    if (!record) {
+      throw new RuntimeApiError(`gateway history turn ${index + 1} is invalid`, 400);
+    }
+
+    return {
+      sourceMessageId: typeof record.sourceMessageId === "string" ? record.sourceMessageId : undefined,
+      sourceRunId: typeof record.sourceRunId === "string" ? record.sourceRunId : undefined,
+      fromPrincipalId: requireStringBody(record.fromPrincipalId, `turns[${index}].fromPrincipalId`),
+      fromMailboxId: requireStringBody(record.fromMailboxId, `turns[${index}].fromMailboxId`),
+      toMailboxIds: parseRequiredBodyStringList(
+        record.toMailboxIds as string[] | string | undefined,
+        `turns[${index}].toMailboxIds`
+      ),
+      ccMailboxIds: parseOptionalBodyStringList(record.ccMailboxIds as string[] | string | undefined),
+      kind:
+        (record.kind as
+          | "task"
+          | "question"
+          | "claim"
+          | "evidence"
+          | "draft"
+          | "review"
+          | "approval"
+          | "progress"
+          | "final_ready"
+          | "handoff"
+          | "system_notice"
+          | undefined) ?? "claim",
+      visibility:
+        (record.visibility as "room" | "internal" | "private" | "governance" | undefined) ?? "internal",
+      subject: requireStringBody(record.subject, `turns[${index}].subject`),
+      bodyText: requireStringBody(record.bodyText, `turns[${index}].bodyText`),
+      createdAt: requireStringBody(record.createdAt, `turns[${index}].createdAt`),
+      parentMessageId: typeof record.parentMessageId === "string" ? record.parentMessageId : undefined
+    };
+  });
 }

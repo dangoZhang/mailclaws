@@ -3,65 +3,105 @@ layout: home
 
 hero:
   name: MailClaw
-  text: Connectez une boîte mail et envoyez un premier test en 3 minutes
-  tagline: MailClaw garde le contexte email dans des rooms durables, orchestre les agents via virtual mail, et expose tout dans un mail workbench unique.
+  text: Le Travail Email Qui Garde Sa Forme
+  tagline: MailClaw transforme les conversations email en rooms durables, fait collaborer les agents via du courrier interne, et garde la mémoire longue comme un état Pre compact au lieu d’un transcript qui gonfle.
   actions:
     - theme: brand
-      text: Premier mail en 3 min
+      text: Démarrer En 3 Minutes
       link: /fr/getting-started#three-minute-first-mail
     - theme: alt
-      text: Ouvrir le mail workbench
-      link: /fr/operator-console
+      text: Concepts Clés
+      link: /fr/concepts
     - theme: alt
-      text: Options de connexion
-      link: /fr/integrations
+      text: Mail Workbench
+      link: /fr/operator-console
 
 features:
-  - title: Contexte Email Durable
-    details: Chaque email entrant devient une room avec révision, approbations, traces de delivery et replay.
-  - title: Mailboxes Agents Internes
-    details: Les agents collaborent via des mailbox threads internes auditables, sans polluer les fils externes.
-  - title: Envoi Gouverné Par Défaut
-    details: L'envoi réel passe par outbox + approbation. Les workers ne peuvent pas déclencher un send direct.
-  - title: Un Mail Workbench
-    details: "`/workbench/mail` et `mailctl` couvrent rooms, inboxes, mailboxes, approbations et traces gateway."
+  - title: Les Rooms Sont La Frontière De Vérité
+    details: Chaque conversation réelle devient une room avec état révisé, historique rejouable et continuité stable entre inbound, brouillons, approbations et delivery.
+  - title: Les Agents Collaborent Avec La Sémantique Du Mail
+    details: Les agents ne partagent pas un transcript géant. Ils travaillent via des mailboxes virtuelles, des work threads, des replies single-parent et un fan-in piloté par reducer.
+  - title: La Mémoire Pre Reste Compacte
+    details: MailClaw conserve des résumés, faits, décisions et engagements comme état Pre durable. Les traces scratch et tentatives ratées restent hors de la mémoire longue par défaut.
+  - title: L’Outbound Est Gouverné
+    details: Les effets externes passent par draft, review, approval et outbox. Les workers et les mails internes ne peuvent pas contourner cette porte.
+  - title: Un Seul Onglet Mail Pour Toute L’Histoire
+    details: Accounts, rooms, mailboxes et approvals restent visibles depuis le même onglet Mail aligné sur OpenClaw, avec des deep links stables quand il le faut.
 ---
 
-## Démarrage En 3 Minutes
+## Pourquoi MailClaw
 
-1. Démarrer MailClaw : `pnpm mailclaw`
-2. Demander le meilleur chemin de connexion : `pnpm mailclaw onboard you@example.com`
-3. Connecter votre boîte mail : `pnpm mailclaw login`
-4. Ouvrir `http://127.0.0.1:3000/workbench/mail`
-5. Envoyer un email depuis une autre boîte vers l’adresse connectée
+La plupart des systèmes d’agents traitent l’email comme un transport de plus. MailClaw non.
 
-Ensuite, suivez le parcours premier message : [Prise en main](./getting-started.fr.md#three-minute-first-mail).
+MailClaw traite l’email comme la surface de travail elle-même :
 
-## Où Voir La Collaboration Des Agents
+- l’email externe devient un état de room durable
+- la collaboration multi-agent interne devient du virtual mail
+- la mémoire devient des snapshots Pre compacts au lieu d’une accumulation brute de transcript
+- la delivery externe reste derrière approval et outbox
 
-- `/workbench/mail/accounts/:accountId` pour ouvrir un compte et basculer vers room/mailbox.
-- `/workbench/mail` pour partir d’une adresse mailbox et obtenir le bon parcours provider.
-- `/workbench/mail/mailboxes/:accountId/:mailboxId` pour voir le flux d'une mailbox agent.
-- `/workbench/mail/rooms/:roomKey` pour corréler le fil externe et les traces de collaboration interne.
-- Équivalent CLI :
-  - `pnpm mailctl observe mailbox-feed <accountId> <mailboxId>`
-  - `pnpm mailctl observe mailbox-view <roomKey> <mailboxId>`
+Cela colle à la manière dont les utilisateurs email travaillent déjà, tout en restant inspectable pour les opérateurs et extensible pour les systèmes multi-agents.
 
-## Parcours De Référence
+## La Boucle Principale
 
-- [Prise en main](./getting-started.fr.md) : parcours 3 minutes + scénarios provider/gateway/internal-agent.
-- [Mail Workbench](./operator-console.fr.md) : routes `/workbench/mail`, filtres et modèle inbox/mailbox.
-- [Guide opérateur](./operators-guide.fr.md) : exploitation quotidienne, replay, approbations, récupération et dépannage.
-- [Intégrations](./integrations.fr.md) : couverture provider, OAuth, câblage entrant/sortant et compatibilité OpenClaw.
-- [Limites de sécurité](./security-boundaries.fr.md) : modèle de confiance, périmètre de redaction et limites d'isolation actuelles.
+1. Connectez une boîte mail que vous utilisez déjà.
+2. Un nouveau message entrant ouvre ou met à jour une room.
+3. Les agents travaillent via des mailboxes internes et des work threads.
+4. L’état Pre durable enregistre ce qui doit être conservé.
+5. L’onglet Mail vous permet d’inspecter rooms, mailboxes et approvals au même endroit.
 
-## Réalité de release
+Le chemin le plus court est dans [Prise en main](./getting-started.fr.md).
 
-- Livré maintenant : kernel runtime, seams provider d'ingestion/delivery, APIs de projection Gateway, flux replay/approval, et page workbench `/workbench/mail`.
-- Non livré : client mailbox complet type Outlook et câblage automatique Gateway round-trip de bout en bout.
-- Validation release : exécuter [Live Provider Smoke](./live-provider-smoke.fr.md) et vérifier les contraintes dans [ADR-001 Architecture](./adr/ADR-001-architecture.md).
+## Les Quatre Idées Clés
 
-## Limites actuelles
+### 1. Room
 
-- Ce dépôt fournit maintenant un vrai site de documentation via `pnpm docs:dev` et `pnpm docs:build`.
-- Le runtime et le Mail workbench sont documentés, mais pas encore un client mailbox complet de type Outlook.
+Une room est le contexte durable d’une conversation externe.
+
+- la continuité vient de la structure de réponse et des indices provider, pas d’un transcript de chat
+- la room porte la révision, les participants, les artefacts, les approvals et l’historique rejouable
+- lorsqu’une nouvelle réponse arrive, l’ancien travail obsolète est invalidé au lieu d’être fusionné en silence
+
+### 2. Virtual Mail
+
+Les agents collaborent via du virtual mail, pas via un gros bloc de contexte partagé.
+
+- chaque agent peut avoir des mailboxes publiques et internes
+- les replies internes sont single-parent
+- le fan-out et le fan-in sont explicites, avec des reducers responsables de la convergence
+- la collaboration interne reste inspectable sans polluer le thread externe
+
+### 3. Pre
+
+MailClaw utilise un modèle de mémoire pre-first.
+
+- les agents travaillent dans un espace scratch temporaire
+- à la fin d’un tour, le résultat utile est compressé en état Pre durable
+- le tour suivant charge le dernier inbound + le dernier Pre de room + les refs utiles
+- cela garde les prompts plus petits et la mémoire plus propre sur les rooms longues
+
+### 4. Governed Delivery
+
+MailClaw sépare la réflexion des effets externes.
+
+- les workers peuvent produire des drafts, des preuves et des recommandations
+- la delivery externe réelle ne passe que par review, approval et outbox
+- le replay, l’audit et la lignée d’approval restent attachés à la room
+
+## Commencer Ici
+
+- [Prise en main](./getting-started.fr.md) : installer, connecter une boîte, envoyer un email et lire le fil
+- [Concepts](./concepts.fr.md) : room, virtual mail, Pre, approval et modèle workbench
+- [Mail Workbench](./operator-console.fr.md) : ce que montre chaque onglet et comment s’y déplacer
+- [Intégrations](./integrations.fr.md) : couverture provider, OAuth et intégration OpenClaw/Gateway
+
+## Pour Les Utilisateurs OpenClaw
+
+MailClaw est conçu pour s’insérer dans un workflow à la OpenClaw :
+
+- démarrez le runtime avec `mailclaw`
+- ouvrez la console hôte avec `mailclaw dashboard`
+- cliquez sur `Mail` pour entrer dans le workbench MailClaw
+- utilisez `mailclaw open` seulement comme route de secours directe
+
+Le but n’est pas de remplacer la coque OpenClaw. Le but est d’ajouter un runtime orienté email et un onglet Mail qui comprend les rooms, le virtual mail, la mémoire Pre et la delivery gouvernée.

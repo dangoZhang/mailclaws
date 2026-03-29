@@ -1,187 +1,175 @@
 # Operators Guide
 
-<p align="center">
-  <a href="./operators-guide.md"><strong>English</strong></a> ·
-  <a href="./operators-guide.zh-CN.md">简体中文</a> ·
-  <a href="./operators-guide.fr.md">Français</a>
-</p>
+This page is for people responsible for keeping MailClaw healthy in daily use.
 
-This guide documents currently implemented operator workflows. It covers the `/workbench/mail` browser workbench surface plus runtime and CLI/API operations; it is not a full mailbox-client guide.
+It focuses on what to check when users say:
 
-## Scope And Terminology
+- “I sent an email, did the system receive it?”
+- “Why did this room not reply?”
+- “Why is outbound mail still waiting?”
 
-MailClaw operator surfaces are organized around:
+## The Main Objects To Check
 
-- `room`: durable collaboration boundary
-- `virtual mail`: internal/external message projection model
-- `mailbox`: projected view over room messages
-- `projection`: mapping from provider/Gateway/internal sources into room truth
-- `approval` and `delivery`: governance over outbound effects
-- `provider state`: account-level cursor/watch/checkpoint health
+MailClaw operations are easiest when you follow the same object model the runtime uses:
 
-## First-Response Runbook (Mailbox-Style)
+- `account`: one connected mailbox and its provider posture
+- `room`: the durable truth boundary for one conversation
+- `mailbox`: the internal or public collaboration view
+- `approval`: gated external side effects
 
-Use this when a mailbox user says "I sent mail, did the system receive it?".
+## First-Line Triage
 
-1. Confirm account and provider health:
-   - `pnpm mailctl observe accounts show <accountId>`
-   - `GET /api/accounts/:accountId/provider-state`
-2. Confirm room creation:
-   - `pnpm mailctl observe rooms`
-   - `pnpm mailctl observe room <roomKey>`
-3. Confirm inbox projection:
-   - `pnpm mailctl observe inboxes <accountId>`
-   - `pnpm mailctl observe mailbox-feed <accountId> <mailboxId>`
-4. Confirm internal agent collaboration mail:
-   - `pnpm mailctl observe mailbox-view <roomKey> <mailboxId> virtual_internal`
-5. Confirm outbound governance state:
-   - `pnpm mailctl observe approvals room <roomKey>`
-   - `pnpm mailctl operate deliver-outbox`
+When a user says “I sent an email, what happened?”, check in this order.
 
-Console path for the same checks:
+### 1. Account
 
+Confirm the connected mailbox exists and looks healthy.
+
+Useful commands:
+
+```bash
+mailclaw accounts
+mailclaw accounts show <accountId>
+```
+
+Useful API:
+
+- `GET /api/accounts/:accountId/provider-state`
+
+### 2. Room
+
+Confirm MailClaw created or updated the room.
+
+Useful commands:
+
+```bash
+mailclaw rooms
+mailclaw replay <roomKey>
+```
+
+### 3. Mailbox View
+
+If the room exists but behavior is unclear, inspect the related mailbox or inbox view.
+
+Useful commands:
+
+```bash
+mailclaw inboxes <accountId>
+mailctl observe mailbox-feed <accountId> <mailboxId>
+mailctl observe mailbox-view <roomKey> <mailboxId>
+```
+
+### 4. Approval State
+
+If the system prepared an answer but did not send it, check approval state next.
+
+Useful commands:
+
+```bash
+mailctl observe approvals room <roomKey>
+mailctl operate deliver-outbox
+```
+
+## Workbench Path
+
+The browser workbench mirrors the same triage flow:
+
+1. open `Accounts`
+2. open the mailbox account
+3. open the room
+4. jump into a mailbox if collaboration detail is needed
+5. open `Approvals` if delivery is blocked
+
+Useful deep links:
+
+- `/workbench/mail?mode=accounts`
+- `/workbench/mail?mode=rooms`
+- `/workbench/mail?mode=mailboxes`
+- `/workbench/mail?mode=approvals&approvalStatus=requested`
 - `/workbench/mail/accounts/:accountId`
 - `/workbench/mail/rooms/:roomKey`
 - `/workbench/mail/mailboxes/:accountId/:mailboxId`
 
-## Daily Readiness Checks
+## Common Situations
 
-Basic service checks:
+### Mail Was Sent But No Room Appears
 
-```bash
-curl -s http://127.0.0.1:3000/healthz
-curl -s http://127.0.0.1:3000/readyz
-```
+Check:
 
-Runtime inventory:
+- account/provider posture
+- inbound path configuration
+- whether the message reached MailClaw at all
 
-```bash
-pnpm mailctl observe accounts
-pnpm mailctl observe rooms
-pnpm mailctl operate quarantine
-pnpm mailctl operate dead-letter
-```
-
-Console-grade API snapshots:
-
-- `GET /api/console/terminology`
-- `GET /api/console/accounts`
-- `GET /api/console/rooms`
-- `GET /api/console/approvals`
-- `GET /api/runtime/execution`
-- `GET /api/runtime/embedded-sessions`
-
-Browser workbench:
-
-- `GET /workbench/mail`
-- deep links under `/workbench/mail/accounts/:accountId`, `/workbench/mail/inboxes/:accountId/:inboxId`, `/workbench/mail/rooms/:roomKey`, `/workbench/mail/mailboxes/:accountId/:mailboxId`
-
-Runtime/operator inspection:
+Start with:
 
 ```bash
-pnpm mailctl observe runtime
-pnpm mailctl observe embedded-sessions [sessionKey]
+mailclaw accounts show <accountId>
+mailclaw rooms
 ```
 
-## Account, Provider, And Ingest Operations
+### Room Exists But There Is No Reply Yet
 
-Connect or update accounts:
+Check:
+
+- the room replay
+- internal mailbox activity
+- approval state
+
+Start with:
 
 ```bash
-pnpm mailctl connect providers [provider]
-pnpm mailctl connect login
-pnpm mailctl connect login gmail <accountId> [displayName]
-pnpm mailctl connect login outlook <accountId> [displayName]
+mailclaw replay <roomKey>
+mailctl observe mailbox-view <roomKey> <mailboxId>
+mailctl observe approvals room <roomKey>
 ```
 
-Inspect account/provider state:
+### Outbound Delivery Looks Stuck
+
+Check:
+
+- whether approval is still pending
+- whether delivery has been attempted
+- whether the chosen provider path is healthy
+
+Start with:
 
 ```bash
-pnpm mailctl observe accounts show <accountId>
-curl -s http://127.0.0.1:3000/api/accounts/<accountId>/provider-state
-curl -s http://127.0.0.1:3000/api/connect
-curl -s http://127.0.0.1:3000/api/connect/providers
+mailctl operate deliver-outbox
+mailctl observe approvals room <roomKey>
 ```
 
-Ingest paths:
+## Useful APIs
 
-- Normalized payload: `POST /api/inbound?processImmediately=true`
-- Raw MIME payload: `POST /api/inbound/raw?processImmediately=true`
-- Gmail Pub/Sub + recovery hooks: `POST /api/accounts/:accountId/gmail/notifications`, `POST /api/accounts/:accountId/gmail/recover`
-
-## Room, Timeline, Mailbox, And Projection Inspection
-
-Primary room inspection:
-
-```bash
-pnpm mailctl observe room <roomKey>
-pnpm mailctl observe approvals room <roomKey>
-pnpm mailctl observe mailbox-view <roomKey> <mailboxId>
-```
-
-Cross-room mailbox and inbox surfaces:
-
-```bash
-pnpm mailctl observe inboxes <accountId>
-pnpm mailctl inboxes project <accountId> <agentId>
-pnpm mailctl inboxes console <accountId>
-pnpm mailctl observe mailbox-feed <accountId> <mailboxId>
-```
-
-Gateway projection inspection:
-
-```bash
-pnpm mailctl observe projection <roomKey>
-pnpm mailctl gateway resolve <sessionKey> [roomKey]
-```
-
-Related APIs:
+Room and mailbox inspection:
 
 - `GET /api/rooms/:roomKey/replay`
 - `GET /api/rooms/:roomKey/approvals`
 - `GET /api/rooms/:roomKey/mailboxes/:mailboxId`
-- `GET /api/rooms/:roomKey/gateway-projection-trace`
 - `GET /api/accounts/:accountId/inboxes`
 - `GET /api/accounts/:accountId/mailbox-console`
 - `GET /api/accounts/:accountId/mailboxes/:mailboxId/feed`
 
-## Approval, Outbox, Recovery, And Queue Control
+Console read models:
 
-Approval/outbox actions:
+- `GET /api/console/workbench`
+- `GET /api/console/accounts`
+- `GET /api/console/rooms`
+- `GET /api/console/approvals`
 
-```bash
-pnpm mailctl operate approve <outboxId>
-pnpm mailctl operate reject <outboxId>
-pnpm mailctl operate resend <outboxId>
-pnpm mailctl operate deliver-outbox
-```
-
-Recovery and queue actions:
-
-```bash
-pnpm mailctl operate recover [timestamp]
-pnpm mailctl operate drain [limit]
-pnpm mailctl operate dead-letter retry <jobId>
-```
-
-HTTP equivalents:
+Delivery and recovery:
 
 - `POST /api/outbox/:outboxId/approve`
 - `POST /api/outbox/:outboxId/reject`
 - `POST /api/outbox/deliver`
 - `POST /api/recovery/room-queue`
-- `POST /api/dead-letter/room-jobs/:jobId/retry`
 
-## Troubleshooting Shortcuts
+## Practical Rule
 
-- Outbound stuck in pending approvals: check `mailctl approvals trace <roomKey>` and run `approve`/`reject`.
-- Room state unclear: use `mailctl replay <roomKey>` and mailbox view/feed inspection.
-- Provider sync unclear: check account provider state and watcher/recovery endpoints.
-- Gateway lineage unclear: inspect `gateway trace` and room replay together.
+If something is unclear, inspect in this order:
 
-## Known Operator Gaps
+1. account
+2. room
+3. mailbox
+4. approval
 
-- A first-party Mail workbench is shipped at `/workbench/mail`, and `/console/*` resolves to the same shell, but it is not yet a write-capable mailbox client.
-- CLI output is still mostly JSON and command-tree ergonomics are still evolving.
-- Gateway ingress/egress projection is available through APIs, but not yet fully auto-wired to upstream Workbench event flows.
-- Upstream embedded runtime/session-manager first-class wiring and full backend enforcement closeout remain residual work (`plan12`).
+That order matches the way MailClaw itself is structured, so it usually gets you to the answer faster than starting from raw execution traces.

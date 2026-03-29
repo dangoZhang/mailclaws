@@ -17,6 +17,8 @@ import { createEmbeddedMailRuntimeExecutor } from "../src/runtime/embedded-execu
 import type { LocalCommandRunner } from "../src/runtime/local-command-executor.js";
 import { initializeDatabase } from "../src/storage/db.js";
 import { getMailAccount, upsertMailAccount } from "../src/storage/repositories/mail-accounts.js";
+import { insertMailMessage } from "../src/storage/repositories/mail-messages.js";
+import { upsertMailThread } from "../src/storage/repositories/mail-threads.js";
 import {
   insertControlPlaneOutboxRecord,
   updateOutboxIntentStatus
@@ -605,6 +607,376 @@ describe("mailctl", () => {
       roomKey,
       sessionKeys: ["gateway-session-cli"]
     });
+
+    fixture.handle.close();
+  });
+
+  it("imports gateway history and syncs a room message to email from the CLI", async () => {
+    const fixture = createFixture();
+    const roomKey = buildRoomSessionKey("acct-1", "thread-gateway-cli-history");
+    saveThreadRoom(fixture.handle.db, {
+      roomKey,
+      accountId: "acct-1",
+      stableThreadId: "thread-gateway-cli-history",
+      parentSessionKey: "gateway-session-cli-history-parent",
+      state: "idle",
+      revision: 3,
+      lastInboundSeq: 1,
+      lastOutboundSeq: 0
+    });
+    upsertMailAccount(fixture.handle.db, {
+      accountId: "acct-1",
+      provider: "forward",
+      emailAddress: "mailclaw@example.com",
+      status: "active",
+      settings: {},
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "public:assistant",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "public",
+      active: true,
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "internal:assistant:orchestrator",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "internal_role",
+      role: "orchestrator",
+      active: true,
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+    upsertMailThread(fixture.handle.db, {
+      stableThreadId: "thread-gateway-cli-history",
+      accountId: "acct-1",
+      normalizedSubject: "cli sync room",
+      participantFingerprint: "mailclaw@example.com|sender@example.com",
+      createdAt: "2026-03-27T00:03:00.000Z",
+      lastMessageAt: "2026-03-27T00:03:00.000Z"
+    });
+
+    insertMailMessage(fixture.handle.db, {
+      dedupeKey: "inbound:gateway-cli-history",
+      accountId: "acct-1",
+      stableThreadId: "thread-gateway-cli-history",
+      internetMessageId: "<msg-cli-sync-1@example.com>",
+      references: [],
+      mailboxAddress: "mailclaw@example.com",
+      rawSubject: "CLI sync room",
+      textBody: "Inbound message for CLI sync",
+      from: "sender@example.com",
+      to: ["mailclaw@example.com"],
+      cc: [],
+      bcc: [],
+      replyTo: [],
+      normalizedSubject: "cli sync room",
+      participantFingerprint: "mailclaw@example.com|sender@example.com",
+      receivedAt: "2026-03-27T00:03:00.000Z",
+      createdAt: "2026-03-27T00:03:00.000Z"
+    });
+
+    const historyDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-gateway-cli-history-"));
+    tempDirs.push(historyDir);
+    const historyPath = path.join(historyDir, "gateway-history-cli.json");
+    fs.writeFileSync(
+      historyPath,
+      JSON.stringify([
+        {
+          fromPrincipalId: "principal:assistant",
+          fromMailboxId: "public:assistant",
+          toMailboxIds: ["internal:assistant:orchestrator"],
+          kind: "question",
+          visibility: "internal",
+          subject: "Gateway imported question",
+          bodyText: "Can the CLI import history?",
+          createdAt: "2026-03-27T00:05:00.000Z"
+        },
+        {
+          fromPrincipalId: "principal:assistant",
+          fromMailboxId: "internal:assistant:orchestrator",
+          toMailboxIds: ["public:assistant"],
+          kind: "progress",
+          visibility: "internal",
+          subject: "Gateway imported progress",
+          bodyText: "History import is wired through the CLI.",
+          createdAt: "2026-03-27T00:06:00.000Z"
+        }
+      ]),
+      "utf8"
+    );
+
+    const importStdout = createWritableBuffer();
+    const stderr = createWritableBuffer();
+    const importExit = await runJsonMailctl(
+      ["gateway", "import-history", "gateway-session-cli-history", roomKey, historyPath],
+      {
+        runtime: fixture.runtime,
+        stdout: importStdout.stream,
+        stderr: stderr.stream
+      }
+    );
+
+    expect(importExit).toBe(0);
+    const imported = JSON.parse(importStdout.read()) as Array<{ message: { messageId: string; kind: string } }>;
+    expect(imported).toHaveLength(2);
+    expect(imported[1]?.message.kind).toBe("progress");
+
+    const syncStdout = createWritableBuffer();
+    const syncExit = await runJsonMailctl(
+      ["gateway", "sync-mail", roomKey, imported[1]!.message.messageId],
+      {
+        runtime: fixture.runtime,
+        stdout: syncStdout.stream,
+        stderr: stderr.stream
+      }
+    );
+
+    expect(syncExit).toBe(0);
+    expect(JSON.parse(syncStdout.read())).toMatchObject({
+      roomKey,
+      kind: "progress",
+      status: "queued"
+    });
+
+    fixture.handle.close();
+  });
+
+  it("syncs a gateway-only room message to email with explicit recipients from the CLI", async () => {
+    const fixture = createFixture();
+    const roomKey = buildRoomSessionKey("acct-1", "thread-gateway-cli-explicit-sync");
+    saveThreadRoom(fixture.handle.db, {
+      roomKey,
+      accountId: "acct-1",
+      stableThreadId: "thread-gateway-cli-explicit-sync",
+      parentSessionKey: "gateway-session-cli-explicit-sync-parent",
+      frontAgentAddress: "assistant@ai.example.com",
+      state: "idle",
+      revision: 3,
+      lastInboundSeq: 0,
+      lastOutboundSeq: 0
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "internal:assistant:orchestrator",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "internal_role",
+      role: "orchestrator",
+      active: true,
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+
+    const finalReady = fixture.runtime.submitVirtualMessage({
+      roomKey,
+      threadKind: "work",
+      topic: "Gateway explicit sync",
+      fromPrincipalId: "principal:assistant",
+      fromMailboxId: "internal:assistant:orchestrator",
+      toMailboxIds: ["internal:assistant:orchestrator"],
+      kind: "final_ready",
+      visibility: "internal",
+      subject: "Ready to sync outward",
+      bodyRef: "body://virtual/ready-to-sync-outward",
+      roomRevision: 3,
+      inputsHash: "hash-ready-to-sync-outward",
+      createdAt: "2026-03-27T00:07:00.000Z"
+    });
+
+    const stdout = createWritableBuffer();
+    const stderr = createWritableBuffer();
+    const exitCode = await runJsonMailctl(
+      [
+        "gateway",
+        "sync-mail",
+        roomKey,
+        finalReady.message.messageId,
+        "user@example.com,team@example.com",
+        "cc@example.com",
+        "audit@example.com"
+      ],
+      {
+        runtime: fixture.runtime,
+        stdout: stdout.stream,
+        stderr: stderr.stream
+      }
+    );
+
+    expect(exitCode).toBe(0);
+    expect(JSON.parse(stdout.read())).toMatchObject({
+      roomKey,
+      kind: "final",
+      status: "queued",
+      to: ["user@example.com", "team@example.com"],
+      cc: ["cc@example.com"],
+      bcc: ["audit@example.com"],
+      headers: {
+        "X-MailClaw-Sync-Source-Message-Id": finalReady.message.messageId
+      }
+    });
+    expect(stderr.read()).toBe("");
+
+    fixture.handle.close();
+  });
+
+  it("imports gateway history and syncs a gateway-only room to explicit email recipients through the CLI", async () => {
+    const fixture = createFixture();
+    const roomKey = buildRoomSessionKey("acct-1", "thread-gateway-cli-explicit-sync");
+    saveThreadRoom(fixture.handle.db, {
+      roomKey,
+      accountId: "acct-1",
+      stableThreadId: "thread-gateway-cli-explicit-sync",
+      parentSessionKey: "gateway-session-cli-explicit-sync",
+      frontAgentAddress: "assistant@ai.example.com",
+      state: "idle",
+      revision: 3,
+      lastInboundSeq: 1,
+      lastOutboundSeq: 0
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "public:assistant",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "public",
+      active: true,
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "internal:assistant:orchestrator",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "internal_role",
+      role: "orchestrator",
+      active: true,
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+
+    const historyDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-gateway-cli-explicit-sync-"));
+    tempDirs.push(historyDir);
+    const historyPath = path.join(historyDir, "gateway-history-cli-explicit-sync.json");
+    fs.writeFileSync(
+      historyPath,
+      JSON.stringify([
+        {
+          fromPrincipalId: "principal:assistant",
+          fromMailboxId: "internal:assistant:orchestrator",
+          toMailboxIds: ["public:assistant"],
+          kind: "final_ready",
+          visibility: "internal",
+          subject: "Gateway-only final",
+          bodyText: "This room started in Gateway and is being synchronized out to email.",
+          createdAt: "2026-03-27T00:07:00.000Z"
+        }
+      ]),
+      "utf8"
+    );
+
+    const importStdout = createWritableBuffer();
+    const stderr = createWritableBuffer();
+    const importExit = await runJsonMailctl(
+      ["gateway", "import-history", "gateway-session-cli-explicit-sync", roomKey, historyPath],
+      {
+        runtime: fixture.runtime,
+        stdout: importStdout.stream,
+        stderr: stderr.stream
+      }
+    );
+
+    expect(importExit).toBe(0);
+    const imported = JSON.parse(importStdout.read()) as Array<{ message: { messageId: string } }>;
+    expect(imported).toHaveLength(1);
+
+    const syncStdout = createWritableBuffer();
+    const syncExit = await runJsonMailctl(
+      ["gateway", "sync-mail", roomKey, imported[0]!.message.messageId, "ops@example.com,ceo@example.com", "audit@example.com", "hidden@example.com"],
+      {
+        runtime: fixture.runtime,
+        stdout: syncStdout.stream,
+        stderr: stderr.stream
+      }
+    );
+
+    expect(syncExit).toBe(0);
+    expect(JSON.parse(syncStdout.read())).toMatchObject({
+      roomKey,
+      kind: "final",
+      status: "queued",
+      to: ["ops@example.com", "ceo@example.com"],
+      cc: ["audit@example.com"],
+      bcc: ["hidden@example.com"]
+    });
+
+    fixture.handle.close();
+  });
+
+  it("uses the latest external inbound as the email sync anchor instead of the latest synced outbound", async () => {
+    const fixture = createFixture();
+    const ingested = await fixture.runtime.ingest({
+      ...buildInboundPayload(),
+      processImmediately: false
+    });
+    fixture.runtime.upsertVirtualMailbox({
+      mailboxId: "internal:assistant:orchestrator",
+      accountId: "acct-1",
+      principalId: "principal:assistant",
+      kind: "internal_role",
+      role: "orchestrator",
+      active: true,
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+
+    const first = fixture.runtime.submitVirtualMessage({
+      roomKey: ingested.ingested.roomKey,
+      threadKind: "work",
+      topic: "First sync",
+      fromPrincipalId: "principal:assistant",
+      fromMailboxId: "internal:assistant:orchestrator",
+      toMailboxIds: ["internal:assistant:orchestrator"],
+      kind: "progress",
+      visibility: "internal",
+      subject: "First sync result",
+      bodyRef: "body://virtual/first-sync",
+      roomRevision: 1,
+      inputsHash: "hash-first-sync",
+      createdAt: "2026-03-27T00:08:00.000Z"
+    });
+    const second = fixture.runtime.submitVirtualMessage({
+      roomKey: ingested.ingested.roomKey,
+      threadKind: "work",
+      topic: "Second sync",
+      fromPrincipalId: "principal:assistant",
+      fromMailboxId: "internal:assistant:orchestrator",
+      toMailboxIds: ["internal:assistant:orchestrator"],
+      kind: "final_ready",
+      visibility: "internal",
+      subject: "Second sync result",
+      bodyRef: "body://virtual/second-sync",
+      roomRevision: 1,
+      inputsHash: "hash-second-sync",
+      createdAt: "2026-03-27T00:09:00.000Z"
+    });
+
+    const firstSync = fixture.runtime.syncRoomMessageToEmail({
+      roomKey: ingested.ingested.roomKey,
+      messageId: first.message.messageId
+    });
+    const secondSync = fixture.runtime.syncRoomMessageToEmail({
+      roomKey: ingested.ingested.roomKey,
+      messageId: second.message.messageId
+    });
+
+    expect(firstSync.to).toEqual(["sender@example.com"]);
+    expect(secondSync.to).toEqual(["sender@example.com"]);
+    expect(secondSync.headers.To).toContain("sender@example.com");
+    expect(secondSync.headers.To).not.toContain("mailclaw@example.com");
 
     fixture.handle.close();
   });

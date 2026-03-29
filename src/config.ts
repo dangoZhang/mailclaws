@@ -50,6 +50,7 @@ const envSchema = z.object({
     .enum(["T0", "T1", "T2", "T3", "T4"] satisfies [MailTrustLevel, ...MailTrustLevel[]])
     .default("T0"),
   MAILCLAW_OPENCLAW_BASE_URL: z.string().url().default("http://127.0.0.1:11437"),
+  MAILCLAW_OPENCLAW_PUBLIC_BASE_URL: z.string().default(""),
   MAILCLAW_OPENCLAW_AGENT_ID: z.string().default("mail"),
   MAILCLAW_OPENCLAW_ROLE_AGENT_IDS_JSON: z.string().default(""),
   MAILCLAW_OPENCLAW_ROLE_EXECUTION_POLICIES_JSON: z.string().default(""),
@@ -129,6 +130,7 @@ export function loadConfig(source: NodeJS.ProcessEnv | Record<string, string | u
     },
     openClaw: {
       baseUrl: env.MAILCLAW_OPENCLAW_BASE_URL,
+      publicBaseUrl: env.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL.trim(),
       agentId: env.MAILCLAW_OPENCLAW_AGENT_ID,
       roleAgentIds,
       roleExecutionPolicies,
@@ -179,18 +181,17 @@ function normalizeSourceWithOpenClawFallbacks(
 ) {
   const normalized = { ...source };
 
-  if (!normalized.MAILCLAW_PUBLIC_BASE_URL?.trim()) {
-    const inheritedPublicBaseUrl =
-      normalized.OPENCLAW_PUBLIC_BASE_URL?.trim() || normalized.OPENCLAW_BASE_URL?.trim() || "";
-    if (inheritedPublicBaseUrl) {
-      normalized.MAILCLAW_PUBLIC_BASE_URL = inheritedPublicBaseUrl;
-    }
-  }
-
   if (!normalized.MAILCLAW_OPENCLAW_BASE_URL?.trim()) {
     const inheritedBaseUrl = normalized.OPENCLAW_BASE_URL?.trim() || "";
     if (inheritedBaseUrl) {
       normalized.MAILCLAW_OPENCLAW_BASE_URL = inheritedBaseUrl;
+    }
+  }
+
+  if (!normalized.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL?.trim()) {
+    const inheritedPublicBaseUrl = normalized.OPENCLAW_PUBLIC_BASE_URL?.trim() || "";
+    if (inheritedPublicBaseUrl) {
+      normalized.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL = inheritedPublicBaseUrl;
     }
   }
 
