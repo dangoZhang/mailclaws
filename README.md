@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://dangozhang.github.io/mailclaw/">Docs</a> ·
+  <a href="./docs/index.md">Docs</a> ·
   <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/ci.yml">CI</a> ·
   <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/release.yml">Release</a>
 </p>
@@ -105,13 +105,15 @@ MailClaw is designed to sit on top of the OpenClaw ecosystem, not replace it. It
 
 ## Documentation
 
-The full docs site is the canonical product guide:
+The docs are the canonical product guide:
 
-- Docs site: <https://dangozhang.github.io/mailclaw/>
-- Getting started: <https://dangozhang.github.io/mailclaw/getting-started>
-- Core concepts: <https://dangozhang.github.io/mailclaw/concepts>
-- Multi-agent workflows: <https://dangozhang.github.io/mailclaw/multi-agent-workflows>
-- Operator console: <https://dangozhang.github.io/mailclaw/operator-console>
+- Docs index: [docs/index.md](./docs/index.md)
+- Getting started: [docs/getting-started.md](./docs/getting-started.md)
+- Core concepts: [docs/concepts.md](./docs/concepts.md)
+- Multi-agent workflows: [docs/multi-agent-workflows.md](./docs/multi-agent-workflows.md)
+- Operator console: [docs/operator-console.md](./docs/operator-console.md)
+
+The repository already includes a GitHub Pages workflow. Once the repository plan supports Pages for this repo, the same docs will publish as a static site without changing the docs source.
 
 Run the docs locally:
 
@@ -138,7 +140,7 @@ MailClaw already ships:
 
 Current boundaries are documented here:
 
-- <https://dangozhang.github.io/mailclaw/security-boundaries>
+- [docs/security-boundaries.md](./docs/security-boundaries.md)
 
 ## License
 

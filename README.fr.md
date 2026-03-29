@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="https://dangozhang.github.io/mailclaw/">Docs</a> ·
+  <a href="./docs/index.fr.md">Docs</a> ·
   <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/ci.yml">CI</a> ·
   <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/release.yml">Release</a>
 </p>
@@ -105,13 +105,15 @@ MailClaw ne remplace pas OpenClaw. Il ajoute au-dessus de cet écosystème les c
 
 ## Documentation
 
-Le site de documentation est le guide produit canonique :
+La documentation est le guide produit canonique :
 
-- Docs : <https://dangozhang.github.io/mailclaw/>
-- Prise en main : <https://dangozhang.github.io/mailclaw/fr/getting-started>
-- Concepts : <https://dangozhang.github.io/mailclaw/fr/concepts>
-- Flux multi-agent : <https://dangozhang.github.io/mailclaw/fr/multi-agent-workflows>
-- Console opérateur : <https://dangozhang.github.io/mailclaw/fr/operator-console>
+- Index docs : [docs/index.fr.md](./docs/index.fr.md)
+- Prise en main : [docs/getting-started.fr.md](./docs/getting-started.fr.md)
+- Concepts : [docs/concepts.fr.md](./docs/concepts.fr.md)
+- Flux multi-agent : [docs/multi-agent-workflows.fr.md](./docs/multi-agent-workflows.fr.md)
+- Console opérateur : [docs/operator-console.fr.md](./docs/operator-console.fr.md)
+
+Le repo inclut deja un workflow GitHub Pages. Quand le forfait ou la visibilite du depot autorisera Pages, cette meme source de docs sera publiee comme site statique.
 
 Lancer la doc en local :
 
@@ -138,7 +140,7 @@ MailClaw livre déjà :
 
 Limites et frontières actuelles :
 
-- <https://dangozhang.github.io/mailclaw/fr/security-boundaries>
+- [docs/security-boundaries.fr.md](./docs/security-boundaries.fr.md)
 
 ## Licence
 
