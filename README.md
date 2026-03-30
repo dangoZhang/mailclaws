@@ -1,7 +1,7 @@
-# MailClaw
+# MailClaws
 
 <p align="center">
-  Multi-agent email runtime with smaller prompts, cleaner handoffs, and durable room truth.
+  The multi-agent mail runtime that keeps context small, handoffs visible, and long-running work under control.
 </p>
 
 <p align="center">
@@ -11,67 +11,47 @@
 </p>
 
 <p align="center">
-  <a href="https://dangozhang.github.io/mailclaw/">Docs</a> ·
+  <a href="https://dangozhang.github.io/mailclaw/">Website</a> ·
   <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/ci.yml">CI</a> ·
   <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/release.yml">Release</a>
 </p>
 
-MailClaw is for teams that need more than a general agent shell. It is built for real inbox traffic, long-running conversations, frequent context switching, and multi-agent collaboration that stays inspectable instead of disappearing into one opaque run.
+<p align="center">
+  <img src="./docs/public/mailclaws-poster.svg" alt="MailClaws poster showing one public inbox coordinating multiple internal agents through visible internal mail, rooms, and governed delivery." width="960" />
+</p>
 
-It turns every real email conversation into a durable operating unit. The room has memory. Agent collaboration is visible. Drafts can be reviewed. Outbound mail can be approved. Everything can be replayed later.
+MailClaws is what happens when you stop treating email like a thin transport and start treating it like the actual runtime surface for agent work. One real thread becomes one durable room. One public agent can bring in researchers, reviewers, operators, and specialist roles by internal mail. Every handoff stays visible. Every draft can be reviewed. Every external send can be governed.
 
-## Why MailClaw Feels Stronger Than OpenClaw
+It is especially strong when work arrives as interruptions, follow-ups, shared inbox traffic, and long-running threads that need status updates before they need a final answer.
 
-OpenClaw is a strong general agent workbench. MailClaw is what you use when the work itself keeps arriving as conversations, interruptions, follow-ups, and coordinated replies.
+## The MailClaws Edge
 
-- OpenClaw is session-first. MailClaw is room-first, so one email thread keeps one durable truth source.
-- OpenClaw can hide subagent work inside runs. MailClaw shows internal collaboration as inspectable mail between roles.
-- OpenClaw keeps pushing long transcripts forward. MailClaw keeps compact Pre state, so later turns stay smaller and cleaner.
-- OpenClaw is good at one task flow. MailClaw is better at switching between many active conversations without dragging every old turn back into the prompt.
-- OpenClaw can finish work silently. MailClaw is designed to report progress, preserve approvals, and keep long-task status visible in the same room.
-- OpenClaw gives you a workbench. MailClaw gives you a Mail tab with rooms, internal mail, approvals, outbox, and replay in one place.
+MailClaws is built around a simple but powerful idea: **multi-agent work should look like teamwork, not like one giant hidden transcript**. Instead of burying subagent work inside a black-box run, MailClaws lets one front agent receive the room, delegate by internal mail, collect evidence and draft packets back through single-parent reply chains, and keep the whole chain visible in the Mail tab. The result feels closer to a real office than to a swarm pretending to be one brain.
 
-If your work begins with “a customer replied again,” “this thread has been active for two weeks,” “we need to report progress before the final answer,” or “three agents need to cooperate before anyone sends,” MailClaw is the sharper tool.
+And because the system carries forward compact Pre state instead of dragging the full transcript into every turn, it stays fast when the inbox gets busy. In the repository benchmark, long-thread follow-ups drop from **2006** estimated tokens to **755** on average, turn-6 follow-ups drop from **2868** to **752**, and a 5-worker reducer handoff drops from **3444** to **750**. That is not just cheaper. It is what makes room switching, progress reporting, and visible multi-agent collaboration practical instead of exhausting.
 
-## What Makes It Different
+## Why Email Turns Out To Be The Right Surface
 
-- Real email threads become durable rooms, not disposable chat state.
-- Internal agent cooperation uses virtual mail, not one giant shared context window.
-- Long-term memory keeps summaries, facts, decisions, and commitments instead of raw scratch traces.
-- Progress replies, review, approval, and outbox stay attached to the same room instead of being scattered across separate runs.
-- External sends are governed through review, approval, and outbox flow.
-- Operators can inspect the whole chain: inbound mail, internal mail, approvals, delivery, and replay.
+Email already gives you the things multi-agent work actually needs: a natural context boundary, a shareable history, a human-readable pace, and a workflow people already understand. A thread is the right size for one unit of work. Replies preserve accountability. Forwarding and CC already match real collaboration habits. The message format is short enough to stay disciplined, long enough to carry useful thought, and familiar enough that users do not need a second operating system just to work with their agents. You connect a mailbox people already use, and the system starts there instead of asking everyone to adopt a brand-new ritual.
 
-## Why It Uses Fewer Tokens
+## Multi-Agent, But Actually Visible
 
-MailClaw keeps the working context small on purpose. Instead of replaying the whole transcript every time, it carries forward compact Pre state and pulls older context only by reference.
+- One public agent can own the front inbox while specialist agents work behind it.
+- Internal collaboration appears as virtual mailboxes, work threads, and reducer-driven convergence.
+- ACK, progress, review, approval, and final send all stay attached to the same room.
+- The Workbench shows who saw what, who replied, which draft won, and what got blocked.
+- Burst subagents stay compute-only; durable agents keep their own `SOUL.md`, mailbox, and memory boundary.
 
-Repository benchmark results from `tests/prompt-footprint-benchmark.test.ts`:
+This is the signature feature. MailClaws does not just support multiple agents. It makes multiple agents legible.
 
-- long-thread follow-ups: `755` estimated tokens vs `2006`, `62.3%` lower on average
-- turn-6 follow-up: `752` vs `2868`, `73.8%` lower
-- 5-worker reducer handoff: `750` vs `3444`, `78.2%` lower
-
-That matters when a front agent has to switch between many rooms or keep reporting on long-running work without bloating every next turn.
-
-## What You Can Do Today
-
-- connect a real mailbox and receive real mail
-- open the Mail tab and inspect accounts, rooms, internal mailboxes, and approvals
-- watch multiple agents collaborate without losing the external thread
-- send ACKs and progress updates early while longer work continues behind the scenes
-- see which draft was approved, blocked, or superseded
-- replay why a room replied the way it did
-- run MailClaw inside an OpenClaw-style host instead of switching to a separate tool
-
-## Three-Minute Start
+## Three Minutes To Your First Agent Email
 
 ```bash
 ./install.sh
 MAILCLAW_FEATURE_MAIL_INGEST=true mailclaw
 ```
 
-Then in a second terminal:
+In a second terminal:
 
 ```bash
 mailclaw onboard you@example.com
@@ -79,73 +59,35 @@ mailclaw login
 mailclaw dashboard
 ```
 
-Recommended first run:
+Then do this:
 
-1. Start MailClaw.
-2. Connect one mailbox you already use.
-3. Send one test email from another mailbox.
-4. Open the `Mail` tab.
-5. Inspect the room, the internal collaboration, and the outbound state.
+1. Connect any mailbox you already use.
+2. Send one email to it from another mailbox.
+3. Open the Workbench and click `Mail`.
+4. Watch the room appear, the internal collaboration happen, and the reply chain form.
+5. Let your agents send you their first real email through the governed outbox flow.
 
-If you want a safe local walkthrough first:
+If you want a safe local walkthrough first, run `pnpm demo:mail` and open `http://127.0.0.1:3020/workbench/mail`.
 
-```bash
-pnpm demo:mail
-```
+## Start Fast With Templates
 
-Then open `http://127.0.0.1:3020/workbench/mail`.
+Templates exist so a new user can go from zero to a believable multi-agent setup in one click.
 
-## Inside The Mail Tab
+- `One-Person Company` gives you a front desk plus durable specialist peers, adapted from the operating style popularized by <https://github.com/cyfyifanchen/one-person-company>.
+- `Three Provinces, Six Departments` gives you a larger review-and-governance roster aligned to the `Edict` structure at <https://github.com/cft0808/edict>.
 
-- `Accounts`: which inboxes are connected and healthy
-- `Rooms`: durable conversations with revisioned state
-- `Mailboxes`: what each public role or internal role actually saw
-- `Approvals`: outbound mail waiting for a human or governance decision
-- `Mail`: the integrated OpenClaw-style entry point for all of the above
-
-The key difference is visibility. MailClaw does not ask you to trust that “the swarm handled it.” You can inspect the actual handoff between orchestrator, workers, reviewer, and guard.
-
-## Multi-Agent Without The Mess
-
-MailClaw separates:
-
-- the external conversation
-- the internal collaboration
-- the durable memory that survives each turn
-
-That means multiple agents can help on one email without turning the whole thread into an unreadable transcript swamp.
-
-## Built-In Team Templates
-
-MailClaw already ships with one-click durable agent templates, including:
-
-- `One-Person Company`
-- `Three Provinces, Six Departments`
-
-Template implementation lives in the repository here:
+Template implementation lives here:
 
 - <https://github.com/dangoZhang/mailclaw/blob/main/src/agents/templates.ts>
 
-The current `One-Person Company` template is aligned with the solo-operator organizational pattern popularized in this GitHub project:
+When you apply the larger roster, generated `SOUL.md` files include upstream alignment notes and role contracts so the team shape stays intentional instead of drifting into a name-only homage.
 
-- <https://github.com/cyfyifanchen/one-person-company>
+## Website And Workbench
 
-MailClaw reuses the upstream operating pattern here, but not by copying soul files directly. The source project is a playbook for how a solo operator runs a company; MailClaw maps that into one front inbox plus durable specialist peers.
+- Website: <https://dangozhang.github.io/mailclaw/>
+- Workbench: run `mailclaw dashboard`, sign in, and click `Mail`
 
-The `Three Provinces, Six Departments` template is closer to direct role reuse. MailClaw aligns Taizi, Zhongshu, Menxia, Shangshu, and the six departments against the OpenClaw-based `Edict` project:
-
-- <https://github.com/cft0808/edict>
-
-When you apply that template, generated `SOUL.md` files include upstream alignment notes and role contracts so the roster stays close to Edict instead of drifting into a name-only homage.
-
-## Documentation
-
-- Docs site: <https://dangozhang.github.io/mailclaw/>
-- Getting started: <https://dangozhang.github.io/mailclaw/getting-started>
-- Core concepts: <https://dangozhang.github.io/mailclaw/concepts>
-- Multi-agent workflows: <https://dangozhang.github.io/mailclaw/multi-agent-workflows>
-- Mail tab guide: <https://dangozhang.github.io/mailclaw/operator-console>
-- Prompt footprint benchmark: <https://dangozhang.github.io/mailclaw/prompt-footprint>
+The website explains the concepts. The Workbench lets you see the whole system live.
 
 ## License
 

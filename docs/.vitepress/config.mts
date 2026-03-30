@@ -3,8 +3,8 @@ import { defineConfig } from "vitepress";
 const docsBase = process.env.MAILCLAW_DOCS_BASE ?? "/";
 
 export default defineConfig({
-  title: "MailClaw",
-  description: "MailClaw docs for rooms, virtual mail, pre-first memory, and governed email work.",
+  title: "MailClaws",
+  description: "MailClaws docs for durable rooms, visible multi-agent mail, pre-first memory, and governed delivery.",
   base: docsBase,
   cleanUrls: true,
   lastUpdated: true,

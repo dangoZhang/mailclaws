@@ -1,0 +1,73 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="132" y1="78" x2="1461" y2="812" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF6E8"/>
+      <stop offset="0.5" stop-color="#F7F2EA"/>
+      <stop offset="1" stop-color="#E7EEF4"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="250" y1="174" x2="1280" y2="756" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#FAFBFC" stop-opacity="0.92"/>
+    </linearGradient>
+    <filter id="shadow" x="130" y="88" width="1340" height="736" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="22" stdDeviation="34" flood-color="#1D3557" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" rx="36" fill="url(#bg)"/>
+  <circle cx="1377" cy="116" r="164" fill="#DCECF8"/>
+  <circle cx="126" cy="760" r="184" fill="#FBE1BE"/>
+  <circle cx="1458" cy="760" r="118" fill="#DCE4C9"/>
+
+  <g filter="url(#shadow)">
+    <rect x="170" y="128" width="1260" height="656" rx="28" fill="url(#panel)"/>
+  </g>
+
+  <text x="244" y="225" fill="#1B1F23" font-family="Georgia, 'Times New Roman', serif" font-size="78" font-weight="700">MailClaws</text>
+  <text x="246" y="276" fill="#485261" font-family="'Trebuchet MS', Arial, sans-serif" font-size="28">
+    Multi-agent email runtime with visible collaboration, durable rooms, and governed delivery.
+  </text>
+
+  <rect x="244" y="328" width="286" height="286" rx="28" fill="#FFF9F0" stroke="#E8D8B8"/>
+  <text x="282" y="384" fill="#8A5A0A" font-family="'Trebuchet MS', Arial, sans-serif" font-size="22" font-weight="700">PUBLIC INBOX</text>
+  <rect x="284" y="415" width="208" height="46" rx="14" fill="#FFFFFF" stroke="#EED9B2"/>
+  <text x="304" y="444" fill="#1F2937" font-family="'Trebuchet MS', Arial, sans-serif" font-size="21">customer@thread</text>
+  <rect x="284" y="478" width="208" height="46" rx="14" fill="#FFFFFF" stroke="#EED9B2"/>
+  <text x="304" y="507" fill="#1F2937" font-family="'Trebuchet MS', Arial, sans-serif" font-size="21">founder@inbox</text>
+  <rect x="284" y="541" width="208" height="46" rx="14" fill="#FFFFFF" stroke="#EED9B2"/>
+  <text x="304" y="570" fill="#1F2937" font-family="'Trebuchet MS', Arial, sans-serif" font-size="21">shared@support</text>
+
+  <rect x="602" y="304" width="396" height="350" rx="28" fill="#F7FBFF" stroke="#CBDCEC"/>
+  <text x="634" y="360" fill="#1E4C74" font-family="'Trebuchet MS', Arial, sans-serif" font-size="22" font-weight="700">ROOM TRUTH</text>
+  <text x="634" y="403" fill="#111827" font-family="'Trebuchet MS', Arial, sans-serif" font-size="42" font-weight="700">One thread becomes one room</text>
+  <text x="634" y="448" fill="#445164" font-family="'Trebuchet MS', Arial, sans-serif" font-size="24">Revisioned history. Replayable state. Compact Pre memory.</text>
+
+  <rect x="634" y="487" width="332" height="52" rx="18" fill="#FFFFFF" stroke="#CCDDED"/>
+  <text x="659" y="520" fill="#1F2937" font-family="'Trebuchet MS', Arial, sans-serif" font-size="23">ACK → progress → review → approval → send</text>
+  <rect x="634" y="555" width="188" height="44" rx="14" fill="#DBEAFE"/>
+  <text x="659" y="583" fill="#1E3A8A" font-family="'Trebuchet MS', Arial, sans-serif" font-size="22" font-weight="700">Pre-first memory</text>
+  <rect x="836" y="555" width="130" height="44" rx="14" fill="#DCFCE7"/>
+  <text x="863" y="583" fill="#166534" font-family="'Trebuchet MS', Arial, sans-serif" font-size="22" font-weight="700">62%+</text>
+
+  <rect x="1088" y="276" width="268" height="104" rx="24" fill="#F3F7EF" stroke="#C9D8B5"/>
+  <text x="1118" y="323" fill="#37572A" font-family="'Trebuchet MS', Arial, sans-serif" font-size="21" font-weight="700">RESEARCHER</text>
+  <text x="1118" y="352" fill="#374151" font-family="'Trebuchet MS', Arial, sans-serif" font-size="22">evidence, claims, refs</text>
+
+  <rect x="1088" y="406" width="268" height="104" rx="24" fill="#F9F4FF" stroke="#D7C6F4"/>
+  <text x="1118" y="453" fill="#6B3CB6" font-family="'Trebuchet MS', Arial, sans-serif" font-size="21" font-weight="700">REVIEWER</text>
+  <text x="1118" y="482" fill="#374151" font-family="'Trebuchet MS', Arial, sans-serif" font-size="22">pass, request change, block</text>
+
+  <rect x="1088" y="536" width="268" height="104" rx="24" fill="#F2FAF8" stroke="#BFE2D8"/>
+  <text x="1118" y="583" fill="#0F766E" font-family="'Trebuchet MS', Arial, sans-serif" font-size="21" font-weight="700">OPS / GUARD</text>
+  <text x="1118" y="612" fill="#374151" font-family="'Trebuchet MS', Arial, sans-serif" font-size="22">handoff, approval, delivery</text>
+
+  <path d="M530 471C571 471 587 471 620 471" stroke="#C28A2E" stroke-width="6" stroke-linecap="round" stroke-dasharray="14 12"/>
+  <path d="M1000 334C1035 334 1045 326 1080 326" stroke="#719A55" stroke-width="6" stroke-linecap="round" stroke-dasharray="14 12"/>
+  <path d="M1000 458C1035 458 1045 458 1080 458" stroke="#8B5CF6" stroke-width="6" stroke-linecap="round" stroke-dasharray="14 12"/>
+  <path d="M1000 582C1035 582 1045 590 1080 590" stroke="#0F766E" stroke-width="6" stroke-linecap="round" stroke-dasharray="14 12"/>
+
+  <rect x="244" y="665" width="1112" height="74" rx="22" fill="#1F2937"/>
+  <text x="282" y="712" fill="#F9FAFB" font-family="'Trebuchet MS', Arial, sans-serif" font-size="30">
+    Rooms keep the truth. Internal mail makes collaboration visible. Outbox keeps side effects governed.
+  </text>
+</svg>
