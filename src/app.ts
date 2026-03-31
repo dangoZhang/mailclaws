@@ -44,21 +44,41 @@ function mapWorkbenchBrowserPath(pathname: string, search: string) {
     pathname === "/mail/" ||
     pathname === "/login" ||
     pathname === "/workbench/mail" ||
-    pathname === "/workbench/mail/"
+    pathname === "/workbench/mail/" ||
+    pathname === "/workbench/mailclaws" ||
+    pathname === "/workbench/mailclaws/"
   ) {
     return `/console/connect${suffix}`;
   }
   if (pathname === "/workbench/mailclaw" || pathname === "/workbench/mailclaw/") {
     return `/console/connect${suffix}`;
   }
-  if (pathname === "/workbench/mail/tab" || pathname === "/workbench/mail/tab/") {
+  if (
+    pathname === "/workbench/mail/tab" ||
+    pathname === "/workbench/mail/tab/" ||
+    pathname === "/workbench/mailclaw/tab" ||
+    pathname === "/workbench/mailclaw/tab/" ||
+    pathname === "/workbench/mailclaws/tab" ||
+    pathname === "/workbench/mailclaws/tab/"
+  ) {
     return withSearch("/console/connect", search, "shell", "embedded");
   }
-  if (pathname === "/mail/login" || pathname === "/workbench/mail/login" || pathname === "/workbench/mailclaw/login") {
+  if (
+    pathname === "/mail/login" ||
+    pathname === "/workbench/mail/login" ||
+    pathname === "/workbench/mailclaw/login" ||
+    pathname === "/workbench/mailclaws/login"
+  ) {
     return `/console/connect${suffix}`;
   }
   if (pathname.startsWith("/workbench/mail/tab/")) {
     return withSearch(`/console/${pathname.slice("/workbench/mail/tab/".length)}`, search, "shell", "embedded");
+  }
+  if (pathname.startsWith("/workbench/mailclaw/tab/")) {
+    return withSearch(`/console/${pathname.slice("/workbench/mailclaw/tab/".length)}`, search, "shell", "embedded");
+  }
+  if (pathname.startsWith("/workbench/mailclaws/tab/")) {
+    return withSearch(`/console/${pathname.slice("/workbench/mailclaws/tab/".length)}`, search, "shell", "embedded");
   }
   if (pathname.startsWith("/dashboard/")) {
     return `/console/${pathname.slice("/dashboard/".length)}${suffix}`;
@@ -68,6 +88,9 @@ function mapWorkbenchBrowserPath(pathname: string, search: string) {
   }
   if (pathname.startsWith("/workbench/mail/")) {
     return `/console/${pathname.slice("/workbench/mail/".length)}${suffix}`;
+  }
+  if (pathname.startsWith("/workbench/mailclaws/")) {
+    return `/console/${pathname.slice("/workbench/mailclaws/".length)}${suffix}`;
   }
   if (pathname.startsWith("/workbench/mailclaw/")) {
     return `/console/${pathname.slice("/workbench/mailclaw/".length)}${suffix}`;
@@ -110,10 +133,17 @@ function isWorkbenchShellPath(pathname: string) {
     pathname === "/workbench/mail/" ||
     pathname === "/workbench/mail/tab" ||
     pathname === "/workbench/mail/tab/" ||
+    pathname === "/workbench/mailclaw/tab" ||
+    pathname === "/workbench/mailclaw/tab/" ||
+    pathname === "/workbench/mailclaws/tab" ||
+    pathname === "/workbench/mailclaws/tab/" ||
+    pathname === "/workbench/mailclaws" ||
+    pathname === "/workbench/mailclaws/" ||
     pathname === "/workbench/mailclaw" ||
     pathname === "/workbench/mailclaw/" ||
     pathname === "/mail/login" ||
     pathname === "/workbench/mail/login" ||
+    pathname === "/workbench/mailclaws/login" ||
     pathname === "/workbench/mailclaw/login"
   ) {
     return true;
@@ -122,6 +152,9 @@ function isWorkbenchShellPath(pathname: string) {
     pathname.startsWith("/dashboard/") ||
     pathname.startsWith("/mail/") ||
     pathname.startsWith("/workbench/mail/tab/") ||
+    pathname.startsWith("/workbench/mailclaw/tab/") ||
+    pathname.startsWith("/workbench/mailclaws/tab/") ||
+    pathname.startsWith("/workbench/mailclaws/") ||
     pathname.startsWith("/workbench/mail/") ||
     pathname.startsWith("/workbench/mailclaw/")
   );
@@ -336,6 +369,33 @@ async function handleRequest(options: {
       return;
     }
 
+    if (mailApi && request.method === "GET" && requestUrl.pathname === "/api/skills") {
+      writeJson(
+        response,
+        200,
+        mailApi.listAgentSkills({
+          tenantId: requestUrl.searchParams.get("tenantId") ?? requestUrl.searchParams.get("accountId") ?? "default",
+          accountId: requestUrl.searchParams.get("accountId") ?? undefined,
+          agentId: requestUrl.searchParams.get("agentId") ?? undefined
+        })
+      );
+      return;
+    }
+
+    const skillMatch = mailApi ? requestUrl.pathname.match(/^\/api\/skills\/([^/]+)\/([^/]+)$/) : null;
+    if (mailApi && request.method === "GET" && skillMatch) {
+      writeJson(
+        response,
+        200,
+        mailApi.inspectAgentSkill({
+          tenantId: requestUrl.searchParams.get("tenantId") ?? requestUrl.searchParams.get("accountId") ?? "default",
+          agentId: decodeURIComponent(skillMatch[1] ?? ""),
+          skillId: decodeURIComponent(skillMatch[2] ?? "")
+        })
+      );
+      return;
+    }
+
     if (mailApi && request.method === "GET" && requestUrl.pathname === "/api/console/rooms") {
       writeJson(
         response,
@@ -450,9 +510,9 @@ async function handleRequest(options: {
             message:
               resolvedProvider.id === "gmail"
                 ? completed.watchReady
-                  ? "MailClaw can now use Gmail watch/recovery and Gmail API send for this account."
+                  ? "MailClaws can now use Gmail watch/recovery and Gmail API send for this account."
                   : "The mailbox is connected. Add a Pub/Sub topic if you want Gmail watch/recovery to be active."
-                : "The mailbox is connected. MailClaw will use IMAP/SMTP with OAuth for this account.",
+                : "The mailbox is connected. MailClaws will use IMAP/SMTP with OAuth for this account.",
             accountId: completed.account?.accountId,
             emailAddress: completed.account?.emailAddress
           })
@@ -490,6 +550,29 @@ async function handleRequest(options: {
       });
 
       writeJson(response, 200, result);
+      return;
+    }
+
+    if (mailApi && request.method === "POST" && requestUrl.pathname === "/api/skills/install") {
+      const body = (await readJsonBody(request)) as {
+        tenantId?: string;
+        accountId?: string;
+        agentId?: string;
+        source?: string;
+        skillId?: string;
+        title?: string;
+      };
+      writeJson(
+        response,
+        200,
+        await mailApi.installAgentSkill({
+          tenantId: body.tenantId ?? body.accountId ?? "default",
+          agentId: typeof body.agentId === "string" ? body.agentId : "",
+          source: typeof body.source === "string" ? body.source : "",
+          skillId: typeof body.skillId === "string" ? body.skillId : undefined,
+          title: typeof body.title === "string" ? body.title : undefined
+        })
+      );
       return;
     }
 

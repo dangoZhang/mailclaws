@@ -53,6 +53,14 @@ export interface DefaultMailSkillDescriptor {
   path: string;
 }
 
+export interface AgentSkillDescriptor {
+  skillId: string;
+  title: string;
+  path: string;
+  source: "default" | "managed";
+  sourceRef?: string;
+}
+
 export interface AgentWorkspaceProfile {
   displayName?: string;
   purpose?: string;
@@ -92,10 +100,12 @@ export function ensureAgentWorkspace(
 ) {
   const agentDir = getAgentStateDir(config, tenantId, agentId);
   const rolesDir = path.join(agentDir, "roles");
+  const skillsDir = path.join(agentDir, "skills");
   const directories = [
     agentDir,
     path.join(agentDir, "memory"),
     rolesDir,
+    skillsDir,
     path.join(agentDir, "auth"),
     path.join(agentDir, "promotions")
   ];
@@ -140,8 +150,90 @@ export function ensureAgentWorkspace(
     directoryPath: getTenantAgentDirectoryPath(config, tenantId),
     promotionsDir: path.join(agentDir, "promotions"),
     rolesDir,
+    skillsDir,
     defaultSkills
   };
+}
+
+export function listAgentWorkspaceSkills(
+  config: AppConfig,
+  tenantId: string,
+  agentId: string
+) {
+  const workspace = ensureAgentWorkspace(config, tenantId, agentId);
+  const managedSkills = fs
+    .readdirSync(workspace.skillsDir)
+    .filter((entry) => entry.endsWith(".md"))
+    .sort((left, right) => left.localeCompare(right))
+    .map((entry) => describeSkillMarkdown(path.join(workspace.skillsDir, entry), "managed"));
+
+  return [
+    ...workspace.defaultSkills.map((skill) => ({
+      skillId: skill.skillId,
+      title: skill.title,
+      path: skill.path,
+      source: "default" as const
+    })),
+    ...managedSkills
+  ];
+}
+
+export function getAgentWorkspaceSkill(
+  config: AppConfig,
+  tenantId: string,
+  agentId: string,
+  skillId: string
+) {
+  const skills = listAgentWorkspaceSkills(config, tenantId, agentId);
+  const normalizedSkillId = skillId.trim().toLowerCase();
+  const skill = skills.find((entry) => entry.skillId === normalizedSkillId);
+  if (!skill) {
+    throw new Error(`skill not found: ${skillId}`);
+  }
+
+  return {
+    skill,
+    content: fs.readFileSync(skill.path, "utf8")
+  };
+}
+
+export async function installAgentWorkspaceSkill(
+  config: AppConfig,
+  input: {
+    tenantId: string;
+    agentId: string;
+    source: string;
+    skillId?: string;
+    title?: string;
+    now?: string;
+  }
+) {
+  const workspace = ensureAgentWorkspace(config, input.tenantId, input.agentId);
+  const installedAt = input.now ?? new Date().toISOString();
+  const source = input.source.trim();
+  if (!source) {
+    throw new Error("skill source is required");
+  }
+
+  const resolved = await loadSkillSource(source);
+  const skillId = normalizeManagedSkillId(input.skillId ?? deriveSkillIdFromSource(source, resolved.content));
+  if (!skillId) {
+    throw new Error("unable to derive a skill id from the provided source");
+  }
+
+  const title = deriveSkillTitle(input.title, resolved.content, skillId);
+  const destinationPath = path.join(workspace.skillsDir, toSafeStorageFileName(skillId, ".md", "skill"));
+  const metadata = {
+    skillId,
+    title,
+    sourceRef: source,
+    installedAt
+  };
+
+  const contents = wrapManagedSkillMarkdown(metadata, resolved.content);
+  fs.writeFileSync(destinationPath, contents, "utf8");
+
+  return describeSkillMarkdown(destinationPath, "managed");
 }
 
 export function createAgentMemoryDraft(
@@ -468,12 +560,129 @@ function ensureDefaultMailSkills(rolesDir: string): DefaultMailSkillDescriptor[]
   ];
 }
 
+function describeSkillMarkdown(skillPath: string, source: "managed"): AgentSkillDescriptor {
+  const content = fs.readFileSync(skillPath, "utf8");
+  const metadata = parseManagedSkillMetadata(content);
+  const skillId =
+    normalizeManagedSkillId(typeof metadata?.skillId === "string" ? metadata.skillId : undefined) ??
+    normalizeManagedSkillId(path.basename(skillPath, path.extname(skillPath))) ??
+    "skill";
+  const title = deriveSkillTitle(typeof metadata?.title === "string" ? metadata.title : undefined, content, skillId);
+
+  return {
+    skillId,
+    title,
+    path: skillPath,
+    source,
+    ...(typeof metadata?.sourceRef === "string" && metadata.sourceRef.trim().length > 0
+      ? { sourceRef: metadata.sourceRef.trim() }
+      : {})
+  };
+}
+
+function parseManagedSkillMetadata(content: string) {
+  const firstLine = content.split(/\r?\n/, 1)[0]?.trim() ?? "";
+  const match = firstLine.match(/^<!--\s*mailclaws-skill:\s*(\{.*\})\s*-->$/);
+  if (!match) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(match[1] ?? "{}");
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+}
+
+function wrapManagedSkillMarkdown(
+  metadata: {
+    skillId: string;
+    title: string;
+    sourceRef: string;
+    installedAt: string;
+  },
+  content: string
+) {
+  const normalizedContent = content.endsWith("\n") ? content : `${content}\n`;
+  return `<!-- mailclaws-skill: ${JSON.stringify(metadata)} -->\n\n${normalizedContent}`;
+}
+
+async function loadSkillSource(source: string) {
+  if (source.startsWith("http://") || source.startsWith("https://")) {
+    const response = await fetch(source);
+    if (!response.ok) {
+      throw new Error(`failed to download skill from ${source}: ${response.status} ${response.statusText}`);
+    }
+
+    return {
+      source,
+      content: await response.text()
+    };
+  }
+
+  const resolvedPath = path.resolve(source);
+  if (!fs.existsSync(resolvedPath)) {
+    throw new Error(`skill source not found: ${source}`);
+  }
+  if (fs.statSync(resolvedPath).isDirectory()) {
+    throw new Error(`skill source must be a markdown file, received directory: ${source}`);
+  }
+
+  return {
+    source: resolvedPath,
+    content: fs.readFileSync(resolvedPath, "utf8")
+  };
+}
+
+function deriveSkillIdFromSource(source: string, content: string) {
+  const heading = readMarkdownTitle(content);
+  if (heading) {
+    return heading;
+  }
+
+  return path.basename(source, path.extname(source));
+}
+
+function deriveSkillTitle(candidate: string | unknown, content: string, fallbackSkillId: string) {
+  if (typeof candidate === "string" && candidate.trim().length > 0) {
+    return candidate.trim();
+  }
+
+  return readMarkdownTitle(content) ?? fallbackSkillId;
+}
+
+function readMarkdownTitle(content: string) {
+  const lines = content.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("<!--")) {
+      continue;
+    }
+    if (trimmed.startsWith("#")) {
+      return trimmed.replace(/^#+\s*/, "").trim() || null;
+    }
+    break;
+  }
+
+  return null;
+}
+
+function normalizeManagedSkillId(value?: string) {
+  const normalized = value
+    ?.trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return normalized && normalized.length > 0 ? normalized : undefined;
+}
+
 function buildAgentWorkspaceProfile(agentId: string, profile?: AgentWorkspaceProfile): Required<AgentWorkspaceProfile> {
   return {
     displayName: profile?.displayName?.trim() || agentId,
     purpose:
       profile?.purpose?.trim() ||
-      "Own a durable MailClaw role, keep the room kernel as truth, and collaborate through virtual mail.",
+      "Own a durable MailClaws role, keep the room kernel as truth, and collaborate through virtual mail.",
     publicMailboxId: profile?.publicMailboxId?.trim() || `public:${agentId}`,
     sourceAlignment: profile?.sourceAlignment?.trim() || "",
     sourceRefs: profile?.sourceRefs?.filter((entry) => entry.trim().length > 0) ?? [],
@@ -574,7 +783,7 @@ function writeTenantAgentDirectory(config: AppConfig, tenantId: string, entries:
   const contents = [
     "# Agent Directory",
     "",
-    "Durable MailClaw agents can inspect this roster to decide who should own a room, who should review it, and when a burst subagent is enough.",
+    "Durable MailClaws agents can inspect this roster to decide who should own a room, who should review it, and when a burst subagent is enough.",
     "",
     ...sorted.flatMap((entry) => [
       `## ${entry.displayName}`,

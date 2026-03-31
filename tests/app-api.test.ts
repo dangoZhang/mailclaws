@@ -371,12 +371,12 @@ describe("app api", () => {
     }
 
     const baseUrl = `http://127.0.0.1:${address.port}`;
-    for (const pathname of ["/", "/mail", "/mail?accountId=acct-demo", "/login", "/workbench/mail"]) {
+    for (const pathname of ["/", "/mail", "/mail?accountId=acct-demo", "/login", "/workbench/mail", "/workbench/mailclaws", "/workbench/mailclaws/tab"]) {
       const response = await fetch(`${baseUrl}${pathname}`);
       const html = await response.text();
 
       expect(response.status).toBe(200);
-      expect(html).toContain("MailClaw");
+      expect(html).toContain("Mail");
       expect(html).toContain("/workbench/mail");
     }
 
@@ -581,8 +581,8 @@ describe("app api", () => {
         matchReason: "email_domain"
       },
       commands: {
-        login: 'mailctl connect login gmail acct-person-gmail-com "person"',
-        observeWorkbench: "mailctl observe workbench acct-person-gmail-com"
+        login: 'mailclaws login gmail acct-person-gmail-com "person"',
+        observeWorkbench: "mailclaws workbench acct-person-gmail-com"
       },
       console: {
         browserPath: "/workbench/mail"
@@ -591,7 +591,7 @@ describe("app api", () => {
         openClawUsers: {
           startCommand:
             "MAILCLAW_FEATURE_OPENCLAW_BRIDGE=true MAILCLAW_FEATURE_MAIL_INGEST=true pnpm dev",
-          inspectRuntime: "mailctl observe runtime"
+          inspectRuntime: "mailclaws observe runtime"
         }
       }
     });
@@ -991,7 +991,15 @@ describe("app api", () => {
       activeTab: "mailboxes",
       entrypoints: {
         standalone: "/workbench/mail",
-        embedded: "/workbench/mail/tab"
+        embedded: "/workbench/mail/tab",
+        compatAliases: expect.arrayContaining([
+          "/dashboard",
+          "/mail",
+          "/workbench/mailclaws",
+          "/workbench/mailclaw",
+          "/workbench/mailclaws/tab",
+          "/workbench/mailclaw/tab"
+        ])
       },
       hostIntegration: {
         tabId: "mailclaw.mail",
@@ -1263,8 +1271,7 @@ describe("app api", () => {
         expect.objectContaining({
           roomKey: inboundJson.ingested.roomKey,
           accountId: "acct-1",
-          pendingApprovalCount: 2,
-          gatewayProjected: false
+          pendingApprovalCount: 2
         })
       ])
     );
@@ -1418,7 +1425,15 @@ describe("app api", () => {
       activeTab: "rooms",
       entrypoints: {
         standalone: "/workbench/mail",
-        embedded: "/workbench/mail/tab"
+        embedded: "/workbench/mail/tab",
+        compatAliases: expect.arrayContaining([
+          "/dashboard",
+          "/mail",
+          "/workbench/mailclaws",
+          "/workbench/mailclaw",
+          "/workbench/mailclaws/tab",
+          "/workbench/mailclaw/tab"
+        ])
       },
       hostIntegration: {
         tabId: "mailclaw.mail",
@@ -1428,8 +1443,8 @@ describe("app api", () => {
         browserPath: "/workbench/mail",
         embeddedBrowserPath: "/workbench/mail/tab",
         onboardingApiPath: "/api/connect/onboarding",
-        recommendedStartCommand: "mailclaw onboard you@example.com",
-        recommendedLoginCommand: "mailclaw login"
+        recommendedStartCommand: "mailclaws onboard you@example.com",
+        recommendedLoginCommand: "mailclaws login"
       },
       tabs: expect.arrayContaining([
         expect.objectContaining({
@@ -1806,6 +1821,307 @@ describe("app api", () => {
     const taiziSoul = fs.readFileSync(taiziSoulPath ?? "", "utf8");
     expect(taiziSoul).toContain("Edict's Taizi role");
     expect(taiziSoul).toContain("## Role Contract");
+
+    fixture.handle.close();
+  });
+
+  it("routes new rooms into durable agent inboxes after a template is applied and enables worker prelude without the global swarm flag", async () => {
+    const fixture = createFixture();
+    upsertMailAccount(fixture.handle.db, {
+      accountId: "acct-templates",
+      provider: "forward",
+      emailAddress: "demo.user@gmail.com",
+      status: "active",
+      settings: {},
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+    const server = createAppServer({
+      config: fixture.config,
+      mailApi: fixture.runtime
+    });
+
+    servers.push(server);
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      throw new Error("Expected address info");
+    }
+
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const applyResponse = await fetch(`${baseUrl}/api/console/agent-templates/one-person-company/apply`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        accountId: "acct-templates"
+      })
+    });
+
+    expect(applyResponse.status).toBe(200);
+
+    const inboundResponse = await fetch(`${baseUrl}/api/inbound?processImmediately=true`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        accountId: "acct-templates",
+        mailboxAddress: "demo.user@gmail.com",
+        envelope: {
+          providerMessageId: "provider-template-1",
+          messageId: "<template-msg-1@example.com>",
+          subject: "Please review this attached plan",
+          from: {
+            email: "sender@example.com"
+          },
+          to: [{ email: "demo.user@gmail.com" }],
+          text: "Please review the attached proposal and send back a concise action plan with next steps.",
+          attachments: [
+            {
+              filename: "plan.txt",
+              contentType: "text/plain",
+              contentBase64: Buffer.from("Milestone A\nMilestone B\nRisk C").toString("base64")
+            }
+          ],
+          headers: [
+            {
+              name: "Message-ID",
+              value: "<template-msg-1@example.com>"
+            }
+          ]
+        }
+      })
+    });
+    const inboundJson = (await inboundResponse.json()) as {
+      ingested: { roomKey: string };
+    };
+
+    expect(inboundResponse.status).toBe(200);
+
+    const replayResponse = await fetch(
+      `${baseUrl}/api/rooms/${encodeURIComponent(inboundJson.ingested.roomKey)}/replay`
+    );
+    const replayJson = (await replayResponse.json()) as {
+      room: {
+        frontAgentAddress?: string;
+        frontAgentId?: string;
+        publicAgentAddresses?: string[];
+        publicAgentIds?: string[];
+        collaboratorAgentAddresses?: string[];
+        collaboratorAgentIds?: string[];
+      } | null;
+      ledger: Array<{ type: string }>;
+      virtualMessages: Array<{ kind: string; subject: string }>;
+    };
+
+    expect(replayResponse.status).toBe(200);
+    expect(replayJson.room).toMatchObject({
+      frontAgentAddress: "demo.user@gmail.com",
+      frontAgentId: "assistant",
+      publicAgentIds: expect.arrayContaining(["assistant", "research", "ops"]),
+      collaboratorAgentIds: expect.arrayContaining(["research", "ops"])
+    });
+    expect(replayJson.ledger).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "worker.task_assigned" }),
+        expect.objectContaining({ type: "worker.result" })
+      ])
+    );
+    expect(replayJson.virtualMessages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "task", subject: "Task: mail-researcher" }),
+        expect.objectContaining({ subject: "mail-researcher result" })
+      ])
+    );
+
+    const mailboxConsoleResponse = await fetch(`${baseUrl}/api/accounts/acct-templates/mailbox-console`);
+    const mailboxConsoleJson = (await mailboxConsoleResponse.json()) as {
+      publicAgentInboxes: Array<{
+        inbox: { agentId: string };
+        items: Array<{ roomKey: string; participantRole: string }>;
+      }>;
+    };
+
+    expect(mailboxConsoleResponse.status).toBe(200);
+    expect(mailboxConsoleJson.publicAgentInboxes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inbox: expect.objectContaining({ agentId: "assistant" }),
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              roomKey: inboundJson.ingested.roomKey,
+              participantRole: "front"
+            })
+          ])
+        }),
+        expect.objectContaining({
+          inbox: expect.objectContaining({ agentId: "research" }),
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              roomKey: inboundJson.ingested.roomKey,
+              participantRole: "collaborator"
+            })
+          ])
+        })
+      ])
+    );
+    expect(mailboxConsoleJson.publicAgentInboxes).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inbox: expect.objectContaining({ agentId: "demo.user@gmail.com" })
+        })
+      ])
+    );
+
+    const skillsResponse = await fetch(`${baseUrl}/api/skills?accountId=acct-templates`);
+    const skillsJson = (await skillsResponse.json()) as Array<{
+      agentId: string;
+      skills: Array<{ skillId: string; source: string }>;
+    }>;
+
+    expect(skillsResponse.status).toBe(200);
+    expect(skillsJson).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          agentId: "assistant",
+          skills: expect.arrayContaining([
+            expect.objectContaining({ skillId: "mail-read", source: "default" }),
+            expect.objectContaining({ skillId: "mail-write", source: "default" })
+          ])
+        })
+      ])
+    );
+
+    fixture.handle.close();
+  });
+
+  it("remaps legacy mailbox inbox items onto the durable front agent after a template is applied", async () => {
+    const fixture = createFixture();
+    upsertMailAccount(fixture.handle.db, {
+      accountId: "acct-remap",
+      provider: "forward",
+      emailAddress: "demo.user@gmail.com",
+      status: "active",
+      settings: {},
+      createdAt: "2026-03-27T00:00:00.000Z",
+      updatedAt: "2026-03-27T00:00:00.000Z"
+    });
+    const server = createAppServer({
+      config: fixture.config,
+      mailApi: fixture.runtime
+    });
+
+    servers.push(server);
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      throw new Error("Expected address info");
+    }
+
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const firstInboundResponse = await fetch(`${baseUrl}/api/inbound?processImmediately=true`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        accountId: "acct-remap",
+        mailboxAddress: "demo.user@gmail.com",
+        envelope: {
+          providerMessageId: "provider-remap-1",
+          messageId: "<remap-msg-1@example.com>",
+          subject: "Pre-template room",
+          from: {
+            email: "sender@example.com"
+          },
+          to: [{ email: "demo.user@gmail.com" }],
+          text: "This room existed before durable agents were installed.",
+          headers: [
+            {
+              name: "Message-ID",
+              value: "<remap-msg-1@example.com>"
+            }
+          ]
+        }
+      })
+    });
+    const firstInboundJson = (await firstInboundResponse.json()) as {
+      ingested: { roomKey: string };
+    };
+
+    expect(firstInboundResponse.status).toBe(200);
+
+    const applyResponse = await fetch(`${baseUrl}/api/console/agent-templates/one-person-company/apply`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        accountId: "acct-remap"
+      })
+    });
+
+    expect(applyResponse.status).toBe(200);
+
+    const secondInboundResponse = await fetch(`${baseUrl}/api/inbound?processImmediately=true`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        accountId: "acct-remap",
+        mailboxAddress: "demo.user@gmail.com",
+        envelope: {
+          providerMessageId: "provider-remap-2",
+          messageId: "<remap-msg-2@example.com>",
+          subject: "Post-template room",
+          from: {
+            email: "client@example.com"
+          },
+          to: [{ email: "demo.user@gmail.com" }],
+          text: "Please coordinate the durable team and keep the old room visible from the new front desk.",
+          headers: [
+            {
+              name: "Message-ID",
+              value: "<remap-msg-2@example.com>"
+            }
+          ]
+        }
+      })
+    });
+    const secondInboundJson = (await secondInboundResponse.json()) as {
+      ingested: { roomKey: string };
+    };
+
+    expect(secondInboundResponse.status).toBe(200);
+
+    const mailboxConsoleResponse = await fetch(`${baseUrl}/api/accounts/acct-remap/mailbox-console`);
+    const mailboxConsoleJson = (await mailboxConsoleResponse.json()) as {
+      publicAgentInboxes: Array<{
+        inbox: { agentId: string };
+        items: Array<{ roomKey: string }>;
+      }>;
+    };
+
+    expect(mailboxConsoleResponse.status).toBe(200);
+    expect(mailboxConsoleJson.publicAgentInboxes.map((entry) => entry.inbox.agentId)).not.toContain("demo.user@gmail.com");
+    expect(mailboxConsoleJson.publicAgentInboxes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inbox: expect.objectContaining({ agentId: "assistant" }),
+          items: expect.arrayContaining([
+            expect.objectContaining({ roomKey: firstInboundJson.ingested.roomKey }),
+            expect.objectContaining({ roomKey: secondInboundJson.ingested.roomKey })
+          ])
+        })
+      ])
+    );
 
     fixture.handle.close();
   });
@@ -2888,7 +3204,7 @@ describe("app api", () => {
         accountId: "acct-1",
         provider: "imap",
         emailAddress: "mailclaw@example.com",
-        displayName: "MailClaw",
+        displayName: "MailClaws",
         status: "active",
         settings: {
           host: "imap.example.com"

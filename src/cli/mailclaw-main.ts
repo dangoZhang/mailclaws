@@ -42,7 +42,7 @@ export async function runMailclaw(
 
   if (parsedArgs.version) {
     writePayload(stdout, parsedArgs.mode, {
-      name: "mailclaw",
+      name: "mailclaws",
       version: readPackageVersion()
     }, readPackageVersion());
     return 0;
@@ -131,6 +131,8 @@ export async function runMailclaw(
 
 function mapUserFacingCommand(command: string, rest: string[]) {
   switch (command) {
+    case "register":
+    case "signup":
     case "setup":
     case "onboard":
     case "configure":
@@ -144,6 +146,8 @@ function mapUserFacingCommand(command: string, rest: string[]) {
       return ["connect", "providers", ...rest];
     case "accounts":
       return ["accounts", ...rest];
+    case "skills":
+      return ["skills", ...rest];
     case "rooms":
       return ["rooms", ...rest];
     case "inboxes":
@@ -328,7 +332,7 @@ async function inspectLocalRuntime(input: {
         input.mode,
         payload,
         [
-          `MailClaw ${payload.service}`,
+          `MailClaws ${payload.service}`,
           `status: ${payload.health} / ready: ${payload.ready}`,
           `gateway: ${gatewayUrl ?? "not configured"}`,
           `mail tab: ${workbenchUrl}`
@@ -342,7 +346,7 @@ async function inspectLocalRuntime(input: {
       input.mode,
       payload,
       [
-        "MailClaw doctor",
+        "MailClaws doctor",
         `service: ${payload.service}`,
         `environment: ${payload.environment}`,
         `health: ${payload.health}`,
@@ -351,33 +355,33 @@ async function inspectLocalRuntime(input: {
         `mail tab: ${workbenchUrl}`,
         "",
         "next:",
-        "  1. Run `mailclaw gateway` if the server is not ready.",
-        "  2. Run `mailclaw onboard you@example.com` for the recommended path.",
-        "  3. Run `mailclaw login` to connect one mailbox.",
-        "  4. Run `mailclaw dashboard` to open OpenClaw/Gateway, then click the Mail tab.",
-        "  5. Run `mailclaw open` for the direct Mail tab fallback."
+        "  1. Run `mailclaws gateway` if the server is not ready.",
+        "  2. Run `mailclaws onboard you@example.com` for the recommended path.",
+        "  3. Run `mailclaws login` to connect one mailbox.",
+        "  4. Run `mailclaws dashboard` to open OpenClaw/Gateway, then click the Mail tab.",
+        "  5. Run `mailclaws open` for the direct Mail tab fallback."
       ].join("\n")
     );
     return ready.status === "ok" ? 0 : 1;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (input.command === "status" || input.command === "health") {
-      input.stderr.write(`MailClaw is not reachable at ${baseUrl}: ${message}\n`);
+      input.stderr.write(`MailClaws is not reachable at ${baseUrl}: ${message}\n`);
       return 1;
     }
 
     input.stdout.write(
       [
-        "MailClaw doctor",
+        "MailClaws doctor",
         `status: not reachable at ${baseUrl}`,
         `error: ${message}`,
         "",
         "next:",
-        "  1. Start MailClaw with `mailclaw gateway`.",
-        "  2. Run `mailclaw onboard you@example.com` for the recommended path.",
-        "  3. Connect a mailbox with `mailclaw login`.",
-        "  4. Open OpenClaw/Gateway with `mailclaw dashboard` when configured.",
-        "  5. Open the direct Mail tab with `mailclaw open`."
+        "  1. Start MailClaws with `mailclaws gateway`.",
+        "  2. Run `mailclaws onboard you@example.com` for the recommended path.",
+        "  3. Connect a mailbox with `mailclaws login`.",
+        "  4. Open OpenClaw/Gateway with `mailclaws dashboard` when configured.",
+        "  5. Open the direct Mail tab with `mailclaws open`."
       ].join("\n") + "\n"
     );
     return 1;
@@ -460,24 +464,25 @@ function readPackageVersion() {
 function writeUsage(stream: Pick<NodeJS.WriteStream, "write">) {
   stream.write(
     [
-      "usage: mailclaw [--json] [--verbose] [--no-color] [--version] <gateway|dashboard|browser|setup|onboard|configure|login|providers|status|health|doctor|accounts|rooms|inboxes|workbench|replay|approvals|deliver|approve|reject|trace|gateway-events|gateway-history|sync-mail|open|console> ...",
+      "usage: mailclaws [--json] [--verbose] [--no-color] [--version] <gateway|dashboard|browser|setup|register|onboard|configure|login|providers|status|health|doctor|accounts|skills|rooms|inboxes|workbench|replay|approvals|deliver|approve|reject|trace|gateway-events|gateway-history|sync-mail|open|console> ...",
       "",
       "first run:",
-      "  mailclaw gateway",
-      "  mailclaw setup [you@example.com]",
-      "  mailclaw login",
-      "  mailclaw dashboard",
+      "  mailclaws gateway",
+      "  mailclaws setup [you@example.com]",
+      "  mailclaws login",
+      "  mailclaws dashboard",
       "",
       "quick checks:",
-      "  mailclaw status",
-      "  mailclaw health",
-      "  mailclaw doctor",
+      "  mailclaws status",
+      "  mailclaws health",
+      "  mailclaws doctor",
       "",
       "commands:",
       "  gateway [run|start|status|health|open [path]|resolve|bind|trace|events|import-history|sync-mail|dispatch]",
       "  dashboard [path]",
       "  browser [path]",
       "  setup [emailAddress] [provider]",
+      "  register [emailAddress] [provider]",
       "  onboard [emailAddress] [provider]",
       "  configure [emailAddress] [provider]",
       "  login [provider-specific args|web]",
@@ -486,6 +491,7 @@ function writeUsage(stream: Pick<NodeJS.WriteStream, "write">) {
       "  health",
       "  doctor",
       "  accounts [show <accountId>]",
+      "  skills [list [accountId] [agentId]|info <accountId> <agentId> <skillId>|install <accountId> <agentId> <source> [skillId]]",
       "  rooms [accountId]",
       "  inboxes <accountId>",
       "  workbench [accountId] [roomKey] [mailboxId]",
@@ -501,11 +507,12 @@ function writeUsage(stream: Pick<NodeJS.WriteStream, "write">) {
       "",
       "advanced:",
       "  open [path]",
-      "  mailclaw <mailctl command>",
+      "  mailclaws <mailclawsctl command>",
+      "  mailclawsctl --help",
       "  mailctl --help",
       "",
       "docs:",
-      "  https://docs.openclaw.ai"
+      "  https://dangozhang.github.io/mailclaws/"
     ].join("\n") + "\n"
   );
 }

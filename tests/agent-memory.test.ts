@@ -10,9 +10,12 @@ import {
   createAgentMemoryDraft,
   createAgentMemoryDraftFromLatestRoomSnapshot,
   ensureAgentWorkspace,
+  getAgentWorkspaceSkill,
   getAgentStateDir,
   getTenantAgentDirectoryPath,
+  installAgentWorkspaceSkill,
   listAgentMemoryDrafts,
+  listAgentWorkspaceSkills,
   reviewAgentMemoryDraft,
   rejectAgentMemoryDraft
 } from "../src/memory/agent-memory.js";
@@ -274,6 +277,46 @@ describe("agent memory workspace", () => {
     expect(fs.readFileSync(path.join(workspace.rolesDir, "mail-write.default.md"), "utf8")).toContain(
       "Default Skill: Mail Write"
     );
+  });
+
+  it("lists default skills and installs managed markdown skills into the agent workspace", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-agent-skills-"));
+    tempDirs.push(tempDir);
+
+    const config = loadConfig({
+      MAILCLAW_STATE_DIR: tempDir,
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+    });
+
+    ensureAgentWorkspace(config, "tenant-skills", "assistant");
+    const sourcePath = path.join(tempDir, "follow-up.md");
+    fs.writeFileSync(
+      sourcePath,
+      ["# Follow-up Skill", "", "- Start with an ACK when the inbox is busy.", "- Promote only reusable facts."].join("\n"),
+      "utf8"
+    );
+
+    const installed = await installAgentWorkspaceSkill(config, {
+      tenantId: "tenant-skills",
+      agentId: "assistant",
+      source: sourcePath
+    });
+    const listed = listAgentWorkspaceSkills(config, "tenant-skills", "assistant");
+    const inspected = getAgentWorkspaceSkill(config, "tenant-skills", "assistant", installed.skillId);
+
+    expect(installed).toMatchObject({
+      skillId: "follow-up-skill",
+      source: "managed",
+      sourceRef: sourcePath
+    });
+    expect(listed).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ skillId: "mail-read", source: "default" }),
+        expect.objectContaining({ skillId: "mail-write", source: "default" }),
+        expect.objectContaining({ skillId: "follow-up-skill", source: "managed" })
+      ])
+    );
+    expect(inspected.content).toContain("Follow-up Skill");
   });
 
   it("renders richer SOUL and AGENTS files when a durable roster is known", () => {

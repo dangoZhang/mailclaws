@@ -143,6 +143,8 @@ export async function runMailctl(
         return handleConflicts(runtime, rest, stdout, stderr, mode);
       case "accounts":
         return handleAccounts(runtime, rest, stdout, stderr, mode);
+      case "skills":
+        return await handleSkills(runtime, rest, stdout, stderr, mode);
       case "memory":
         return handleMemory(runtime, rest, stdout, stderr, mode);
       case "login":
@@ -989,6 +991,63 @@ function handleAccounts(
   return 1;
 }
 
+async function handleSkills(
+  runtime: MailRuntime,
+  args: string[],
+  stdout: Pick<NodeJS.WriteStream, "write">,
+  stderr: Pick<NodeJS.WriteStream, "write">,
+  mode: CliOutputMode
+) {
+  const [subcommand = "list", accountId, agentId, arg4, ...rest] = args;
+
+  if (subcommand === "list") {
+    const payload = runtime.listAgentSkills({
+      tenantId: accountId ?? "default",
+      accountId: accountId ?? undefined,
+      agentId: agentId ?? undefined
+    });
+    writePayload(stdout, mode, payload, renderAgentSkills(payload));
+    return 0;
+  }
+
+  if (subcommand === "info") {
+    const skillId = arg4;
+    if (!accountId || !agentId || !skillId) {
+      stderr.write("usage: mailctl skills info <accountId> <agentId> <skillId>\n");
+      return 1;
+    }
+
+    const payload = runtime.inspectAgentSkill({
+      tenantId: accountId,
+      agentId,
+      skillId
+    });
+    writePayload(stdout, mode, payload, renderAgentSkill(payload));
+    return 0;
+  }
+
+  if (subcommand === "install") {
+    const source = arg4;
+    const skillId = rest[0];
+    if (!accountId || !agentId || !source) {
+      stderr.write("usage: mailctl skills install <accountId> <agentId> <source> [skillId]\n");
+      return 1;
+    }
+
+    const payload = await runtime.installAgentSkill({
+      tenantId: accountId,
+      agentId,
+      source,
+      skillId
+    });
+    writePayload(stdout, mode, payload, `Installed skill ${payload.skillId} for ${agentId}`);
+    return 0;
+  }
+
+  stderr.write("usage: mailctl skills <list [accountId] [agentId]|info <accountId> <agentId> <skillId>|install <accountId> <agentId> <source> [skillId]>\n");
+  return 1;
+}
+
 function handleInboxes(
   runtime: MailRuntime,
   args: string[],
@@ -1490,9 +1549,9 @@ async function handleLogin(
             message:
               oauthProvider.id === "gmail"
                 ? completed.watchReady
-                  ? "MailClaw can now ingest and send mail through this Gmail account."
+                  ? "MailClaws can now ingest and send mail through this Gmail account."
                   : "The mailbox is connected. Add a Gmail Pub/Sub topic if you want watch/recovery to be active."
-                : "The mailbox is connected. MailClaw will use IMAP/SMTP with OAuth for this account.",
+                : "The mailbox is connected. MailClaws will use IMAP/SMTP with OAuth for this account.",
             accountId: completed.account?.accountId,
             emailAddress: completed.account?.emailAddress
           })
@@ -1576,7 +1635,7 @@ function renderConsoleRooms(rooms: ReturnType<MailRuntime["listConsoleRooms"]>) 
     `Rooms: ${rooms.length}`,
     ...rooms.map(
       (room) =>
-        `${room.roomKey} | ${room.state} | rev ${room.revision} | front ${room.frontAgentAddress ?? "n/a"} | collab ${room.collaboratorAgentAddresses.length} | roles ${room.summonedRoles.length} | approvals ${room.pendingApprovalCount} | activity ${formatTimestamp(room.latestActivityAt)}`
+        `${room.roomKey} | ${room.state} | rev ${room.revision} | front ${room.frontAgentId ?? room.frontAgentAddress ?? "n/a"} | collab ${room.collaboratorAgentIds.length || room.collaboratorAgentAddresses.length} | roles ${room.summonedRoles.length} | approvals ${room.pendingApprovalCount} | activity ${formatTimestamp(room.latestActivityAt)}`
     )
   ].join("\n");
 }
@@ -1585,7 +1644,7 @@ function renderConsoleRoom(room: ReturnType<MailRuntime["getConsoleRoom"]>) {
   return [
     `Room ${room.room.roomKey}`,
     `State: ${room.room.state} | Revision: ${room.room.revision} | Latest activity: ${formatTimestamp(room.room.latestActivityAt)}`,
-    `Front agent: ${room.room.frontAgentAddress ?? "n/a"} | Public identities: ${room.room.publicAgentAddresses.join(", ") || "none"} | Collaborators: ${room.room.collaboratorAgentAddresses.join(", ") || "none"}`,
+    `Front agent: ${room.room.frontAgentId ?? room.room.frontAgentAddress ?? "n/a"} | Public identities: ${room.room.publicAgentIds.join(", ") || room.room.publicAgentAddresses.join(", ") || "none"} | Collaborators: ${room.room.collaboratorAgentIds.join(", ") || room.room.collaboratorAgentAddresses.join(", ") || "none"}`,
     `Summoned roles: ${room.room.summonedRoles.join(", ") || "none"}`,
     `Mailboxes: ${room.mailboxes.length} | Approvals: ${room.approvals.length} | Timeline events: ${room.timeline.length}`,
     `Gateway projection: ${room.gatewayTrace.projectedMessageCount} messages / ${room.gatewayTrace.projectedDeliveryCount} deliveries / pending ${room.gatewayTrace.pendingDispatchCount} / failed ${room.gatewayTrace.failedDispatchCount}`,
@@ -1682,8 +1741,8 @@ function renderConsoleApprovals(approvals: ReturnType<MailRuntime["listConsoleAp
 function renderConnectProviderGuides(guides: ReturnType<typeof listConnectProviderGuides>) {
   return [
     `Connect providers: ${guides.length}`,
-    "Use `mailclaw login` for the generic interactive path; it asks for your email first and works with any IMAP/SMTP mailbox.",
-    "Use `mailclaw providers <provider>` for detailed commands and env requirements.",
+    "Use `mailclaws login` for the generic interactive path; it asks for your email first and works with any IMAP/SMTP mailbox.",
+    "Use `mailclaws providers <provider>` for detailed commands and env requirements.",
     "API discovery: GET /api/connect and GET /api/connect/providers",
     ...guides.map(
       (guide) =>
@@ -1723,7 +1782,7 @@ function renderConnectOnboardingPlan(plan: ReturnType<typeof buildConnectOnboard
   const inspectProviderCommand = toUserFacingCliCommand(plan.commands.inspectProvider);
 
   return [
-    "MailClaw mailbox onboarding",
+    "MailClaws mailbox onboarding",
     `Mailbox: ${plan.input.emailAddress ?? "not specified"}`,
     `Recommended provider: ${plan.recommendation.provider.displayName} (${plan.recommendation.provider.id})`,
     `Why: ${formatOnboardingMatchReason(plan.recommendation.matchReason)} | confidence ${plan.recommendation.confidence}`,
@@ -1731,7 +1790,7 @@ function renderConnectOnboardingPlan(plan: ReturnType<typeof buildConnectOnboard
     "2. Send one email to the connected address from another mailbox.",
     `3. Open browser: ${plan.console.browserPath}`,
     `4. Check account: ${accountsCommand}`,
-    `5. Check rooms/inbox: ${toUserFacingCliCommand("mailclaw rooms")} | ${inboxesCommand}`,
+    `5. Check rooms/inbox: ${toUserFacingCliCommand("mailclaws rooms")} | ${inboxesCommand}`,
     `Optional internal mailbox view later: ${workbenchCommand}`,
     ...(plan.alternatives.length > 0
       ? [
@@ -1741,7 +1800,7 @@ function renderConnectOnboardingPlan(plan: ReturnType<typeof buildConnectOnboard
         ]
       : []),
     `Provider guide: ${inspectProviderCommand}`,
-    "Not sure which provider to pick: run `mailclaw login`, enter your mailbox address, and MailClaw will suggest the common host defaults it knows.",
+    "Not sure which provider to pick: run `mailclaws login`, enter your mailbox address, and MailClaws will suggest the common host defaults it knows.",
     "Advanced: use `mailctl --help` if you want the full operator/developer command surface.",
     ...(plan.notes.length > 0 ? ["Notes:", ...plan.notes.map((note) => `  - ${note}`)] : [])
   ].join("\n");
@@ -1791,6 +1850,34 @@ function renderInboxItems(items: ReturnType<MailRuntime["listInboxItems"]>) {
       (item) =>
         `${item.inboxItemId} | room ${item.roomKey} | ${item.state} | unread ${item.unreadCount} | urgency ${item.urgency}`
     )
+  ].join("\n");
+}
+
+function renderAgentSkills(skills: ReturnType<MailRuntime["listAgentSkills"]>) {
+  if (skills.length === 0) {
+    return "No agent skills.";
+  }
+
+  return [
+    `Agent skills: ${skills.length} agents`,
+    ...skills.flatMap((entry) => [
+      `${entry.agentId} (${entry.displayName}) | ${entry.skills.length} skills`,
+      ...entry.skills.map((skill) => `  ${skill.skillId} | ${skill.source} | ${skill.title}`)
+    ])
+  ].join("\n");
+}
+
+function renderAgentSkill(payload: ReturnType<MailRuntime["inspectAgentSkill"]>) {
+  const sourceRef = "sourceRef" in payload.skill && typeof payload.skill.sourceRef === "string"
+    ? payload.skill.sourceRef
+    : null;
+  return [
+    `Skill ${payload.skill.skillId} | ${payload.skill.source}`,
+    `Title: ${payload.skill.title}`,
+    `Path: ${payload.skill.path}`,
+    ...(sourceRef ? [`Source: ${sourceRef}`] : []),
+    "",
+    payload.content.trim()
   ].join("\n");
 }
 
@@ -1886,7 +1973,7 @@ function renderPromptFootprintBenchmark(
   payload: Awaited<ReturnType<typeof runPromptFootprintBenchmark>>
 ) {
   const sections = [
-    "MailClaw prompt footprint benchmark",
+    "MailClaws prompt footprint benchmark",
     `Generated at: ${payload.generatedAt}`,
     `Estimate method: ${payload.estimateMethod}`,
     "",
@@ -1966,7 +2053,12 @@ function writeUsage(stream: Pick<NodeJS.WriteStream, "write">) {
       "",
       "compatibility aliases:",
       "  rooms, replay, gateway-trace, gateway, retrieve, recover, drain, deliver-outbox, resend",
-      "  approve, reject, approvals, handoff, mailbox, quarantine, dead-letter, conflicts, accounts, memory, login",
+      "  approve, reject, approvals, handoff, mailbox, quarantine, dead-letter, conflicts, accounts, skills, memory, login",
+      "",
+      "skills:",
+      "  skills list [accountId] [agentId]",
+      "  skills info <accountId> <agentId> <skillId>",
+      "  skills install <accountId> <agentId> <source> [skillId]",
       "",
       "gateway:",
       "  gateway resolve <sessionKey> [roomKey]",
@@ -2004,15 +2096,15 @@ function formatOnboardingMatchReason(reason: "provider_hint" | "email_domain" | 
 
 function toUserFacingCliCommand(command: string) {
   return command
-    .replace(/^mailctl connect start\b/, "mailclaw onboard")
-    .replace(/^mailctl connect login\b/, "mailclaw login")
-    .replace(/^mailctl connect providers\b/, "mailclaw providers")
-    .replace(/^mailctl connect accounts\b/, "mailclaw accounts")
-    .replace(/^mailctl observe accounts\b/, "mailclaw accounts")
-    .replace(/^mailctl observe workbench\b/, "mailclaw workbench")
-    .replace(/^mailctl observe inboxes\b/, "mailclaw inboxes")
-    .replace(/^mailctl observe rooms\b/, "mailclaw rooms")
-    .replace(/^mailctl replay\b/, "mailclaw replay");
+    .replace(/^mailctl connect start\b/, "mailclaws onboard")
+    .replace(/^mailctl connect login\b/, "mailclaws login")
+    .replace(/^mailctl connect providers\b/, "mailclaws providers")
+    .replace(/^mailctl connect accounts\b/, "mailclaws accounts")
+    .replace(/^mailctl observe accounts\b/, "mailclaws accounts")
+    .replace(/^mailctl observe workbench\b/, "mailclaws workbench")
+    .replace(/^mailctl observe inboxes\b/, "mailclaws inboxes")
+    .replace(/^mailctl observe rooms\b/, "mailclaws rooms")
+    .replace(/^mailctl replay\b/, "mailclaws replay");
 }
 
 function parseOptionalInteger(value: string | undefined) {

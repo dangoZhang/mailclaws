@@ -17,7 +17,7 @@ function createWritableBuffer() {
 }
 
 describe("mailclaw user-facing cli", () => {
-  it("delegates onboarding and login to mailctl", async () => {
+  it("delegates onboarding, register, login, and skills to mailctl", async () => {
     const stdout = createWritableBuffer();
     const stderr = createWritableBuffer();
     const delegated: string[][] = [];
@@ -47,6 +47,30 @@ describe("mailclaw user-facing cli", () => {
 
     expect(loginExitCode).toBe(0);
     expect(delegated.at(-1)).toEqual(["connect", "login", "qq"]);
+
+    const registerExitCode = await runMailclaw(["register", "person@gmail.com"], {
+      stdout: stdout.stream,
+      stderr: stderr.stream,
+      runMailctl: async (args) => {
+        delegated.push(args);
+        return 0;
+      }
+    });
+
+    expect(registerExitCode).toBe(0);
+    expect(delegated.at(-1)).toEqual(["connect", "start", "person@gmail.com"]);
+
+    const skillsExitCode = await runMailclaw(["skills", "list", "acct-1"], {
+      stdout: stdout.stream,
+      stderr: stderr.stream,
+      runMailctl: async (args) => {
+        delegated.push(args);
+        return 0;
+      }
+    });
+
+    expect(skillsExitCode).toBe(0);
+    expect(delegated.at(-1)).toEqual(["skills", "list", "acct-1"]);
 
     const syncExitCode = await runMailclaw(["sync-mail", "room-1", "msg-1"], {
       stdout: stdout.stream,
@@ -362,14 +386,14 @@ describe("mailclaw user-facing cli", () => {
       stderr: stderr.stream,
       fetchJson: async (url) => {
         if (String(url).endsWith("/healthz")) {
-          return { status: "ok", service: "MailClaw", env: "test" };
+          return { status: "ok", service: "MailClaws", env: "test" };
         }
-        return { status: "ok", service: "MailClaw" };
+        return { status: "ok", service: "MailClaws" };
       }
     });
 
     expect(exitCode).toBe(0);
-    expect(stdout.read()).toContain("MailClaw");
+    expect(stdout.read()).toContain("MailClaws");
     expect(stdout.read()).toContain("mail tab:");
     expect(stderr.read()).toBe("");
   });
@@ -383,9 +407,9 @@ describe("mailclaw user-facing cli", () => {
       stderr: stderr.stream,
       fetchJson: async (url) => {
         if (String(url).endsWith("/healthz")) {
-          return { status: "ok", service: "MailClaw", env: "test" };
+          return { status: "ok", service: "MailClaws", env: "test" };
         }
-        return { status: "ok", service: "MailClaw" };
+        return { status: "ok", service: "MailClaws" };
       }
     });
 
@@ -412,7 +436,7 @@ describe("mailclaw user-facing cli", () => {
     });
 
     expect(exitCode).toBe(1);
-    expect(stdout.read()).toContain("MailClaw doctor");
-    expect(stdout.read()).toContain("Start MailClaw with `mailclaw gateway`");
+    expect(stdout.read()).toContain("MailClaws doctor");
+    expect(stdout.read()).toContain("Start MailClaws with `mailclaws gateway`");
   });
 });

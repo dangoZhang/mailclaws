@@ -21,7 +21,7 @@ import {
   updateSubAgentRun
 } from "../storage/repositories/subagent-runs.js";
 import { getSubAgentTargetByMailboxId } from "../storage/repositories/subagent-targets.js";
-import { getMailboxDelivery } from "../storage/repositories/mailbox-deliveries.js";
+import { getMailboxDelivery, insertMailboxDelivery } from "../storage/repositories/mailbox-deliveries.js";
 import type { OpenClawSubAgentTransport, WatchBurstSubAgentResult } from "./openclaw.js";
 import { buildSubAgentSessionKey } from "../threading/session-key.js";
 import {
@@ -122,35 +122,48 @@ async function processSubAgentDelivery(
   }
 
   const childInputText = buildSubAgentInput(taskMessage, room.parentSessionKey);
-  const run =
-    input.target.mode === "bound"
-      ? createBoundSubAgentRun(db, {
-          room,
-          taskMessage,
-          target: input.target,
-          inputText: childInputText,
-          now: input.delivery.updatedAt ?? input.delivery.createdAt
-        })
-      : await createBurstSubAgentRun(db, transport, {
-          room,
-          taskMessage,
-          target: input.target,
-          inputText: childInputText
-        });
-  const watched =
-    input.target.mode === "bound"
-      ? await runBoundSubAgentRun(db, config, transport, {
-          roomKey: room.roomKey,
-          run,
-          taskMessage,
-          target: input.target
-        })
-      : await watchSubAgentRun(db, config, transport, {
-          roomKey: room.roomKey,
-          run,
-          taskMessage,
-          target: input.target
-        });
+  let run: SubAgentRun;
+  let watched: Awaited<ReturnType<typeof watchSubAgentRun>>;
+  try {
+    run =
+      input.target.mode === "bound"
+        ? createBoundSubAgentRun(db, {
+            room,
+            taskMessage,
+            target: input.target,
+            inputText: childInputText,
+            now: input.delivery.updatedAt ?? input.delivery.createdAt
+          })
+        : await createBurstSubAgentRun(db, transport, {
+            room,
+            taskMessage,
+            target: input.target,
+            inputText: childInputText
+          });
+    watched =
+      input.target.mode === "bound"
+        ? await runBoundSubAgentRun(db, config, transport, {
+            roomKey: room.roomKey,
+            run,
+            taskMessage,
+            target: input.target
+          })
+        : await watchSubAgentRun(db, config, transport, {
+            roomKey: room.roomKey,
+            run,
+            taskMessage,
+            target: input.target
+          });
+  } catch (error) {
+    insertMailboxDelivery(db, {
+      ...input.delivery,
+      status: "blocked",
+      leaseOwner: undefined,
+      leaseUntil: undefined,
+      updatedAt: new Date().toISOString()
+    });
+    throw error;
+  }
 
   const currentDelivery = getMailboxDelivery(db, input.delivery.deliveryId);
   if (
@@ -688,10 +701,10 @@ function emitSubAgentReply(
 
 function buildSubAgentInput(taskMessage: VirtualMessage, parentSessionKey: string) {
   return [
-    "You are handling an internal MailClaw subagent task.",
+    "You are handling an internal MailClaws subagent task.",
     "You are a single-run compute worker. Do not assume a durable SOUL.md, identity memory, or long-lived mailbox persona.",
     "Return only internal analysis output. Never send external email or invoke external side effects.",
-    "Your result only becomes business truth after MailClaw normalizes it into a single-parent internal reply mail.",
+    "Your result only becomes business truth after MailClaws normalizes it into a single-parent internal reply mail.",
     "Respond with JSON when possible: { summary, status, facts[], openQuestions[], recommendedAction, draftReply }.",
     `Parent or child session: ${parentSessionKey}`,
     `Task message id: ${taskMessage.messageId}`,

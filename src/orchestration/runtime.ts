@@ -108,8 +108,11 @@ import {
   createAgentMemoryDraftFromLatestRoomSnapshot,
   ensureAgentWorkspace,
   findAgentMemoryDraft,
+  getAgentWorkspaceSkill,
   getTenantStateDir,
+  installAgentWorkspaceSkill,
   listAgentMemoryDrafts,
+  listAgentWorkspaceSkills,
   rejectAgentMemoryDraft,
   resolveAgentMemoryDraftNamespaces,
   reviewAgentMemoryDraft
@@ -1097,6 +1100,7 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
     if (!account) {
       throw new RuntimeApiError(`mail account not found: ${accountId}`, 404);
     }
+    const accountAgentRouting = readAccountAgentRoutingSettings(account.settings);
 
     const cursors = listProviderCursors(deps.db, accountId);
     const recentEvents = listProviderEventsForAccount(deps.db, accountId).slice(-20);
@@ -1110,9 +1114,19 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
     };
     const roomAgents = listThreadRooms(deps.db)
       .filter((room) => room.accountId === accountId)
-      .flatMap((room) => [room.frontAgentAddress, ...(room.publicAgentAddresses ?? [])])
-      .filter((value): value is string => typeof value === "string" && value.trim().length > 0);
-    const existingInboxAgents = listPublicAgentInboxesForAccount(deps.db, accountId).map((inbox) => inbox.agentId);
+      .flatMap((room) =>
+        accountAgentRouting.durableAgentIds.length > 0 || room.frontAgentId || (room.publicAgentIds?.length ?? 0) > 0
+          ? [room.frontAgentId, ...(room.publicAgentIds ?? [])]
+          : [room.frontAgentAddress, ...(room.publicAgentAddresses ?? [])]
+      )
+      .filter((agentId): agentId is string =>
+        typeof agentId === "string" &&
+        agentId.trim().length > 0 &&
+        shouldExposeDurableAgentId(agentId, accountAgentRouting)
+      );
+    const existingInboxAgents = listPublicAgentInboxesForAccount(deps.db, accountId)
+      .map((inbox) => inbox.agentId)
+      .filter((agentId) => shouldExposeDurableAgentId(agentId, accountAgentRouting));
     const agentIds = Array.from(new Set([...existingInboxAgents, ...roomAgents])).sort((left, right) =>
       left.localeCompare(right)
     );
@@ -1159,19 +1173,29 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
     );
     const accountMailboxes = input.accountId ? listVirtualMailboxesForAccount(deps.db, input.accountId) : [];
     const inboxes = input.accountId ? listPublicAgentInboxesForAccount(deps.db, input.accountId) : [];
+    const accountAgentRouting = input.accountId
+      ? readAccountAgentRoutingSettings(getMailAccount(deps.db, input.accountId)?.settings ?? {})
+      : createEmptyAccountAgentRouting();
     const filesystemAgents = fs.existsSync(agentRoot)
       ? fs
           .readdirSync(agentRoot, { withFileTypes: true })
           .filter((entry) => entry.isDirectory())
           .map((entry) => entry.name)
+          .filter(
+            (agentId) =>
+              templateIndex.has(agentId) ||
+              inboxes.some((inbox) => inbox.agentId === agentId) ||
+              accountMailboxes.some((mailbox) => mailbox.principalId === `principal:${agentId}` && mailbox.kind === "public")
+          )
       : [];
     const accountAgents = Array.from(
       new Set([
-        ...inboxes.map((inbox) => inbox.agentId),
+        ...inboxes.map((inbox) => inbox.agentId).filter((agentId) => shouldExposeDurableAgentId(agentId, accountAgentRouting)),
         ...accountMailboxes
-          .filter((mailbox) => mailbox.kind !== "system")
+          .filter((mailbox) => mailbox.kind === "public")
           .map((mailbox) => mailbox.principalId?.replace(/^principal:/, ""))
           .filter((value): value is string => typeof value === "string" && value.length > 0)
+          .filter((agentId) => shouldExposeDurableAgentId(agentId, accountAgentRouting))
       ])
     );
     const agentIds = Array.from(new Set([...filesystemAgents, ...accountAgents])).sort((left, right) =>
@@ -1195,7 +1219,7 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
         : {
             agentId,
             displayName: agentId,
-            purpose: "Durable MailClaw agent with its own workspace soul and memory boundary.",
+            purpose: "Durable MailClaws agent with its own workspace soul and memory boundary.",
             publicMailboxId: `public:${agentId}`,
             virtualMailboxes: [],
             collaboratorAgentIds: []
@@ -1207,6 +1231,29 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
         virtualMailboxes: Array.from(new Set([...entry.virtualMailboxes, ...agentMailboxes])).sort((left, right) =>
           left.localeCompare(right)
         )
+      };
+    });
+  };
+  const listSkillsForAgents = (input: {
+    tenantId: string;
+    accountId?: string;
+    agentId?: string;
+  }) => {
+    const directory = listAgentDirectory({
+      tenantId: input.tenantId,
+      accountId: input.accountId
+    });
+    const agentIds =
+      typeof input.agentId === "string" && input.agentId.trim().length > 0
+        ? [input.agentId.trim()]
+        : directory.map((entry) => entry.agentId);
+
+    return agentIds.map((agentId) => {
+      const directoryEntry = directory.find((entry) => entry.agentId === agentId);
+      return {
+        agentId,
+        displayName: directoryEntry?.displayName ?? agentId,
+        skills: listAgentWorkspaceSkills(deps.config, input.tenantId, agentId)
       };
     });
   };
@@ -1406,7 +1453,14 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
       entrypoints: {
         standalone: standaloneBasePath,
         embedded: embeddedBasePath,
-        compatAliases: ["/dashboard", "/mail"]
+        compatAliases: [
+          "/dashboard",
+          "/mail",
+          "/workbench/mailclaws",
+          "/workbench/mailclaw",
+          "/workbench/mailclaws/tab",
+          "/workbench/mailclaw/tab"
+        ]
       },
       hostIntegration: {
         tabId: "mailclaw.mail",
@@ -1499,8 +1553,8 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
         browserPath: standaloneBasePath,
         embeddedBrowserPath: embeddedBasePath,
         onboardingApiPath: "/api/connect/onboarding",
-        recommendedStartCommand: "mailclaw onboard you@example.com",
-        recommendedLoginCommand: "mailclaw login",
+        recommendedStartCommand: "mailclaws onboard you@example.com",
+        recommendedLoginCommand: "mailclaws login",
         templateApplyAccountId: templateAccountId,
         templateApplyTenantId: templateTenantId,
         defaultPlan: connectPlan,
@@ -1511,6 +1565,10 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
         })),
         agentTemplates: listConfiguredAgentTemplates(),
         agentDirectory: listAgentDirectory({
+          tenantId: templateTenantId,
+          accountId: templateAccountId ?? undefined
+        }),
+        skills: listSkillsForAgents({
           tenantId: templateTenantId,
           accountId: templateAccountId ?? undefined
         }),
@@ -2327,6 +2385,20 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
     }) {
       return listAgentDirectory(input);
     },
+    listAgentSkills(input: {
+      tenantId: string;
+      accountId?: string;
+      agentId?: string;
+    }) {
+      return listSkillsForAgents(input);
+    },
+    inspectAgentSkill(input: {
+      tenantId: string;
+      agentId: string;
+      skillId: string;
+    }) {
+      return getAgentWorkspaceSkill(deps.config, input.tenantId, input.agentId, input.skillId);
+    },
     getHeadcountRecommendations(accountId?: string) {
       return listHeadcountRecommendations(accountId);
     },
@@ -2421,6 +2493,21 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
         });
       }
 
+      const account = getMailAccount(deps.db, input.accountId);
+      if (account) {
+        upsertMailAccount(deps.db, {
+          ...account,
+          settings: mergeAgentRoutingIntoAccountSettings(account.settings, {
+            templateId: template.templateId,
+            defaultFrontAgentId: template.persistentAgents[0]?.agentId,
+            durableAgentIds: template.persistentAgents.map((agent) => agent.agentId),
+            collaboratorAgentIds: template.persistentAgents.slice(1).map((agent) => agent.agentId),
+            updatedAt: now
+          }),
+          updatedAt: now
+        });
+      }
+
       return {
         templateId: template.templateId,
         accountId: input.accountId,
@@ -2473,7 +2560,7 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
           displayName: input.displayName?.trim() || input.agentId,
           purpose:
             input.purpose?.trim() ||
-            "Custom durable MailClaw agent for work splitting, review, and reusable inbox ownership.",
+            "Custom durable MailClaws agent for work splitting, review, and reusable inbox ownership.",
           publicMailboxId,
           virtualMailboxes: buildAgentVirtualMailboxes({
             accountId: input.accountId,
@@ -2538,6 +2625,16 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
         }),
         headcountRecommendations: listHeadcountRecommendations(input.accountId)
       };
+    },
+    async installAgentSkill(input: {
+      tenantId: string;
+      agentId: string;
+      source: string;
+      skillId?: string;
+      title?: string;
+      now?: string;
+    }) {
+      return installAgentWorkspaceSkill(deps.config, input);
     },
     projectRoomOutcomeToGateway(input: Parameters<typeof projectRoomOutcomeToGateway>[1]) {
       try {
@@ -4004,4 +4101,96 @@ function getWatchSettings(settings: Record<string, unknown>) {
 
 function mailboxAddressesMatch(left: string, right: string) {
   return left.trim().toLowerCase() === right.trim().toLowerCase();
+}
+
+function mergeAgentRoutingIntoAccountSettings(
+  currentSettings: Record<string, unknown>,
+  input: {
+    templateId: string;
+    defaultFrontAgentId?: string;
+    durableAgentIds: string[];
+    collaboratorAgentIds: string[];
+    updatedAt: string;
+  }
+) {
+  const settings =
+    typeof currentSettings === "object" && currentSettings !== null
+      ? { ...currentSettings }
+      : {};
+  const priorRouting =
+    typeof settings.agentRouting === "object" && settings.agentRouting !== null
+      ? (settings.agentRouting as Record<string, unknown>)
+      : {};
+
+  return {
+    ...settings,
+    agentRouting: {
+      ...priorRouting,
+      templateId: input.templateId,
+      defaultFrontAgentId: normalizeAgentId(input.defaultFrontAgentId),
+      durableAgentIds: uniqueAgentIds(input.durableAgentIds),
+      collaboratorAgentIds: uniqueAgentIds(input.collaboratorAgentIds),
+      updatedAt: input.updatedAt
+    }
+  } satisfies Record<string, unknown>;
+}
+
+function uniqueAgentIds(values: string[]) {
+  return Array.from(
+    new Set(values.map((value) => normalizeAgentId(value)).filter((value): value is string => Boolean(value)))
+  );
+}
+
+function normalizeAgentId(value?: string) {
+  const normalized = value?.trim().toLowerCase();
+  return normalized && normalized.length > 0 ? normalized : undefined;
+}
+
+function readAccountAgentRoutingSettings(settings: Record<string, unknown>) {
+  const routing =
+    typeof settings.agentRouting === "object" && settings.agentRouting !== null
+      ? (settings.agentRouting as Record<string, unknown>)
+      : {};
+
+  return {
+    defaultFrontAgentId: normalizeAgentId(typeof routing.defaultFrontAgentId === "string" ? routing.defaultFrontAgentId : undefined),
+    durableAgentIds: uniqueAgentIds(Array.isArray(routing.durableAgentIds) ? routing.durableAgentIds.filter((v): v is string => typeof v === "string") : []),
+    collaboratorAgentIds: uniqueAgentIds(Array.isArray(routing.collaboratorAgentIds) ? routing.collaboratorAgentIds.filter((v): v is string => typeof v === "string") : [])
+  };
+}
+
+function createEmptyAccountAgentRouting() {
+  return {
+    defaultFrontAgentId: undefined,
+    durableAgentIds: [] as string[],
+    collaboratorAgentIds: [] as string[]
+  };
+}
+
+function shouldExposeDurableAgentId(
+  agentId: string,
+  routing: ReturnType<typeof readAccountAgentRoutingSettings>
+) {
+  if (!routing.defaultFrontAgentId && routing.durableAgentIds.length === 0) {
+    return true;
+  }
+
+  const normalized = normalizeAgentId(agentId);
+  if (!normalized) {
+    return false;
+  }
+
+  if (routing.defaultFrontAgentId === normalized) {
+    return true;
+  }
+
+  if (routing.durableAgentIds.includes(normalized)) {
+    return true;
+  }
+
+  if (routing.collaboratorAgentIds.includes(normalized)) {
+    return true;
+  }
+
+  return false;
 }

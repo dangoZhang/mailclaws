@@ -1266,7 +1266,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
               </nav>
             </div>
             <div class="sidebar-shell__footer">
-              <div class="sidebar-footer-copy">OpenClaw-style Mail tab. MailClaw runtime data is rendered directly in the same workbench surface.</div>
+              <div class="sidebar-footer-copy">OpenClaw-style Mail tab. MailClaws runtime data is rendered directly in the same workbench surface.</div>
             </div>
           </div>
         </aside>
@@ -1324,7 +1324,10 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         const bases = [
           "/console",
           "/workbench/mail/tab",
+          "/workbench/mailclaws/tab",
+          "/workbench/mailclaw/tab",
           "/workbench/mail",
+          "/workbench/mailclaws",
           "/workbench/mailclaw",
           "/dashboard",
           "/mail"
@@ -1706,14 +1709,31 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         );
       }
 
+      function renderAgentSkillGroup(entry) {
+        const skills = Array.isArray(entry.skills) ? entry.skills : [];
+        return (
+          '<div class="timeline-entry">' +
+          '<div class="meta"><span>' + escapeHtmlClient(entry.displayName || entry.agentId || "agent") + '</span><span>' + escapeHtmlClient(String(skills.length) + " skills") + "</span></div>" +
+          '<div class="title code">' + escapeHtmlClient(entry.agentId || "agent") + "</div>" +
+          (skills.length > 0
+            ? '<div class="chips">' + skills.map(function(skill) {
+                return renderPill((skill.source || "default") + " " + (skill.skillId || "skill"), skill.source === "managed" ? "pill--ok" : "");
+              }).join("") + "</div>" +
+              '<div class="detail">' + escapeHtmlClient(skills.map(function(skill) { return skill.title || skill.skillId || "skill"; }).join(" | ")) + "</div>"
+            : '<div class="detail">No skills discovered yet.</div>') +
+          "</div>"
+        );
+      }
+
       function renderConnectHome() {
         const workspace = state.data && state.data.workspace ? state.data.workspace : null;
         const connect = workspace && workspace.connect ? workspace.connect : null;
         const providerCount = connect && Array.isArray(connect.providerOptions) ? connect.providerOptions.length : 0;
-        const loginCommand = (connect && connect.recommendedLoginCommand) || "mailclaw login";
+        const loginCommand = (connect && connect.recommendedLoginCommand) || "mailclaws login";
         const templates = connect && Array.isArray(connect.agentTemplates) ? connect.agentTemplates : [];
         const directory = connect && Array.isArray(connect.agentDirectory) ? connect.agentDirectory : [];
         const headcount = connect && Array.isArray(connect.headcountRecommendations) ? connect.headcountRecommendations : [];
+        const skills = connect && Array.isArray(connect.skills) ? connect.skills : [];
         return (
           renderWorkspaceHero({
             eyebrow: "Mail setup",
@@ -1733,7 +1753,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<div class="panel-body">' +
           '<div class="card-title">Start with one real mailbox, then inspect rooms and internal mail from the same workbench route.</div>' +
           '<div class="detail">The workbench keeps the setup path narrow on purpose: connect, verify, send one real test email, then switch to room and mailbox inspection.</div>' +
-          '<div class="mono-block">' + escapeHtmlClient((connect && connect.recommendedStartCommand) || "mailclaw dashboard") + "</div>" +
+          '<div class="mono-block">' + escapeHtmlClient((connect && connect.recommendedStartCommand) || "mailclaws dashboard") + "</div>" +
           '<div class="mono-block">' + escapeHtmlClient(loginCommand) + "</div>" +
           "</div></div>" +
           '<div class="panel"><div class="panel-header"><h3>Agent Templates</h3><span class="muted">' + escapeHtmlClient(String(templates.length)) + ' presets</span></div><div class="panel-body">' +
@@ -1759,6 +1779,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             ? '<div class="mailbox-feed">' + directory.map(renderAgentDirectoryCard).join("") + "</div>"
             : '<div class="empty">Apply a template or initialize an agent memory workspace to create durable souls.</div>') +
           "</div></div>" +
+          '<div class="panel"><div class="panel-header"><h3>Skills</h3><span class="muted">' + escapeHtmlClient(String(skills.reduce(function(total, entry) { return total + ((entry.skills || []).length || 0); }, 0))) + ' visible skills</span></div><div class="panel-body">' +
+          '<div class="detail">Every durable agent starts with two built-in mail skills. Add markdown skills when you want reusable reading, writing, or review behavior without carrying more transcript.</div>' +
+          '<div class="mono-block">mailclaws skills list ' + escapeHtmlClient((connect && connect.templateApplyAccountId) || "[accountId]") + "</div>" +
+          (skills.length > 0
+            ? '<div class="mailbox-feed">' + skills.map(renderAgentSkillGroup).join("") + "</div>"
+            : '<div class="empty">Connect or create a durable agent to inspect skills.</div>') +
+          "</div></div>" +
           '<div class="panel"><div class="panel-header"><h3>HeadCount</h3><span class="muted">recommended starting shapes</span></div><div class="panel-body">' +
           (headcount.length > 0
             ? '<div class="mailbox-feed">' + headcount.map(function(entry) {
@@ -1774,7 +1801,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
                   "</div>"
                 );
               }).join("") + "</div>"
-            : '<div class="empty">Headcount recommendations appear after MailClaw can see account or burst-work load.</div>') +
+            : '<div class="empty">Headcount recommendations appear after MailClaws can see account or burst-work load.</div>') +
           "</div></div>"
         );
       }
@@ -1794,7 +1821,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           renderMetric("Watch", (summary.watch && summary.watch.state) || "idle") +
           renderMetric("Last event", summary.lastEventType || "none") +
           '</div>' +
-          '<div class="detail">MailClaw still uses the runtime kernel as truth. Provider watch and mailbox projections stay observable here, not authoritative.</div>' +
+          '<div class="detail">MailClaws still uses the runtime kernel as truth. Provider watch and mailbox projections stay observable here, not authoritative.</div>' +
           '</div>' +
           '</div>'
         );
@@ -2099,10 +2126,12 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           (room.mailTaskStage ? renderPill("stage " + room.mailTaskStage, "") : "") +
           renderPill(String(room.pendingApprovalCount || 0) + " approvals", Number(room.pendingApprovalCount || 0) > 0 ? "pill--warn" : "") +
           '</div>' +
-          '<div class="detail">Front agent ' + escapeHtmlClient(room.frontAgentAddress || "n/a") + '</div>' +
-          ((room.publicAgentAddresses || []).length > 0 || (room.collaboratorAgentAddresses || []).length > 0 || (room.summonedRoles || []).length > 0
+          '<div class="detail">Front agent ' + escapeHtmlClient(room.frontAgentId || room.frontAgentAddress || "n/a") + '</div>' +
+          ((room.publicAgentAddresses || []).length > 0 || (room.publicAgentIds || []).length > 0 || (room.collaboratorAgentAddresses || []).length > 0 || (room.collaboratorAgentIds || []).length > 0 || (room.summonedRoles || []).length > 0
             ? '<div><div class="section-label">Routing</div><div class="chips">' +
+              (room.publicAgentIds || []).map(function(agentId) { return renderPill("public " + agentId, ""); }).join("") +
               (room.publicAgentAddresses || []).map(function(address) { return renderPill("public " + address, ""); }).join("") +
+              (room.collaboratorAgentIds || []).map(function(agentId) { return renderPill("collab " + agentId, ""); }).join("") +
               (room.collaboratorAgentAddresses || []).map(function(address) { return renderPill("collab " + address, ""); }).join("") +
               (room.summonedRoles || []).map(function(role) { return renderPill("role " + role, ""); }).join("") +
               '</div></div>'
@@ -2300,7 +2329,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
                 ? "Inspect one mailbox feed and the room-local projection visible inside it."
                 : state.route.accountId
                   ? "Inspect provider state, public inboxes, rooms, and mailboxes for one connected account."
-                  : "OpenClaw-style shell with MailClaw runtime data rendered directly in the workbench.";
+                  : "OpenClaw-style shell with MailClaws runtime data rendered directly in the workbench.";
         }
         if (breadcrumb) {
           breadcrumb.textContent =

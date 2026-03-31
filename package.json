@@ -1,5 +1,5 @@
 {
-  "name": "mailclaw",
+  "name": "mailclaws",
   "version": "0.1.1",
   "private": false,
   "description": "Email-native runtime for durable, auditable, multi-agent mail workflows.",
@@ -7,13 +7,13 @@
   "type": "module",
   "packageManager": "pnpm@10.11.1",
   "main": "./dist/index.js",
-  "homepage": "https://dangozhang.github.io/mailclaw/",
+  "homepage": "https://dangozhang.github.io/mailclaws/",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dangoZhang/mailclaw.git"
+    "url": "git+https://github.com/dangoZhang/mailclaws.git"
   },
   "bugs": {
-    "url": "https://github.com/dangoZhang/mailclaw/issues"
+    "url": "https://github.com/dangoZhang/mailclaws/issues"
   },
   "keywords": [
     "email",
@@ -36,7 +36,7 @@
     ".env.example"
   ],
   "scripts": {
-    "preinstall": "node -e \"const major = Number(process.versions.node.split('.')[0]); if (!Number.isFinite(major) || major < 22) { console.error('\\nMailClaw requires Node.js 22+ because it uses the built-in node:sqlite module.'); console.error('Current runtime: ' + process.version); console.error('Install Node 22+ and retry.'); process.exit(1); }\"",
+    "preinstall": "node -e \"const major = Number(process.versions.node.split('.')[0]); if (!Number.isFinite(major) || major < 22) { console.error('\\nMailClaws requires Node.js 22+ because it uses the built-in node:sqlite module.'); console.error('Current runtime: ' + process.version); console.error('Install Node 22+ and retry.'); process.exit(1); }\"",
     "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.build.json",
     "dev": "tsx watch src/index.ts",
     "demo:mail": "tsx scripts/demo-mail.mts",
@@ -49,8 +49,11 @@
     "benchmark:prompt-footprint": "tsx scripts/benchmark-prompt-footprint.mts",
     "benchmark:prompt-footprint:json": "tsx scripts/benchmark-prompt-footprint.mts --json",
     "lint": "eslint .",
+    "mailclaws": "tsx src/cli/mailclaws.ts",
     "mailclaw": "tsx src/cli/mailclaw.ts",
+    "mailclawsctl": "tsx src/cli/mailclawsctl.ts",
     "mailctl": "tsx src/cli/mailctl.ts",
+    "mailclawsioctl": "tsx src/cli/mailclawsioctl.ts",
     "mailioctl": "tsx src/cli/mailioctl.ts",
     "prepack": "pnpm build",
     "start": "node dist/index.js",
@@ -70,8 +73,11 @@
     "check": "pnpm lint && pnpm test && pnpm build"
   },
   "bin": {
+    "mailclaws": "./bin/mailclaws",
     "mailclaw": "./bin/mailclaw",
+    "mailclawsctl": "./bin/mailclawsctl",
     "mailctl": "./bin/mailctl",
+    "mailclawsioctl": "./bin/mailclawsioctl",
     "mailioctl": "./bin/mailioctl"
   },
   "dependencies": {
