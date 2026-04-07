@@ -7,8 +7,8 @@ describe("embedded default adapter", () => {
     const adapter = createBuiltInEmbeddedRuntimeAdapter();
     const inputText = [
       "Default mail skills for front-orchestrator:",
-      "- Mail Read: read the latest inbound first, then pull older room context only by reference.",
-      "- Mail Write: preserve ACK/progress/final semantics.",
+      "- Read Email: read the latest inbound first, then pull older room context only by reference.",
+      "- Write Email: preserve ACK/progress/final semantics.",
       "From: friend@example.com",
       "Subject: Quick question 2026",
       "What is MailClaws in one sentence?",

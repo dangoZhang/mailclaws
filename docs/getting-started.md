@@ -97,9 +97,9 @@ http://127.0.0.1:3000/workbench/mail
 
 That is the core MailClaws loop:
 
-- real mail arrives
-- MailClaws creates or updates a room
-- agents work inside that room
+- a new outside thread creates a new room
+- replies on that thread return to the same room
+- the front desk agent works inside that room and recruits help through virtual mail
 - you inspect the result from the Mail tab
 
 ## What You Will See
@@ -117,6 +117,8 @@ If you want to inspect internal agent collaboration after the first message:
 - inspect `Virtual Mail`, `Mailbox Deliveries`, and `Governed Outbox`
 - click a mailbox participant if you want one role-local feed
 - inspect the mailbox feed and room-local collaboration state
+
+By default, the room is the working memory. Durable agents keep their `SOUL.md`, routing identities, and long-term memory, but they do not own the live context outside the room.
 
 ## For OpenClaw Users
 

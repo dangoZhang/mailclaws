@@ -248,7 +248,7 @@ describe("agent memory workspace", () => {
     expect(fs.readFileSync(workspace.memoryPath, "utf8")).not.toContain("Ad hoc policy");
   });
 
-  it("creates default mail read/write skill files in every agent workspace", () => {
+  it("creates default read-email/write-email skill files in every agent workspace", () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-agent-memory-"));
     tempDirs.push(tempDir);
 
@@ -262,20 +262,20 @@ describe("agent memory workspace", () => {
     expect(workspace.defaultSkills).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          skillId: "mail-read",
-          path: expect.stringContaining("/roles/mail-read.default.md")
+          skillId: "read-email",
+          path: expect.stringContaining("/roles/read-email.default.md")
         }),
         expect.objectContaining({
-          skillId: "mail-write",
-          path: expect.stringContaining("/roles/mail-write.default.md")
+          skillId: "write-email",
+          path: expect.stringContaining("/roles/write-email.default.md")
         })
       ])
     );
-    expect(fs.readFileSync(path.join(workspace.rolesDir, "mail-read.default.md"), "utf8")).toContain(
-      "Default Skill: Mail Read"
+    expect(fs.readFileSync(path.join(workspace.rolesDir, "read-email.default.md"), "utf8")).toContain(
+      "Default Skill: Read Email"
     );
-    expect(fs.readFileSync(path.join(workspace.rolesDir, "mail-write.default.md"), "utf8")).toContain(
-      "Default Skill: Mail Write"
+    expect(fs.readFileSync(path.join(workspace.rolesDir, "write-email.default.md"), "utf8")).toContain(
+      "Default Skill: Write Email"
     );
   });
 
@@ -311,8 +311,8 @@ describe("agent memory workspace", () => {
     });
     expect(listed).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ skillId: "mail-read", source: "default" }),
-        expect.objectContaining({ skillId: "mail-write", source: "default" }),
+        expect.objectContaining({ skillId: "read-email", source: "default" }),
+        expect.objectContaining({ skillId: "write-email", source: "default" }),
         expect.objectContaining({ skillId: "follow-up-skill", source: "managed" })
       ])
     );
@@ -365,7 +365,8 @@ describe("agent memory workspace", () => {
       ]
     });
 
-    expect(fs.readFileSync(workspace.soulPath, "utf8")).toContain("## Virtual Mail Addresses");
+    expect(fs.readFileSync(workspace.soulPath, "utf8")).toContain("## Durable Mailboxes");
+    expect(fs.readFileSync(workspace.soulPath, "utf8")).toContain("room-scoped working mailboxes are created");
     expect(fs.readFileSync(workspace.soulPath, "utf8")).toContain("public:assistant");
     expect(fs.readFileSync(workspace.soulPath, "utf8")).toContain("one-person-company");
     expect(fs.readFileSync(workspace.agentsPath, "utf8")).toContain("../research/SOUL.md");

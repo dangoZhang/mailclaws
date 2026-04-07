@@ -1923,10 +1923,10 @@ describe("mailctl", () => {
       rolesDir: expect.stringContaining("/tenants/acct-1/agents/assistant/roles"),
       defaultSkills: expect.arrayContaining([
         expect.objectContaining({
-          skillId: "mail-read"
+          skillId: "read-email"
         }),
         expect.objectContaining({
-          skillId: "mail-write"
+          skillId: "write-email"
         })
       ])
     });

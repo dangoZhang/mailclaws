@@ -3318,8 +3318,8 @@ function buildGuardWorkerInput(
 function formatDefaultMailSkills(actorLabel: string) {
   return [
     `Default mail skills for ${actorLabel}:`,
-    "- Mail Read: read the latest inbound first, then pull older room context only by reference; prefer room facts, artifacts, and evidence refs over long transcript recall; surface ambiguity and policy/trust risk explicitly.",
-    "- Mail Write: preserve ACK/progress/final semantics; keep replies RFC-safe and thread-correct; only write claims backed by facts/evidence/approved memory; never leak hidden recipients, governance notes, or secrets."
+    "- Read Email: read the latest inbound first, then pull older room context only by reference; prefer room facts, artifacts, and evidence refs over long transcript recall; surface ambiguity and policy/trust risk explicitly.",
+    "- Write Email: preserve ACK/progress/final semantics; keep replies RFC-safe and thread-correct; only write claims backed by facts/evidence/approved memory; never leak hidden recipients, governance notes, or secrets."
   ].join("\n");
 }
 

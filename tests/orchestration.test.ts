@@ -148,8 +148,8 @@ describe("mail orchestration", () => {
     expect(requests[0]?.sessionKey).toContain("hook:mail:acct-1:");
     expect(requests[0]?.sessionKey).toContain(":front:mailclaws%40example.com:thread:");
     expect(requests[0]?.inputText).toContain("Default mail skills for front-orchestrator:");
-    expect(requests[0]?.inputText).toContain("Mail Read:");
-    expect(requests[0]?.inputText).toContain("Mail Write:");
+    expect(requests[0]?.inputText).toContain("Read Email:");
+    expect(requests[0]?.inputText).toContain("Write Email:");
     expect(requests[0]?.inputText).toContain("From: sender@example.com");
 
     const replay = replayRoom(handle.db, ingested.roomKey);

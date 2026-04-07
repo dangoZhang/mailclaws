@@ -175,6 +175,8 @@ function extractPrimaryBody(inputText: string) {
     "Attachment inventory:"
   ];
   const nonBodyPrefixes = [
+    "- Read Email:",
+    "- Write Email:",
     "- Mail Read:",
     "- Mail Write:",
     "Return JSON",

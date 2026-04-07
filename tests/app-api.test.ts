@@ -1761,14 +1761,20 @@ describe("app api", () => {
     expect(workbenchResponse.status).toBe(200);
     expect(workbenchJson.workspace.connect).toMatchObject({
       templateApplyAccountId: "acct-templates",
-      agentTemplates: expect.arrayContaining([expect.objectContaining({ templateId: "one-person-company" })]),
+      agentTemplates: expect.arrayContaining([
+        expect.objectContaining({ templateId: "diplomat-front-desk" }),
+        expect.objectContaining({ templateId: "one-person-company" })
+      ]),
       agentDirectory: expect.arrayContaining([
         expect.objectContaining({
           agentId: "assistant",
           virtualMailboxes: expect.arrayContaining(["public:assistant", "internal:assistant:orchestrator"])
         })
       ]),
-      headcountRecommendations: expect.arrayContaining([expect.objectContaining({ templateId: "one-person-company" })])
+      headcountRecommendations: expect.arrayContaining([
+        expect.objectContaining({ templateId: "diplomat-front-desk" }),
+        expect.objectContaining({ templateId: "one-person-company" })
+      ])
     });
 
     const directoryResponse = await fetch(`${baseUrl}/api/console/agent-directory?accountId=acct-templates&tenantId=acct-templates`);
@@ -1998,8 +2004,8 @@ describe("app api", () => {
         expect.objectContaining({
           agentId: "assistant",
           skills: expect.arrayContaining([
-            expect.objectContaining({ skillId: "mail-read", source: "default" }),
-            expect.objectContaining({ skillId: "mail-write", source: "default" })
+            expect.objectContaining({ skillId: "read-email", source: "default" }),
+            expect.objectContaining({ skillId: "write-email", source: "default" })
           ])
         })
       ])

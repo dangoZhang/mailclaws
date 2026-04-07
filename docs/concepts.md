@@ -4,7 +4,12 @@ To understand MailClaws, you only need to hold a few ideas in your head.
 
 ## 1. Room
 
-A room is the durable truth boundary for one external email conversation.
+A room is the durable truth boundary and working memory for one external email conversation.
+
+Routing rule:
+
+- a new outside email thread creates a new room
+- a reply in the same outside thread returns to the same room
 
 What lives in a room:
 
@@ -23,15 +28,20 @@ Why this matters:
 
 ## 2. Virtual Mail
 
-Internal agent collaboration happens through virtual mailboxes and work threads.
+Internal agent collaboration happens through virtual mail and room-scoped work threads.
 
 Its constraints matter:
 
+- send, reply, and cc all stay explicit
+- full room history stays replayable
+- attachments are referenced by room-local artifact links
 - replies are single-parent
 - work can fan out to multiple workers
 - fan-in is handled by reducers
-- mailbox visibility can be scoped by role
+- mailbox visibility can be scoped by role and room participation
 - internal collaboration stays observable without polluting the external thread
+
+This is the core collaboration substrate for ReAct-Pre. If virtual mail is weak, the whole system becomes vague and unsafe.
 
 ## 3. Pre-First Memory
 
@@ -99,22 +109,23 @@ It is not just a chat history viewer. It exposes the runtime model directly.
 
 ## 7. Durable Agents
 
-Long-lived MailClaws agents are not anonymous workers.
+Long-lived MailClaws agents keep identity and long-term memory. They do not carry the active room context by themselves.
 
-Each durable agent has its own:
+Each durable agent has:
 
 - `SOUL.md`
 - `AGENTS.md`
-- public mailbox
-- internal role mailboxes
+- stable public and internal routing identities
+- long-term memory that can survive across rooms
 
-`SOUL.md` makes the contract explicit:
+The active working state still lives in the room:
 
-- which virtual mail addresses belong to the agent
-- what the agent owns
-- when it should collaborate with another role
+- latest inbound mail
+- latest Pre
+- room facts, artifacts, and attachments
+- internal mail history for that room
 
-That keeps multi-agent coordination grounded in a durable roster instead of one temporary prompt.
+That keeps multi-agent coordination grounded in a durable roster without pretending one agent owns the live context.
 
 ## 8. Templates And HeadCount
 
@@ -128,4 +139,4 @@ Templates are the fast starting point. HeadCount helps decide which roles should
 
 ## In One Sentence
 
-MailClaws turns email into durable rooms, multi-agent collaboration into virtual mail, and long-term memory into compact Pre.
+MailClaws turns outside email into rooms, multi-agent collaboration into virtual mail, and reusable long-term memory into compact Pre.

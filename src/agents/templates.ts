@@ -66,6 +66,118 @@ export interface HeadcountRecommendation {
 
 const AGENT_TEMPLATES: AgentTemplate[] = [
   {
+    templateId: "diplomat-front-desk",
+    displayName: "Diplomat Front Desk",
+    summary: "A default external-facing roster: one diplomat owns outside mail, opens rooms, recruits collaborators, and sends governed replies.",
+    inspiration: "mail front desk",
+    persistentAgents: [
+      {
+        agentId: "diplomat",
+        displayName: "Diplomat Front Desk",
+        purpose: "Own external mail, open new rooms, ACK quickly, recruit the right collaborators, and send the governed final reply.",
+        publicMailboxId: "public:diplomat",
+        sourceAlignment:
+          "MailClaws default front-desk roster. The diplomat is the public-facing operator for outside mail and room creation.",
+        roleContract: [
+          "Treat each new outside mail thread as a new room and keep replies on the existing room.",
+          "Keep the room moving with ACK, progress updates, and clear delegation through internal mail.",
+          "Route evidence gathering, drafting, review, and approvals to the right collaborators before final send."
+        ],
+        inbox: {
+          activeRoomLimit: 4,
+          ackSlaSeconds: 180,
+          burstCoalesceSeconds: 90
+        },
+        collaborators: [
+          {
+            agentId: "research",
+            reason: "Pull evidence, inspect attachments, and verify claims before outside-facing replies."
+          },
+          {
+            agentId: "ops",
+            reason: "Review approvals, execution, and handoff readiness before side effects."
+          }
+        ]
+      },
+      {
+        agentId: "research",
+        displayName: "Research Desk",
+        purpose: "Turn room questions, attachments, and references into evidence-backed summaries for the diplomat.",
+        publicMailboxId: "public:research",
+        sourceAlignment:
+          "MailClaws default specialist peer for attachment-heavy and fact-sensitive rooms.",
+        roleContract: [
+          "Read the latest room state and referenced artifacts before doing new retrieval.",
+          "Return claims, evidence refs, and open questions to the diplomat by internal mail.",
+          "Do not send externally."
+        ],
+        inbox: {
+          activeRoomLimit: 2,
+          ackSlaSeconds: 600,
+          burstCoalesceSeconds: 180
+        },
+        collaborators: [
+          {
+            agentId: "diplomat",
+            reason: "Return evidence packets to the public-facing front desk."
+          }
+        ]
+      },
+      {
+        agentId: "ops",
+        displayName: "Operations Desk",
+        purpose: "Own approval, handoff, and execution follow-through once a room moves beyond simple correspondence.",
+        publicMailboxId: "public:ops",
+        sourceAlignment:
+          "MailClaws default specialist peer for governed send, approvals, and operational follow-through.",
+        roleContract: [
+          "Review commitments before they become external promises.",
+          "Own approvals, handoff readiness, and execution follow-through.",
+          "Block external side effects that skip governance."
+        ],
+        inbox: {
+          activeRoomLimit: 2,
+          ackSlaSeconds: 900,
+          burstCoalesceSeconds: 180
+        },
+        collaborators: [
+          {
+            agentId: "diplomat",
+            reason: "Gate outward commitments and operational handoffs before send."
+          }
+        ]
+      }
+    ],
+    subagentTargets: [
+      {
+        targetId: "research-target",
+        mailboxId: "subagent:research",
+        openClawAgentId: "research-agent",
+        resultSchema: "research",
+        sandboxMode: "require",
+        maxActivePerRoom: 1,
+        maxQueuedPerInbox: 8
+      },
+      {
+        targetId: "drafter-target",
+        mailboxId: "subagent:drafter",
+        openClawAgentId: "drafter-agent",
+        resultSchema: "draft",
+        sandboxMode: "require",
+        maxActivePerRoom: 1,
+        maxQueuedPerInbox: 8
+      }
+    ],
+    headcount: {
+      persistentAgents: 3,
+      burstTargets: 2,
+      notes: [
+        "Use this as the default roster when one public-facing diplomat should receive outside mail and recruit help per room.",
+        "Keep the diplomat stable, and let research or drafting burst only when room load spikes."
+      ]
+    }
+  },
+  {
     templateId: "one-person-company",
     displayName: "One-Person Company",
     summary: "One front-door operator with durable specialist peers and burst workers behind the inbox.",
@@ -618,6 +730,8 @@ export function recommendAgentHeadcount(input: {
     summary:
       template.templateId === "three-provinces-six-departments" && hasSustainedSpecialistLoad
         ? "Backlog suggests a larger durable roster with dedicated review and operations desks."
+        : template.templateId === "diplomat-front-desk"
+          ? "Best default when one diplomat should own outside mail and recruit collaborators per room."
         : template.templateId === "one-person-company"
           ? "Best default when one public operator should stay responsive and let burst workers absorb spikes."
           : template.summary,
@@ -626,6 +740,8 @@ export function recommendAgentHeadcount(input: {
         ? hasSustainedSpecialistLoad
           ? "high"
           : "medium"
+        : template.templateId === "diplomat-front-desk"
+          ? "starter"
         : hasSustainedSpecialistLoad
           ? "medium"
           : "starter",
@@ -638,6 +754,11 @@ export function recommendAgentHeadcount(input: {
             `research bursts: ${researchLoad}`,
             `draft bursts: ${draftLoad}`
           ]
+        : template.templateId === "diplomat-front-desk"
+          ? [
+              "keep one diplomat public-facing and let room-local collaboration carry the work",
+              `active rooms: ${input.activeRoomCount}`
+            ]
         : [
             "start with one front inbox and let specialists stay behind internal mail",
             `active rooms: ${input.activeRoomCount}`

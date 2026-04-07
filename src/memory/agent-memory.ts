@@ -48,7 +48,7 @@ export interface RoomMemoryDraftSource {
 }
 
 export interface DefaultMailSkillDescriptor {
-  skillId: "mail-read" | "mail-write";
+  skillId: "read-email" | "write-email";
   title: string;
   path: string;
 }
@@ -518,13 +518,13 @@ function loadDraft(draftPath: string) {
 }
 
 function ensureDefaultMailSkills(rolesDir: string): DefaultMailSkillDescriptor[] {
-  const readSkillPath = path.join(rolesDir, "mail-read.default.md");
-  const writeSkillPath = path.join(rolesDir, "mail-write.default.md");
+  const readSkillPath = path.join(rolesDir, "read-email.default.md");
+  const writeSkillPath = path.join(rolesDir, "write-email.default.md");
 
   ensureMarkdownFile(
     readSkillPath,
     [
-      "# Default Skill: Mail Read",
+      "# Default Skill: Read Email",
       "",
       "- Read the latest inbound first, then pull older context only by reference.",
       "- Treat subject as display metadata, not continuity authority.",
@@ -536,7 +536,7 @@ function ensureDefaultMailSkills(rolesDir: string): DefaultMailSkillDescriptor[]
   ensureMarkdownFile(
     writeSkillPath,
     [
-      "# Default Skill: Mail Write",
+      "# Default Skill: Write Email",
       "",
       "- Write replies that are RFC-safe, concise, and thread-correct.",
       "- Preserve ACK / progress / final semantics instead of collapsing them.",
@@ -548,13 +548,13 @@ function ensureDefaultMailSkills(rolesDir: string): DefaultMailSkillDescriptor[]
 
   return [
     {
-      skillId: "mail-read",
-      title: "Default Skill: Mail Read",
+      skillId: "read-email",
+      title: "Default Skill: Read Email",
       path: readSkillPath
     },
     {
-      skillId: "mail-write",
-      title: "Default Skill: Mail Write",
+      skillId: "write-email",
+      title: "Default Skill: Write Email",
       path: writeSkillPath
     }
   ];
@@ -682,7 +682,7 @@ function buildAgentWorkspaceProfile(agentId: string, profile?: AgentWorkspacePro
     displayName: profile?.displayName?.trim() || agentId,
     purpose:
       profile?.purpose?.trim() ||
-      "Own a durable MailClaws role, keep the room kernel as truth, and collaborate through virtual mail.",
+      "Hold a durable MailClaws role and long-term memory; keep rooms as working memory and collaborate through virtual mail.",
     publicMailboxId: profile?.publicMailboxId?.trim() || `public:${agentId}`,
     sourceAlignment: profile?.sourceAlignment?.trim() || "",
     sourceRefs: profile?.sourceRefs?.filter((entry) => entry.trim().length > 0) ?? [],
@@ -693,7 +693,7 @@ function buildAgentWorkspaceProfile(agentId: string, profile?: AgentWorkspacePro
     headcountNotes:
       profile?.headcountNotes?.length && profile.headcountNotes.some((note) => note.trim().length > 0)
         ? profile.headcountNotes
-        : ["Stay inbox-first: triage the room, delegate by mail, and only persist reusable Pre."]
+        : ["Treat the room as working memory: triage the latest state, delegate by mail, and only persist reusable Pre."]
   };
 }
 
@@ -713,7 +713,8 @@ function renderAgentSoulMarkdown(input: {
     "## Mission",
     input.profile.purpose,
     "",
-    "## Virtual Mail Addresses",
+    "## Durable Mailboxes",
+    "These are stable routing identities. Active working context stays in rooms, and room-scoped working mailboxes are created from these roles when needed.",
     ...mailboxes.map((mailboxId) => `- \`${mailboxId}\``),
     "",
     "## Collaboration",
@@ -764,7 +765,7 @@ function renderAgentOperatingNotesMarkdown(input: {
       : ["- No other durable agents are registered yet."]),
     "",
     "## Working Contract",
-    "- Keep long-lived truth in room events, room pre snapshots, and approved memory only.",
+    "- Keep working state in the room. Keep long-lived truth in approved memory only when it is reusable across rooms.",
     "- Use virtual mail for tasking, review, approvals, and handoff. Do not bypass outbox for real external send.",
     "- Read the latest inbound, latest room Pre, and specific refs before asking for more history.",
     "",
@@ -783,7 +784,7 @@ function writeTenantAgentDirectory(config: AppConfig, tenantId: string, entries:
   const contents = [
     "# Agent Directory",
     "",
-    "Durable MailClaws agents can inspect this roster to decide who should own a room, who should review it, and when a burst subagent is enough.",
+    "Durable MailClaws agents can inspect this roster to decide who should own a room, who should review it, and when a burst subagent is enough. The roster defines soul and routing, while the room holds active work.",
     "",
     ...sorted.flatMap((entry) => [
       `## ${entry.displayName}`,

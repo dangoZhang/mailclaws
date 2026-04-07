@@ -4,8 +4,9 @@ MailClaws does not ask multiple agents to share one giant transcript.
 
 Instead, it turns collaboration into inspectable mail-shaped objects:
 
-- rooms hold the durable truth for one external conversation
-- virtual mailboxes separate public personas from internal worker roles
+- each new outside thread gets a room, and replies return to that same room
+- rooms hold the durable truth and working memory for one external conversation
+- virtual mail separates public-facing roles from internal worker roles
 - work threads keep parallel tasks isolated
 - reducers converge worker output back into one room-visible result
 - approvals and outbox intents stay as the only path to real external send
@@ -14,11 +15,11 @@ Instead, it turns collaboration into inspectable mail-shaped objects:
 
 When one real email arrives:
 
-1. MailClaws opens or updates one room.
-2. The front orchestrator reads the latest inbound plus the latest durable Pre state.
-3. If more work is needed, it sends internal task mail to worker mailboxes.
+1. A new outside thread opens a new room. A reply updates the existing room.
+2. The public-facing diplomat or front desk reads the latest inbound plus the latest durable Pre state.
+3. If more work is needed, it sends internal task mail to worker mailboxes in that room.
 4. Workers reply through single-parent internal mail.
-5. A reducer or orchestrator converges the results.
+5. A reducer or orchestrator converges the results back into the room.
 6. Only then can MailClaws create an approval or governed outbox intent.
 
 That means:
@@ -31,12 +32,13 @@ That means:
 
 MailClaws intentionally keeps these execution types separate:
 
-- durable agents have their own `SOUL.md`, public mailbox, and internal role mailboxes
+- durable agents have their own `SOUL.md`, routing identities, and long-term memory
 - one-off subagents are burst compute workers and do not keep a soul
 
 That means:
 
 - long-lived persona, collaboration rules, and reusable division of work belong to durable agents
+- active room context belongs to the room, not to the agent
 - elastic task execution belongs to subagents
 - subagent output only enters the room collaboration path after it is normalized into internal reply mail
 
@@ -65,6 +67,8 @@ Use this to see:
 - which mailbox sent each internal message
 - which role received it
 - whether a message was root work or a reply
+- whether cc was used
+- which attachment refs or room artifacts were attached
 - whether the message came from provider mail, gateway chat, or internal virtual mail
 
 This is the clearest view of multi-agent coordination.
@@ -161,5 +165,4 @@ MailClaws does not use:
 - direct worker-to-external send
 - long-lived scratch traces as durable memory
 
-The point of the system is not only to make agents collaborate.
-The point is to make collaboration durable, inspectable, and governable.
+The point of the system is to make collaboration durable, inspectable, and governable.
