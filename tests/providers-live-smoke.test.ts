@@ -93,11 +93,11 @@ describe("live provider smoke", () => {
       expect(Array.isArray(imapBatch.messages)).toBe(true);
       expect(imapBatch.checkpointMetadata?.uidValidity).toBeTruthy();
 
-      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-live-provider-"));
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-live-provider-"));
       tempDirs.push(tempDir);
       const config = loadConfig({
         MAILCLAW_STATE_DIR: tempDir,
-        MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+        MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
         MAILCLAW_SMTP_HOST: liveImapSmtpEnv.smtpHost,
         MAILCLAW_SMTP_PORT: liveImapSmtpEnv.smtpPort,
         MAILCLAW_SMTP_SECURE: liveImapSmtpEnv.smtpSecure,
@@ -128,13 +128,13 @@ describe("live provider smoke", () => {
         roomKey,
         kind: "final",
         status: "queued",
-        subject: `MailClaw live SMTP smoke ${Date.now()}`,
-        textBody: "MailClaw live SMTP smoke message.",
+        subject: `MailClaws live SMTP smoke ${Date.now()}`,
+        textBody: "MailClaws live SMTP smoke message.",
         to: [liveImapSmtpEnv.smtpTo!],
         cc: [],
         bcc: [],
         headers: {
-          "Message-ID": `<mailclaw-live-smtp-${Date.now()}@local>`
+          "Message-ID": `<mailclaws-live-smtp-${Date.now()}@local>`
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -216,11 +216,11 @@ describe("live provider smoke", () => {
       expect(envelope.threadId).toBeTruthy();
       expect(envelope.messageId).toBeTruthy();
 
-      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-live-gmail-provider-"));
+      const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-live-gmail-provider-"));
       tempDirs.push(tempDir);
       const config = loadConfig({
         MAILCLAW_STATE_DIR: tempDir,
-        MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+        MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
       });
       const handle = initializeDatabase(config);
       const runtime = createMailSidecarRuntime({
@@ -274,7 +274,7 @@ describe("live provider smoke", () => {
         kind: "final",
         status: "queued",
         subject: envelope.subject,
-        textBody: "MailClaw live Gmail reply smoke message.",
+        textBody: "MailClaws live Gmail reply smoke message.",
         to: [liveGmailEnv.to!],
         cc: [],
         bcc: [],
@@ -282,7 +282,7 @@ describe("live provider smoke", () => {
           From: liveGmailEnv.from!,
           To: liveGmailEnv.to!,
           Subject: envelope.subject,
-          "Message-ID": `<mailclaw-live-gmail-${Date.now()}@local>`,
+          "Message-ID": `<mailclaws-live-gmail-${Date.now()}@local>`,
           "In-Reply-To": envelope.messageId!,
           References: envelope.messageId!
         },

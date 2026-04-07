@@ -72,7 +72,7 @@ describe("gmail provider adapter", () => {
         settings: {
           gmail: {
             accessToken: "token",
-            topicName: "projects/example/topics/mailclaw",
+            topicName: "projects/example/topics/mailclaws",
             watch: {
               historyId: "90"
             }
@@ -172,7 +172,7 @@ describe("gmail provider adapter", () => {
           source: "gmail"
         }
       },
-      subscription: "projects/example/subscriptions/mailclaw"
+      subscription: "projects/example/subscriptions/mailclaws"
     });
 
     expect(notification).toMatchObject({
@@ -180,7 +180,7 @@ describe("gmail provider adapter", () => {
       historyId: "101",
       messageId: "pubsub-1",
       publishTime: "2026-03-25T00:00:00.000Z",
-      subscription: "projects/example/subscriptions/mailclaw",
+      subscription: "projects/example/subscriptions/mailclaws",
       attributes: {
         source: "gmail"
       }
@@ -194,7 +194,7 @@ describe("gmail provider adapter", () => {
         settings: {
           gmail: {
             accessToken: "token",
-            topicName: "projects/example/topics/mailclaw",
+            topicName: "projects/example/topics/mailclaws",
             watch: {
               historyId: "90"
             }
@@ -267,7 +267,7 @@ describe("gmail provider adapter", () => {
         settings: {
           gmail: {
             accessToken: "token",
-            topicName: "projects/example/topics/mailclaw",
+            topicName: "projects/example/topics/mailclaws",
             watch: {
               historyId: "90"
             }
@@ -337,7 +337,7 @@ describe("gmail provider adapter", () => {
         settings: {
           gmail: {
             accessToken: "token",
-            topicName: "projects/example/topics/mailclaw"
+            topicName: "projects/example/topics/mailclaws"
           }
         },
         checkpoint: "120",
@@ -414,7 +414,7 @@ describe("gmail provider adapter", () => {
         settings: {
           gmail: {
             accessToken: "token",
-            topicName: "projects/example/topics/mailclaw"
+            topicName: "projects/example/topics/mailclaws"
           }
         },
         notification: {
@@ -571,7 +571,7 @@ describe("gmail provider adapter", () => {
             oauthRefreshToken: "refresh-token",
             oauthClientId: "client-id",
             oauthClientSecret: "client-secret",
-            topicName: "projects/example/topics/mailclaw"
+            topicName: "projects/example/topics/mailclaws"
           }
         },
         notification: {

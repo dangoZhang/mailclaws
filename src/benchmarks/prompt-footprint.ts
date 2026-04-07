@@ -85,7 +85,7 @@ async function runTranscriptFollowUpScenario() {
         },
         {
           accountId: "acct-benchmark",
-          mailboxAddress: "mailclaw@example.com",
+          mailboxAddress: "mailclaws@example.com",
           envelope: buildEnvelope({
             providerMessageId: `provider-thread-${index + 1}`,
             messageId,
@@ -293,10 +293,10 @@ async function runMultiAgentReducerScenario(): Promise<PromptFootprintScenarioRe
 }
 
 function createDb(extraEnv: Record<string, string> = {}) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-benchmark-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-benchmark-"));
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
     ...extraEnv
@@ -320,7 +320,7 @@ function buildEnvelope(overrides: Partial<ProviderMailEnvelope> = {}): ProviderM
     },
     to: [
       {
-        email: "mailclaw@example.com"
+        email: "mailclaws@example.com"
       }
     ],
     headers: [

@@ -21,12 +21,12 @@ afterEach(() => {
 
 describe("artifact chunk index", () => {
   it("persists attachment chunk rows for a room", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-artifact-chunks-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-artifact-chunks-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -38,7 +38,7 @@ describe("artifact chunk index", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-1",
           messageId: "<msg-1@example.com>",
@@ -46,7 +46,7 @@ describe("artifact chunk index", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Persist chunk rows.",
           attachments: [
             {
@@ -77,12 +77,12 @@ describe("artifact chunk index", () => {
   });
 
   it("retrieves room chunk hits from the sqlite index even after chunk files are removed", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-artifact-chunks-search-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-artifact-chunks-search-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -94,7 +94,7 @@ describe("artifact chunk index", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-2",
           messageId: "<msg-2@example.com>",
@@ -102,7 +102,7 @@ describe("artifact chunk index", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Use the stored attachment context.",
           attachments: [
             {
@@ -146,12 +146,12 @@ describe("artifact chunk index", () => {
   });
 
   it("supports prefix retrieval from indexed chunk content after source files are removed", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-artifact-chunks-prefix-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-artifact-chunks-prefix-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -163,7 +163,7 @@ describe("artifact chunk index", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-3",
           messageId: "<msg-3@example.com>",
@@ -171,7 +171,7 @@ describe("artifact chunk index", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Use the stored attachment context.",
           attachments: [
             {
@@ -216,12 +216,12 @@ describe("artifact chunk index", () => {
   });
 
   it("reuses existing chunk files when the same attachment content reappears in the same room", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-artifact-chunks-dedupe-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-artifact-chunks-dedupe-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -236,7 +236,7 @@ describe("artifact chunk index", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-4",
           messageId: "<msg-4@example.com>",
@@ -244,7 +244,7 @@ describe("artifact chunk index", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Store the first copy.",
           attachments: [
             {
@@ -270,7 +270,7 @@ describe("artifact chunk index", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-5",
           messageId: "<msg-5@example.com>",
@@ -278,7 +278,7 @@ describe("artifact chunk index", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Store the repeated copy.",
           attachments: [
             {

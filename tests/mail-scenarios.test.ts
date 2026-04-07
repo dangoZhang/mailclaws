@@ -30,12 +30,12 @@ function createScenarioFixture(options: {
     completedAt?: string;
   };
 } = {}) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-scenarios-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-scenarios-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
     ...options.env

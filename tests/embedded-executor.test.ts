@@ -35,7 +35,7 @@ afterEach(() => {
 
 describe("embedded runtime executor", () => {
   it("persists session state and replays history into later turns", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-embedded-runtime-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-embedded-runtime-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -193,7 +193,7 @@ describe("embedded runtime executor", () => {
   });
 
   it("supports an in-process adapter without requiring a runtime command", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-embedded-adapter-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-embedded-adapter-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -262,7 +262,7 @@ describe("embedded runtime executor", () => {
   });
 
   it("accepts a custom embedded session manager seam", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-embedded-custom-session-manager-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-embedded-custom-session-manager-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -348,7 +348,7 @@ describe("embedded runtime executor", () => {
   });
 
   it("records completedAt after the embedded adapter finishes", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-embedded-timing-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-embedded-timing-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -413,8 +413,8 @@ describe("embedded runtime executor", () => {
     );
   });
 
-  it("rejects attachment descriptors that point outside the MailClaw state directory", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-embedded-boundary-"));
+  it("rejects attachment descriptors that point outside the MailClaws state directory", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-embedded-boundary-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -472,7 +472,7 @@ describe("embedded runtime executor", () => {
         }
       })
     ).rejects.toThrow(
-      "attachment attachment-1 preferredInputPath must stay within the MailClaw state directory"
+      "attachment attachment-1 preferredInputPath must stay within the MailClaws state directory"
     );
   });
 });

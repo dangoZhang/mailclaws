@@ -30,12 +30,12 @@ afterEach(() => {
 });
 
 function createConfig() {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-memory-ns-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-memory-ns-"));
   tempDirs.push(tempDir);
 
   return loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
   });
 }
 

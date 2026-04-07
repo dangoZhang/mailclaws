@@ -1,6 +1,6 @@
 # Concepts Clés
 
-Pour comprendre MailClaw, il suffit de retenir quelques idées.
+Pour comprendre MailClaws, il suffit de retenir quelques idées.
 
 ## 1. Room
 
@@ -35,7 +35,7 @@ Ses contraintes sont importantes :
 
 ## 3. Mémoire Pre-First
 
-MailClaw ne construit pas la mémoire longue à partir des traces de raisonnement brutes.
+MailClaws ne construit pas la mémoire longue à partir des traces de raisonnement brutes.
 
 Le modèle est :
 
@@ -53,7 +53,7 @@ Un Pre contient généralement :
 
 ## 4. ReAct-Pre
 
-Le modèle de comportement de MailClaw peut se résumer ainsi :
+Le modèle de comportement de MailClaws peut se résumer ainsi :
 
 1. React dans le scratch
 2. Compresser le résultat en Pre
@@ -67,7 +67,7 @@ Cela signifie :
 
 ## 5. Approval Et Outbox
 
-MailClaw sépare les effets externes du raisonnement.
+MailClaws sépare les effets externes du raisonnement.
 
 Le chemin normal est :
 
@@ -99,7 +99,7 @@ Ce n’est pas un simple lecteur d’historique de chat. Il expose directement l
 
 ## 7. Agents Durables
 
-Les agents durables de MailClaw ne sont pas des workers anonymes.
+Les agents durables de MailClaws ne sont pas des workers anonymes.
 
 Chaque agent durable possède :
 
@@ -118,7 +118,7 @@ Cela ancre la coordination multi-agent dans un roster durable au lieu d’un pro
 
 ## 8. Templates Et HeadCount
 
-MailClaw permet de faire évoluer un roster d’agents de trois façons :
+MailClaws permet de faire évoluer un roster d’agents de trois façons :
 
 - des templates intégrés
 - des agents durables personnalisés
@@ -128,4 +128,4 @@ Les templates servent à démarrer vite. Le HeadCount aide à décider quels rô
 
 ## En Une Phrase
 
-MailClaw transforme l’email en rooms durables, la collaboration multi-agent en virtual mail, et la mémoire longue en Pre compact.
+MailClaws transforme l’email en rooms durables, la collaboration multi-agent en virtual mail, et la mémoire longue en Pre compact.

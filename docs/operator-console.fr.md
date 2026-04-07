@@ -1,6 +1,6 @@
 # Mail Workbench
 
-Le Mail workbench est la surface utilisateur de MailClaw.
+Le Mail workbench est la surface utilisateur de MailClaws.
 
 Dans la configuration visée, il apparaît comme l’onglet `Mail` dans OpenClaw/Gateway. La route directe `/workbench/mail` existe comme secours et comme cible de deep link.
 
@@ -9,7 +9,7 @@ Dans la configuration visée, il apparaît comme l’onglet `Mail` dans OpenClaw
 Chemin recommandé :
 
 ```bash
-mailclaw dashboard
+mailclaws dashboard
 ```
 
 Ensuite, connectez-vous à OpenClaw/Gateway et cliquez sur `Mail`.
@@ -17,7 +17,7 @@ Ensuite, connectez-vous à OpenClaw/Gateway et cliquez sur `Mail`.
 Secours direct :
 
 ```bash
-mailclaw open
+mailclaws open
 ```
 
 ## Ce Que Signifie Chaque Onglet

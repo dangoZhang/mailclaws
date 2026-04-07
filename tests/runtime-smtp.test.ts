@@ -65,16 +65,16 @@ afterEach(() => {
 
 describe("runtime smtp configuration", () => {
   it("uses a configured smtp transport when no sender is injected", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-smtp-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-smtp-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_SMTP_HOST: "smtp.example.com",
       MAILCLAW_SMTP_PORT: "465",
       MAILCLAW_SMTP_SECURE: "true",
-      MAILCLAW_SMTP_FROM: "mailclaw@example.com"
+      MAILCLAW_SMTP_FROM: "mailclaws@example.com"
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-1");
@@ -137,12 +137,12 @@ describe("runtime smtp configuration", () => {
   });
 
   it("delegates outbox delivery through an injected mail io plane", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-mail-io-plane-outbox-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-mail-io-plane-outbox-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const deliverQueuedOutbox = vi.fn(async () => ({
@@ -169,18 +169,18 @@ describe("runtime smtp configuration", () => {
   });
 
   it("routes outbox delivery through the configured command mail io plane", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-mail-io-command-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-mail-io-command-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_MAIL_IO_MODE: "command",
       MAILCLAW_MAIL_IO_COMMAND: "mail-io-sidecar",
       MAILCLAW_SMTP_HOST: "smtp.example.com",
       MAILCLAW_SMTP_PORT: "465",
       MAILCLAW_SMTP_SECURE: "true",
-      MAILCLAW_SMTP_FROM: "mailclaw@example.com"
+      MAILCLAW_SMTP_FROM: "mailclaws@example.com"
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-command");
@@ -251,7 +251,7 @@ describe("runtime smtp configuration", () => {
       expect(payload.input.deliveryContext.provider).toBe("smtp");
       expect(payload.input.deliveryContext.transport).toMatchObject({
         host: "smtp.example.com",
-        from: "mailclaw@example.com"
+        from: "mailclaws@example.com"
       });
       expect(payload.input.message).toMatchObject({
         outboxId: "outbox-command-1",
@@ -300,12 +300,12 @@ describe("runtime smtp configuration", () => {
   });
 
   it("uses a configured Gmail sender for gmail-backed room delivery and forwards the provider thread id", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-gmail-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-gmail-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-gmail", "thread-gmail");
@@ -406,12 +406,12 @@ describe("runtime smtp configuration", () => {
   });
 
   it("uses account-scoped smtp settings for forward-style provider delivery", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-forward-smtp-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-forward-smtp-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-forward", "thread-forward");
@@ -515,12 +515,12 @@ describe("runtime smtp configuration", () => {
   });
 
   it("invalidates the cached Gmail sender when account settings change", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-gmail-cache-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-gmail-cache-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-gmail", "thread-gmail-cache");

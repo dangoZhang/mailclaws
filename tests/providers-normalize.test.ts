@@ -71,7 +71,7 @@ describe("normalizeMailEnvelope", () => {
       raw: { source: "mail" }
     });
 
-    expect(normalized.messageId).toBe("<mailclaw-provider-123>");
+    expect(normalized.messageId).toBe("<mailclaws-provider-123>");
     expect(normalized.subject).toBe("Re: Hello   world");
     expect(normalized.from).toEqual({ name: "Sender", email: "sender@example.com" });
     expect(normalized.text).toBe("Hello world");

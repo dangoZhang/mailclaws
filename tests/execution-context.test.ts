@@ -231,11 +231,11 @@ describe("execution context enforcement", () => {
   });
 
   it("rejects non-canonical namespace paths even when the scope identity looks valid", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-execution-context-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-execution-context-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const canonicalInput = buildTurnInput({
       memoryNamespaces: resolveWorkerTurnMemoryNamespaces(config, {

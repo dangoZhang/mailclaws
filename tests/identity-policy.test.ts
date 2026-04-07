@@ -18,12 +18,12 @@ afterEach(() => {
 
 describe("identity trust gate", () => {
   it("blocks inbound mail below the configured minimum trust level", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-trust-gate-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-trust-gate-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_IDENTITY_TRUST_GATE: "true",
       MAILCLAW_IDENTITY_MIN_TRUST_LEVEL: "T2"
@@ -37,7 +37,7 @@ describe("identity trust gate", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-1",
           messageId: "<msg-1@example.com>",
@@ -45,7 +45,7 @@ describe("identity trust gate", () => {
           from: {
             email: "alice@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           headers: [
             {
               name: "Message-ID",
@@ -64,12 +64,12 @@ describe("identity trust gate", () => {
   });
 
   it("allows inbound mail that meets the configured minimum trust level", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-trust-gate-pass-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-trust-gate-pass-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_IDENTITY_TRUST_GATE: "true",
       MAILCLAW_IDENTITY_MIN_TRUST_LEVEL: "T2"
@@ -83,7 +83,7 @@ describe("identity trust gate", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-1",
           messageId: "<msg-2@example.com>",
@@ -91,7 +91,7 @@ describe("identity trust gate", () => {
           from: {
             email: "alice@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           replyTo: [{ email: "alice@example.com" }],
           headers: [
             {

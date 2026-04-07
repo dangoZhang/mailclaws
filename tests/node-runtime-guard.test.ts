@@ -17,10 +17,10 @@ afterEach(() => {
 
 describe("isCliEntrypoint", () => {
   it("matches npm bin symlinks against the real compiled entrypoint", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-cli-entry-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-cli-entry-"));
     tempDirs.push(tempDir);
 
-    const distDir = path.join(tempDir, "node_modules", "mailclaw", "dist", "cli");
+    const distDir = path.join(tempDir, "node_modules", "mailclaws", "dist", "cli");
     const binDir = path.join(tempDir, "node_modules", ".bin");
     fs.mkdirSync(distDir, { recursive: true });
     fs.mkdirSync(binDir, { recursive: true });

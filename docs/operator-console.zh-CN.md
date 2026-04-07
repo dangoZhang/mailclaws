@@ -1,6 +1,6 @@
 # 邮件工作台
 
-邮件工作台是 MailClaw 面向用户的主界面。
+邮件工作台是 MailClaws 面向用户的主界面。
 
 在推荐形态里，它会作为 OpenClaw/Gateway 里的 `Mail` 标签页出现。`/workbench/mail` 只是直达兜底和 deep link 入口。
 
@@ -9,7 +9,7 @@
 推荐：
 
 ```bash
-mailclaw dashboard
+mailclaws dashboard
 ```
 
 然后登录 OpenClaw/Gateway，点击 `Mail`。
@@ -17,7 +17,7 @@ mailclaw dashboard
 兜底：
 
 ```bash
-mailclaw open
+mailclaws open
 ```
 
 ## 每个标签页代表什么
@@ -85,7 +85,7 @@ mailclaw open
 4. 如有需要，跳到某个协作邮箱参与者
 5. 如有需要，打开 `Approvals`
 
-这和 MailClaw 的运行时模型是一致的：
+这和 MailClaws 的运行时模型是一致的：
 
 - 账号给你邮箱服务和邮箱范围
 - 房间给你持久真相
@@ -135,7 +135,7 @@ mailclaw open
 - 内部 / 公开协作邮箱
 - 审批状态
 
-也就是 MailClaw 运行时真正关心的那套对象。
+也就是 MailClaws 运行时真正关心的那套对象。
 
 ## 延伸阅读
 

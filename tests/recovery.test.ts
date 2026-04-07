@@ -21,12 +21,12 @@ afterEach(() => {
 
 describe("recoverRoomQueue", () => {
   it("requeues expired leased jobs and reports queue state", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-recovery-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-recovery-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-1");

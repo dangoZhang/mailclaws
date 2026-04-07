@@ -29,7 +29,7 @@ function buildEnvelope(): ProviderMailEnvelope {
     },
     to: [
       {
-        email: "mailclaw@example.com"
+        email: "mailclaws@example.com"
       }
     ],
     text: "Can you draft a reply?",
@@ -44,12 +44,12 @@ function buildEnvelope(): ProviderMailEnvelope {
 
 describe("approval gate orchestration", () => {
   it("marks outbound replies as pending approval when the gate is enabled", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-approval-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-approval-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
       MAILCLAW_FEATURE_APPROVAL_GATE: "true"
@@ -79,7 +79,7 @@ describe("approval gate orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope()
       }
     );

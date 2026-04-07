@@ -162,7 +162,7 @@ export function renderOAuthCallbackHtml(input: {
       <h1>${escapeHtml(input.title)}</h1>
       <p>${escapeHtml(input.message)}</p>
       ${details}
-      <p>You can close this window and return to MailClaw.</p>
+      <p>You can close this window and return to MailClaws.</p>
       <p><small>Provider: ${escapeHtml(input.providerName)}</small></p>
     </main>
   </body>

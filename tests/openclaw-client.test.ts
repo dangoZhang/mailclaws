@@ -95,10 +95,10 @@ describe("openclaw client", () => {
   });
 
   it("persists bridge session summaries through the default file-backed session manager", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-openclaw-client-session-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-openclaw-client-session-"));
     tempDirs.push(tempDir);
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
-      expect((init?.headers as Record<string, string>)["x-mailclaw-bridge-session-id"]).toBeDefined();
+      expect((init?.headers as Record<string, string>)["x-mailclaws-bridge-session-id"]).toBeDefined();
       return {
         ok: true,
         status: 200,
@@ -229,7 +229,7 @@ describe("openclaw client", () => {
 
   it("rejects disallowed memory scopes before sending the transport request", async () => {
     const fetchMock = vi.fn();
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-openclaw-client-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-openclaw-client-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -268,7 +268,7 @@ describe("openclaw client", () => {
   });
 
   it("forwards bounded namespace and execution policy metadata through the bridge request", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-openclaw-client-meta-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-openclaw-client-meta-"));
     tempDirs.push(tempDir);
     const attachmentDir = path.join(tempDir, "attachments");
     fs.mkdirSync(attachmentDir, { recursive: true });
@@ -375,7 +375,7 @@ describe("openclaw client", () => {
 
   it("rejects execution-policy-bound bridge turns when no local policy manifest is declared", async () => {
     const fetchMock = vi.fn();
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-openclaw-client-manifest-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-openclaw-client-manifest-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -415,9 +415,9 @@ describe("openclaw client", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("rejects bridge attachment descriptors that point outside the MailClaw state directory", async () => {
+  it("rejects bridge attachment descriptors that point outside the MailClaws state directory", async () => {
     const fetchMock = vi.fn();
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-openclaw-client-boundary-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-openclaw-client-boundary-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -468,7 +468,7 @@ describe("openclaw client", () => {
         }
       })
     ).rejects.toThrow(
-      "attachment attachment-1 preferredInputPath must stay within the MailClaw state directory"
+      "attachment attachment-1 preferredInputPath must stay within the MailClaws state directory"
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });

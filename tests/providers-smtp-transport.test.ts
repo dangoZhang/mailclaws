@@ -9,13 +9,13 @@ import {
 import type { SmtpMessage } from "../src/providers/smtp.js";
 
 describe("smtp transport sender", () => {
-  it("maps a MailClaw outbox message into a nodemailer sendMail call", async () => {
+  it("maps a MailClaws outbox message into a nodemailer sendMail call", async () => {
     const sendMail = vi.fn(async () => ({
       messageId: "<smtp-1@example.com>"
     }));
     const sender = createSmtpTransportSender(
       {
-        from: "mailclaw@example.com",
+        from: "mailclaws@example.com",
         host: "smtp.example.com",
         port: 587,
         secure: false
@@ -39,7 +39,7 @@ describe("smtp transport sender", () => {
     });
 
     expect(sendMail).toHaveBeenCalledWith({
-      from: "mailclaw@example.com",
+      from: "mailclaws@example.com",
       to: "a@example.com",
       cc: "c@example.com",
       bcc: "b@example.com",
@@ -59,7 +59,7 @@ describe("smtp transport sender", () => {
     }));
     const sender = createSmtpTransportSender(
       {
-        from: "mailclaw@example.com",
+        from: "mailclaws@example.com",
         host: "smtp.example.com",
         port: 587,
         secure: false
@@ -115,7 +115,7 @@ describe("smtp transport sender", () => {
     }));
     const sender = createSmtpTransportSender(
       {
-        from: "mailclaw@example.com",
+        from: "mailclaws@example.com",
         host: "smtp.example.com",
         port: 587,
         secure: false
@@ -144,7 +144,7 @@ describe("smtp transport sender", () => {
       MAILCLAW_SMTP_HOST: "smtp.example.com",
       MAILCLAW_SMTP_PORT: "465",
       MAILCLAW_SMTP_SECURE: "true",
-      MAILCLAW_SMTP_FROM: "mailclaw@example.com"
+      MAILCLAW_SMTP_FROM: "mailclaws@example.com"
     });
 
     const sender = createConfiguredSmtpSender(config, () => ({

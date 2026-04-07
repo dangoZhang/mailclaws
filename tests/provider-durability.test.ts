@@ -30,7 +30,7 @@ function createDb(prefix: string) {
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "false"
   });
@@ -52,7 +52,7 @@ function buildEnvelope(overrides: Partial<ProviderMailEnvelope> = {}): ProviderM
     },
     to: [
       {
-        email: "mailclaw@example.com"
+        email: "mailclaws@example.com"
       }
     ],
     headers: [
@@ -81,7 +81,7 @@ function listTableRows(db: DatabaseSync, tableName: string): Array<Record<string
 
 describe("provider durability", () => {
   it("persists watcher checkpoints to a dedicated provider cursor store while keeping account watch settings visible", async () => {
-    const { config, handle } = createDb("mailclaw-provider-cursors-");
+    const { config, handle } = createDb("mailclaws-provider-cursors-");
     const runtime = createMailSidecarRuntime({
       db: handle.db,
       config
@@ -90,13 +90,13 @@ describe("provider durability", () => {
     runtime.upsertAccount({
       accountId: "acct-imap",
       provider: "imap",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {
         host: "imap.example.com",
         port: 993,
         secure: true,
-        username: "mailclaw@example.com",
+        username: "mailclaws@example.com",
         password: "secret",
         mailbox: "INBOX",
         watch: {
@@ -114,7 +114,7 @@ describe("provider durability", () => {
             port: 993,
             secure: true,
             auth: {
-              user: "mailclaw@example.com",
+              user: "mailclaws@example.com",
               pass: "secret"
             }
           });
@@ -137,13 +137,13 @@ describe("provider durability", () => {
                   envelope: {
                     subject: "Watcher message",
                     from: [{ address: "sender@example.com" }],
-                    to: [{ address: "mailclaw@example.com" }]
+                    to: [{ address: "mailclaws@example.com" }]
                   },
                   source: [
                     "Message-ID: <watcher-2@example.com>",
                     "Subject: Watcher message",
                     "From: sender@example.com",
-                    "To: mailclaw@example.com",
+                    "To: mailclaws@example.com",
                     "",
                     "Watcher body"
                   ].join("\r\n")
@@ -197,7 +197,7 @@ describe("provider durability", () => {
   });
 
   it("records IMAP UIDVALIDITY invalidation and backfill events when the mailbox identity changes", async () => {
-    const { config, handle } = createDb("mailclaw-provider-imap-invalidated-");
+    const { config, handle } = createDb("mailclaws-provider-imap-invalidated-");
     const runtime = createMailSidecarRuntime({
       db: handle.db,
       config
@@ -206,13 +206,13 @@ describe("provider durability", () => {
     runtime.upsertAccount({
       accountId: "acct-imap",
       provider: "imap",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {
         host: "imap.example.com",
         port: 993,
         secure: true,
-        username: "mailclaw@example.com",
+        username: "mailclaws@example.com",
         password: "secret",
         mailbox: "INBOX",
         watch: {
@@ -283,13 +283,13 @@ describe("provider durability", () => {
   });
 
   it("persists durable provider events and surfaces them in replay for received, canonicalized, and duplicated mail", () => {
-    const { config, handle } = createDb("mailclaw-provider-events-");
+    const { config, handle } = createDb("mailclaws-provider-events-");
     const timestamp = "2026-03-25T00:00:00.000Z";
 
     upsertMailAccount(handle.db, {
       accountId: "acct-1",
       provider: "imap",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: timestamp,
@@ -303,7 +303,7 @@ describe("provider durability", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope()
       }
     );
@@ -314,7 +314,7 @@ describe("provider durability", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope()
       }
     );
@@ -366,7 +366,7 @@ describe("provider durability", () => {
         expect.objectContaining({
           eventType: "provider.event.canonicalized",
           payload: expect.objectContaining({
-            canonicalMailboxAddress: "mailclaw@example.com"
+            canonicalMailboxAddress: "mailclaws@example.com"
           })
         }),
         expect.objectContaining({
@@ -382,7 +382,7 @@ describe("provider durability", () => {
   });
 
   it("records provider cursor invalidation and bounded backfill events for gmail history gaps", async () => {
-    const { config, handle } = createDb("mailclaw-provider-gmail-invalidated-");
+    const { config, handle } = createDb("mailclaws-provider-gmail-invalidated-");
     const runtime = createMailSidecarRuntime({
       db: handle.db,
       config
@@ -400,7 +400,7 @@ describe("provider durability", () => {
         },
         gmail: {
           accessToken: "token",
-          topicName: "projects/example/topics/mailclaw",
+          topicName: "projects/example/topics/mailclaws",
           watch: {
             historyId: "90",
             expiration: "2026-03-24T00:00:00.000Z"
@@ -490,7 +490,7 @@ describe("provider durability", () => {
   });
 
   it("records gmail pubsub notification receipt and explicit full mailbox recovery events", async () => {
-    const { config, handle } = createDb("mailclaw-provider-gmail-pubsub-recovery-");
+    const { config, handle } = createDb("mailclaws-provider-gmail-pubsub-recovery-");
     const runtime = createMailSidecarRuntime({
       db: handle.db,
       config
@@ -504,7 +504,7 @@ describe("provider durability", () => {
       settings: {
         gmail: {
           accessToken: "token",
-          topicName: "projects/example/topics/mailclaw"
+          topicName: "projects/example/topics/mailclaws"
         }
       }
     });
@@ -522,7 +522,7 @@ describe("provider durability", () => {
           messageId: "pubsub-1",
           publishTime: "2026-03-25T00:00:00.000Z"
         },
-        subscription: "projects/example/subscriptions/mailclaw"
+        subscription: "projects/example/subscriptions/mailclaws"
       },
       clientFactory() {
         return {

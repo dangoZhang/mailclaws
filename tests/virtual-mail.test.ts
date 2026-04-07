@@ -26,12 +26,12 @@ afterEach(() => {
 });
 
 function createFixture() {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-virtual-mail-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-virtual-mail-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
   });
   const handle = initializeDatabase(config);
   const runtime = createMailSidecarRuntime({

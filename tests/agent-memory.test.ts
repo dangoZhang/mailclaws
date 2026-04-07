@@ -36,12 +36,12 @@ afterEach(() => {
 
 describe("agent memory workspace", () => {
   it("creates a durable room memory workspace separate from agent memory", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-room-memory-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-room-memory-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const workspace = ensureRoomMemoryWorkspace(config, "tenant-a", "mail:tenant-a:thread:room-1");
@@ -66,12 +66,12 @@ describe("agent memory workspace", () => {
   });
 
   it("creates promotion drafts from room memory snapshots instead of direct room facts", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-room-memory-draft-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-room-memory-draft-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const roomWorkspace = ensureRoomMemoryWorkspace(config, "tenant-a", "mail:tenant-a:thread:room-2");
@@ -136,12 +136,12 @@ describe("agent memory workspace", () => {
   });
 
   it("requires room-backed drafts before entering the normal promotion workflow", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-agent-memory-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-agent-memory-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const workspace = ensureAgentWorkspace(config, "tenant-a", "assistant");
@@ -249,12 +249,12 @@ describe("agent memory workspace", () => {
   });
 
   it("creates default mail read/write skill files in every agent workspace", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-agent-memory-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-agent-memory-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const workspace = ensureAgentWorkspace(config, "tenant-b", "research");
@@ -280,12 +280,12 @@ describe("agent memory workspace", () => {
   });
 
   it("lists default skills and installs managed markdown skills into the agent workspace", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-agent-skills-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-agent-skills-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     ensureAgentWorkspace(config, "tenant-skills", "assistant");
@@ -320,12 +320,12 @@ describe("agent memory workspace", () => {
   });
 
   it("renders richer SOUL and AGENTS files when a durable roster is known", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-agent-soul-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-agent-soul-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const workspace = ensureAgentWorkspace(config, "tenant-c", "assistant", {
@@ -373,12 +373,12 @@ describe("agent memory workspace", () => {
   });
 
   it("sanitizes tenant, agent, room, and draft path segments before writing to disk", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-agent-memory-safe-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-agent-memory-safe-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const tenantId = "../tenant-a";
@@ -420,12 +420,12 @@ describe("agent memory workspace", () => {
   });
 
   it("lists and rejects pending drafts without touching MEMORY.md", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-agent-memory-reject-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-agent-memory-reject-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     ensureAgentWorkspace(config, "tenant-b", "research");

@@ -1325,10 +1325,8 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           "/console",
           "/workbench/mail/tab",
           "/workbench/mailclaws/tab",
-          "/workbench/mailclaw/tab",
           "/workbench/mail",
           "/workbench/mailclaws",
-          "/workbench/mailclaw",
           "/dashboard",
           "/mail"
         ];
@@ -1441,7 +1439,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
 
       function notifyHost(type, payload) {
         if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ source: "mailclaw", type, payload }, "*");
+          window.parent.postMessage({ source: "mailclaws", type, payload }, "*");
         }
       }
 
@@ -2371,7 +2369,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             window.history.pushState({}, "", href);
           }
         }
-        notifyHost("mailclaw.workbench.route", {
+        notifyHost("mailclaws.workbench.route", {
           href: href,
           routeMode: state.route.mode || "connect",
           accountId: state.route.accountId,
@@ -2410,7 +2408,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             state.route.mode = payload.workspace.activeTab;
           }
           syncUrl(Boolean(replaceUrl));
-          notifyHost("mailclaw.workbench.state", {
+          notifyHost("mailclaws.workbench.state", {
             routeMode: state.route.mode || "connect",
             accountCount: payload && payload.accounts ? payload.accounts.length : 0,
             roomCount: payload && payload.rooms ? payload.rooms.length : 0,
@@ -2647,7 +2645,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
 
       state.route = parseRoute(window.location.pathname, window.location.search);
       applyThemeMode(document.documentElement.getAttribute("data-theme-mode") || "dark");
-      notifyHost("mailclaw.workbench.ready", {
+      notifyHost("mailclaws.workbench.ready", {
         embeddedShell: Boolean(config.embeddedShell),
         href: window.location.pathname + window.location.search
       });

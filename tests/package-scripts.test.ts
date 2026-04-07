@@ -21,11 +21,11 @@ describe("package scripts", () => {
     const shellInstaller = fs.readFileSync(path.join(root, "install.sh"), "utf8");
     const powershellInstaller = fs.readFileSync(path.join(root, "install.ps1"), "utf8");
 
-    expect(shellInstaller).toContain("mailclaw gateway");
-    expect(shellInstaller).toContain("mailclaw dashboard");
-    expect(shellInstaller).toContain("MailClaw requires Node.js 22+");
-    expect(powershellInstaller).toContain("mailclaw gateway");
-    expect(powershellInstaller).toContain("mailclaw dashboard");
-    expect(powershellInstaller).toContain("MailClaw requires Node.js 22+");
+    expect(shellInstaller).toContain("mailclaws gateway");
+    expect(shellInstaller).toContain("mailclaws dashboard");
+    expect(shellInstaller).toContain("MailClaws requires Node.js 22+");
+    expect(powershellInstaller).toContain("mailclaws gateway");
+    expect(powershellInstaller).toContain("mailclaws dashboard");
+    expect(powershellInstaller).toContain("MailClaws requires Node.js 22+");
   });
 });

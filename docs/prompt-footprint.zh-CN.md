@@ -1,6 +1,6 @@
 # Prompt 体积
 
-MailClaw 当前采用 **pre-first** 行为模型：
+MailClaws 当前采用 **pre-first** 行为模型：
 
 - 优先读取最新一封 inbound
 - 读取最新持久化的 Room Pre snapshot
@@ -28,7 +28,7 @@ pnpm benchmark:prompt-footprint:json
 
 ## 含义
 
-- 相比 session-first / full-transcript 基线，MailClaw 在长线程里通常能把主编排 prompt 压低到约 `60%` 到 `75%` 的节省区间。
+- 相比 session-first / full-transcript 基线，MailClaws 在长线程里通常能把主编排 prompt 压低到约 `60%` 到 `75%` 的节省区间。
 - 在多 agent fan-in 场景里，reducer summary 能避免主 orchestrator 重读所有 worker transcript，节省通常接近 `75%` 到 `80%`。
 
 ## 说明

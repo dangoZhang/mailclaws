@@ -1,6 +1,6 @@
 # Operators Guide
 
-This page is for people responsible for keeping MailClaw healthy in daily use.
+This page is for people responsible for keeping MailClaws healthy in daily use.
 
 It focuses on what to check when users say:
 
@@ -10,7 +10,7 @@ It focuses on what to check when users say:
 
 ## The Main Objects To Check
 
-MailClaw operations are easiest when you follow the same object model the runtime uses:
+MailClaws operations are easiest when you follow the same object model the runtime uses:
 
 - `account`: one connected mailbox and its provider posture
 - `room`: the durable truth boundary for one conversation
@@ -28,8 +28,8 @@ Confirm the connected mailbox exists and looks healthy.
 Useful commands:
 
 ```bash
-mailclaw accounts
-mailclaw accounts show <accountId>
+mailclaws accounts
+mailclaws accounts show <accountId>
 ```
 
 Useful API:
@@ -38,13 +38,13 @@ Useful API:
 
 ### 2. Room
 
-Confirm MailClaw created or updated the room.
+Confirm MailClaws created or updated the room.
 
 Useful commands:
 
 ```bash
-mailclaw rooms
-mailclaw replay <roomKey>
+mailclaws rooms
+mailclaws replay <roomKey>
 ```
 
 ### 3. Mailbox View
@@ -54,7 +54,7 @@ If the room exists but behavior is unclear, inspect the related mailbox or inbox
 Useful commands:
 
 ```bash
-mailclaw inboxes <accountId>
+mailclaws inboxes <accountId>
 mailctl observe mailbox-feed <accountId> <mailboxId>
 mailctl observe mailbox-view <roomKey> <mailboxId>
 ```
@@ -98,13 +98,13 @@ Check:
 
 - account/provider posture
 - inbound path configuration
-- whether the message reached MailClaw at all
+- whether the message reached MailClaws at all
 
 Start with:
 
 ```bash
-mailclaw accounts show <accountId>
-mailclaw rooms
+mailclaws accounts show <accountId>
+mailclaws rooms
 ```
 
 ### Room Exists But There Is No Reply Yet
@@ -118,7 +118,7 @@ Check:
 Start with:
 
 ```bash
-mailclaw replay <roomKey>
+mailclaws replay <roomKey>
 mailctl observe mailbox-view <roomKey> <mailboxId>
 mailctl observe approvals room <roomKey>
 ```
@@ -172,4 +172,4 @@ If something is unclear, inspect in this order:
 3. mailbox
 4. approval
 
-That order matches the way MailClaw itself is structured, so it usually gets you to the answer faster than starting from raw execution traces.
+That order matches the way MailClaws itself is structured, so it usually gets you to the answer faster than starting from raw execution traces.

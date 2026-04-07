@@ -6,20 +6,20 @@
   <a href="./release-assets.fr.md">Français</a>
 </p>
 
-本页定义当前 MailClaw 发布形态所使用的仓库内文案与图示资产，可复用于 README 首屏、`/workbench/mail` 首页定位和演示材料。
+本页定义当前 MailClaws 发布形态所使用的仓库内文案与图示资产，可复用于 README 首屏、`/workbench/mail` 首页定位和演示材料。
 
 ## 发布叙事
 
-- 发布标题：MailClaw 把邮件线程升级成可持续、可治理、可回放的 room。
+- 发布标题：MailClaws 把邮件线程升级成可持续、可治理、可回放的 room。
 - 发布副标题：外部邮件继续只是 transport，内部协作进入 virtual mail，真实外发继续经过 approval/outbox。
-- 发版角度：这一版要把 MailClaw 讲成邮件原生 runtime 与 workbench 观察面，而不是聊天壳子，也不是完整邮箱客户端。
+- 发版角度：这一版要把 MailClaws 讲成邮件原生 runtime 与 workbench 观察面，而不是聊天壳子，也不是完整邮箱客户端。
 
 ## Hero 文案
 
-- 一句话：MailClaw 是面向耐久化、可审计、多智能体协作的邮件原生运行时。
-- 定位：OpenClaw 继续作为上游生态 substrate；MailClaw 负责 room 真相层、virtual mail 协作语义、approval/outbox 治理，以及 replay/recovery。
+- 一句话：MailClaws 是面向耐久化、可审计、多智能体协作的邮件原生运行时。
+- 定位：OpenClaw 继续作为上游生态 substrate；MailClaws 负责 room 真相层、virtual mail 协作语义、approval/outbox 治理，以及 replay/recovery。
 - 边界：当前 Mail workbench 为只读观察面，不是完整邮箱客户端。
-- 短版说明：MailClaw 保持外部邮件 transport 兼容，同时把状态、审批、恢复放回 kernel-first 的 room ledger。
+- 短版说明：MailClaws 保持外部邮件 transport 兼容，同时把状态、审批、恢复放回 kernel-first 的 room ledger。
 - Workbench 说明：团队可以在一个面里查看 room 历史、approval、provider state、mailbox feed、public inbox 和 Gateway trace。
 
 ## 本版已交付
@@ -36,7 +36,7 @@
 - 不要把当前版本描述成完整 Outlook 风格邮箱客户端。
 - 不要暗示上游 Gateway 或 Workbench 的自动事件流接线已经全部完成。
 - 不要暗示 worker 或 subagent 可以绕过 outbox intent 直接真实外发。
-- 不要暗示 MailClaw 取代 provider 自身的认证、传输策略或邮箱合规控制。
+- 不要暗示 MailClaws 取代 provider 自身的认证、传输策略或邮箱合规控制。
 
 ## 发版可用证明点
 
@@ -61,7 +61,7 @@
 ## 可直接复用的对外文案
 
 - 公告开场：
-  “MailClaw 这一版正式以邮件原生 workbench 运行时发布：room 真相层、virtual mail 协作、受治理外发。”
+  “MailClaws 这一版正式以邮件原生 workbench 运行时发布：room 真相层、virtual mail 协作、受治理外发。”
 - 边界收口：
   “当前版本交付只读 Mail workbench 与耐久控制面能力，不是完整邮箱客户端。”
 - Workbench 行动引导：
@@ -105,7 +105,7 @@ flowchart LR
     L2["隐式状态"]
     L3["弱回放能力"]
   end
-  subgraph Right["MailClaw Room / Ledger"]
+  subgraph Right["MailClaws Room / Ledger"]
     R1["Room 真相层"]
     R2["Virtual mail 因果链"]
     R3["Approval / Outbox 治理"]
@@ -115,7 +115,7 @@ flowchart LR
 
 ## 演示脚本
 
-1. 展示一封真实入站邮件或一个 Gateway turn 进入 MailClaw。
+1. 展示一封真实入站邮件或一个 Gateway turn 进入 MailClaws。
 2. 打开 room 详情，强调 revision timeline、room 真相和 replayability。
 3. 展示内部协作如何体现在 mailbox/feed，而不是隐藏在共享 transcript 中。
 4. 展示 reviewer、guard、approval 或 outbox 状态，然后再说明真实外发。

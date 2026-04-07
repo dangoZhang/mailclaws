@@ -1,6 +1,6 @@
 # Collaboration Multi-Agent
 
-MailClaw ne demande pas à plusieurs agents de partager un transcript unique qui grossit sans fin.
+MailClaws ne demande pas à plusieurs agents de partager un transcript unique qui grossit sans fin.
 
 Il transforme la collaboration en objets de type mail, inspectables, rejouables et gouvernés :
 
@@ -14,7 +14,7 @@ Il transforme la collaboration en objets de type mail, inspectables, rejouables 
 
 Quand un vrai email arrive :
 
-1. MailClaw ouvre ou met à jour une room.
+1. MailClaws ouvre ou met à jour une room.
 2. Le front orchestrator lit le dernier inbound et le dernier Pre durable.
 3. Si plus de travail est nécessaire, il envoie un task mail vers une mailbox interne.
 4. Les workers répondent par internal reply single-parent.
@@ -29,7 +29,7 @@ Cela signifie :
 
 ## Agents Durables Et Subagents Ponctuels
 
-MailClaw sépare volontairement ces deux types d’exécution :
+MailClaws sépare volontairement ces deux types d’exécution :
 
 - les agents durables ont leur propre `SOUL.md`, une mailbox publique et des mailboxes de rôles internes
 - les subagents ponctuels sont des burst compute workers et ne conservent pas de soul
@@ -40,7 +40,7 @@ Cela signifie :
 - l’exécution élastique des tâches appartient aux subagents
 - le résultat d’un subagent n’entre dans la collaboration de la room qu’après normalisation en internal reply mail
 
-MailClaw ne dit donc pas « rendre tous les agents permanents ». Il dit « garder des agents durables pour l’organisation, et des subagents pour la puissance de calcul élastique ».
+MailClaws ne dit donc pas « rendre tous les agents permanents ». Il dit « garder des agents durables pour l’organisation, et des subagents pour la puissance de calcul élastique ».
 
 ## Que Regarder Dans Le Workbench
 
@@ -144,17 +144,17 @@ Regardez surtout `Approvals` et le `Governed Outbox` de la room.
 Si vous voulez lire la même histoire dans le terminal :
 
 ```bash
-mailclaw rooms
-mailclaw replay <roomKey>
+mailclaws rooms
+mailclaws replay <roomKey>
 mailctl mailbox view <roomKey> <mailboxId>
 mailctl mailbox feed <accountId> <mailboxId>
-mailclaw approvals room <roomKey>
-mailclaw trace <roomKey>
+mailclaws approvals room <roomKey>
+mailclaws trace <roomKey>
 ```
 
-## Ce Que MailClaw Évite Délibérément
+## Ce Que MailClaws Évite Délibérément
 
-MailClaw n’utilise pas :
+MailClaws n’utilise pas :
 
 - un transcript partagé comme autorité pour tous les agents
 - la continuité par subject seulement comme vérité de collaboration

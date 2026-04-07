@@ -1,6 +1,6 @@
 # Limites de securite
 
-MailClaw traite tous les emails entrants, en-tetes et pieces jointes comme des entrees non fiables.
+MailClaws traite tous les emails entrants, en-tetes et pieces jointes comme des entrees non fiables.
 
 ## Garde-fous en entree
 

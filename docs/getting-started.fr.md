@@ -2,15 +2,15 @@
 
 Cette page est le chemin le plus court pour passer de zéro à une première conversation email fonctionnelle.
 
-Si vous savez déjà ce qu’est MailClaw, allez directement à [Envoyer Votre Premier Vrai Email](#three-minute-first-mail).
+Si vous savez déjà ce qu’est MailClaws, allez directement à [Envoyer Votre Premier Vrai Email](#three-minute-first-mail).
 
 ## Ce Qu’il Vous Faut
 
 - Node.js 22+
-- une boîte mail que vous voulez connecter à MailClaw
+- une boîte mail que vous voulez connecter à MailClaws
 - une autre boîte mail ou un autre client mail pour envoyer un message de test
 
-MailClaw n’est pas lié à un seul provider. Les chemins intégrés couvrent Gmail, Outlook, QQ, iCloud, Yahoo, 163/126, ainsi que les comptes IMAP/SMTP génériques.
+MailClaws n’est pas lié à un seul provider. Les chemins intégrés couvrent Gmail, Outlook, QQ, iCloud, Yahoo, 163/126, ainsi que les comptes IMAP/SMTP génériques.
 
 ## Installer
 
@@ -23,9 +23,9 @@ Recommandé :
 Autres chemins pris en charge :
 
 ```bash
-npm install -g mailclaw
-pnpm setup && pnpm add -g mailclaw
-brew install mailclaw
+npm install -g mailclaws
+pnpm setup && pnpm add -g mailclaws
+brew install mailclaws
 ```
 
 Si vous lancez depuis les sources :
@@ -34,11 +34,11 @@ Si vous lancez depuis les sources :
 pnpm install
 ```
 
-## Démarrer MailClaw
+## Démarrer MailClaws
 
 ```bash
 MAILCLAW_FEATURE_MAIL_INGEST=true \
-mailclaw
+mailclaws
 ```
 
 Cela démarre le runtime local ainsi que le backend du Mail tab.
@@ -48,19 +48,19 @@ Cela démarre le runtime local ainsi que le backend du Mail tab.
 Chemin recommandé :
 
 ```bash
-mailclaw onboard you@example.com
-mailclaw login
+mailclaws onboard you@example.com
+mailclaws login
 ```
 
 Ce que font ces commandes :
 
-- `mailclaw onboard` recommande le chemin provider le plus simple à partir de l’adresse
-- `mailclaw login` vous guide dans la connexion réelle du compte
+- `mailclaws onboard` recommande le chemin provider le plus simple à partir de l’adresse
+- `mailclaws login` vous guide dans la connexion réelle du compte
 
 Si vous savez déjà quel chemin provider utiliser :
 
 ```bash
-mailclaw providers
+mailclaws providers
 ```
 
 ## Ouvrir L’Onglet Mail
@@ -68,7 +68,7 @@ mailclaw providers
 Chemin hôte recommandé :
 
 ```bash
-mailclaw dashboard
+mailclaws dashboard
 ```
 
 Ensuite, connectez-vous à OpenClaw/Gateway et cliquez sur `Mail`.
@@ -76,7 +76,7 @@ Ensuite, connectez-vous à OpenClaw/Gateway et cliquez sur `Mail`.
 Secours direct :
 
 ```bash
-mailclaw open
+mailclaws open
 ```
 
 ou ouvrez :
@@ -89,16 +89,16 @@ http://127.0.0.1:3000/workbench/mail
 
 ## Envoyer Votre Premier Vrai Email {#three-minute-first-mail}
 
-1. Connectez une boîte mail avec `mailclaw login`.
-2. Copiez l’adresse connectée depuis l’onglet Mail ou `mailclaw accounts`.
+1. Connectez une boîte mail avec `mailclaws login`.
+2. Copiez l’adresse connectée depuis l’onglet Mail ou `mailclaws accounts`.
 3. Envoyez un email à cette adresse depuis une autre boîte.
 4. Ouvrez l’onglet Mail.
 5. Ouvrez le compte connecté, puis la nouvelle room.
 
-C’est la boucle centrale de MailClaw :
+C’est la boucle centrale de MailClaws :
 
 - un vrai email arrive
-- MailClaw crée ou met à jour une room
+- MailClaws crée ou met à jour une room
 - les agents travaillent à l’intérieur de cette room
 - vous inspectez le résultat depuis l’onglet Mail
 
@@ -121,12 +121,12 @@ Si vous voulez inspecter la collaboration interne des agents après le premier m
 
 Si vous utilisez déjà OpenClaw, gardez le même workflow externe :
 
-1. démarrez MailClaw
-2. lancez `mailclaw dashboard`
+1. démarrez MailClaws
+2. lancez `mailclaws dashboard`
 3. entrez dans la console hôte
 4. cliquez sur `Mail`
 
-MailClaw doit ressembler à un onglet Mail supplémentaire dans la coque OpenClaw existante, pas à une console séparée qu’il faut apprendre d’abord.
+MailClaws doit ressembler à un onglet Mail supplémentaire dans la coque OpenClaw existante, pas à une console séparée qu’il faut apprendre d’abord.
 
 ## Étapes Suivantes
 

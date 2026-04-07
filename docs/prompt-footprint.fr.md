@@ -1,6 +1,6 @@
 # Empreinte Prompt
 
-MailClaw utilise maintenant un comportement **pre-first** :
+MailClaws utilise maintenant un comportement **pre-first** :
 
 - lire d'abord le dernier email entrant
 - charger le dernier snapshot Pre persistant du room
@@ -28,7 +28,7 @@ Mesuré dans ce dépôt le `2026-03-28` :
 
 ## Interprétation
 
-- Par rapport à une approche session-first / full-transcript, MailClaw réduit généralement le volume prompt principal d'environ `60%` à `75%` sur les rooms longs.
+- Par rapport à une approche session-first / full-transcript, MailClaws réduit généralement le volume prompt principal d'environ `60%` à `75%` sur les rooms longs.
 - En multi-agent fan-in, les résumés du reducer évitent de relire tous les transcripts workers, avec un gain souvent proche de `75%` à `80%`.
 
 ## Note

@@ -17,12 +17,12 @@ afterEach(() => {
 
 describe("initializeDatabase", () => {
   it("creates the sqlite file, schema metadata, and a control-plane-only outbox schema", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const handle = initializeDatabase(config);
@@ -105,12 +105,12 @@ describe("initializeDatabase", () => {
   });
 
   it("reopens an already-initialized database while another handle is still active", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-db-reopen-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-db-reopen-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const first = initializeDatabase(config);

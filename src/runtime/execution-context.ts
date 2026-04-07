@@ -283,7 +283,7 @@ function assertPathWithinRoot(stateRoot: string, targetPath: string | undefined,
 
   const resolvedTarget = path.resolve(targetPath);
   if (resolvedTarget !== stateRoot && !resolvedTarget.startsWith(`${stateRoot}${path.sep}`)) {
-    throw new Error(`${label} must stay within the MailClaw state directory`);
+    throw new Error(`${label} must stay within the MailClaws state directory`);
   }
 }
 

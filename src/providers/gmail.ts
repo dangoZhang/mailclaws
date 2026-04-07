@@ -1001,7 +1001,7 @@ function buildRawMimeMessage(input: {
   const lines = Object.entries(input.headers).map(([name, value]) => `${name}: ${value}`);
 
   if (input.htmlBody) {
-    const boundary = `mailclaw-${Math.random().toString(16).slice(2)}`;
+    const boundary = `mailclaws-${Math.random().toString(16).slice(2)}`;
     lines.push("MIME-Version: 1.0");
     lines.push(`Content-Type: multipart/alternative; boundary="${boundary}"`);
     lines.push("");

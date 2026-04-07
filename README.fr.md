@@ -1,4 +1,4 @@
-# MailClaw
+# MailClaws
 
 <p align="center">
   Runtime email-native pour un travail durable, auditable et multi-agent.
@@ -11,16 +11,16 @@
 </p>
 
 <p align="center">
-  <a href="https://dangozhang.github.io/mailclaw/">Docs</a> ·
-  <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/ci.yml">CI</a> ·
-  <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/release.yml">Release</a>
+  <a href="https://dangozhang.github.io/mailclaws/">Docs</a> ·
+  <a href="https://github.com/dangoZhang/mailclaws/actions/workflows/ci.yml">CI</a> ·
+  <a href="https://github.com/dangoZhang/mailclaws/actions/workflows/release.yml">Release</a>
 </p>
 
-MailClaw transforme les conversations email en rooms durables. Le runtime garde dans une seule couche la vérité de la room, le courrier interne entre agents, les approbations, le replay et la livraison sortante gouvernée.
+MailClaws transforme les conversations email en rooms durables. Le runtime garde dans une seule couche la vérité de la room, le courrier interne entre agents, les approbations, le replay et la livraison sortante gouvernée.
 
-MailClaw n’impose pas un fournisseur unique. Commencez avec l’adresse email que vous utilisez déjà, laissez MailClaw recommander le bon chemin provider, puis connectez cette mailbox. Les chemins intégrés couvrent les principaux providers hébergés ainsi que les comptes IMAP/SMTP génériques.
+MailClaws n’impose pas un fournisseur unique. Commencez avec l’adresse email que vous utilisez déjà, laissez MailClaws recommander le bon chemin provider, puis connectez cette mailbox. Les chemins intégrés couvrent les principaux providers hébergés ainsi que les comptes IMAP/SMTP génériques.
 
-## Pourquoi MailClaw
+## Pourquoi MailClaws
 
 - une conversation externe devient une room durable
 - les agents collaborent par email interne au lieu de partager un transcript géant
@@ -46,20 +46,20 @@ Les parcours d’installation documentés couvrent aussi :
 
 ```bash
 pnpm install
-MAILCLAW_FEATURE_MAIL_INGEST=true pnpm mailclaw
+MAILCLAW_FEATURE_MAIL_INGEST=true pnpm mailclaws
 ```
 
 Puis dans un second terminal :
 
 ```bash
-pnpm mailclaw onboard you@example.com
-pnpm mailclaw login
-pnpm mailclaw dashboard
+pnpm mailclaws onboard you@example.com
+pnpm mailclaws login
+pnpm mailclaws dashboard
 ```
 
 Parcours recommandé :
 
-1. Démarrer MailClaw.
+1. Démarrer MailClaws.
 2. Connecter une mailbox que vous utilisez déjà.
 3. Envoyer un email de test depuis une autre mailbox.
 4. Ouvrir l’onglet `Mail` dans le workbench style Gateway.
@@ -81,11 +81,11 @@ Puis ouvrir `http://127.0.0.1:3020/workbench/mail`.
 - `Approvals` : emails sortants en attente d’approbation
 - `Mail` : onglet Mail intégré dans la coque OpenClaw-style
 
-MailClaw garde la collaboration interne lisible. Vous pouvez voir quel agent a pris la tâche, quel worker a répondu, quelle review a bloqué un draft et quel résultat approuvé est finalement parti dans l’outbox.
+MailClaws garde la collaboration interne lisible. Vous pouvez voir quel agent a pris la tâche, quel worker a répondu, quelle review a bloqué un draft et quel résultat approuvé est finalement parti dans l’outbox.
 
 ## Modèle Multi-Agent
 
-MailClaw sépare clairement trois choses :
+MailClaws sépare clairement trois choses :
 
 - `Room` : la vérité durable d’une conversation externe
 - `Virtual Mail` : le protocole de communication interne entre agents
@@ -95,7 +95,7 @@ Les agents durables gardent leur propre `SOUL.md`, leurs mailboxes de rôle et l
 
 ## Relation Avec OpenClaw
 
-MailClaw ne remplace pas OpenClaw. Il ajoute au-dessus de cet écosystème les capacités email-native qui manquent :
+MailClaws ne remplace pas OpenClaw. Il ajoute au-dessus de cet écosystème les capacités email-native qui manquent :
 
 - room-first truth au lieu de session-first truth
 - threading email et ingest provider
@@ -107,11 +107,11 @@ MailClaw ne remplace pas OpenClaw. Il ajoute au-dessus de cet écosystème les c
 
 La documentation est le guide produit canonique :
 
-- Docs : <https://dangozhang.github.io/mailclaw/>
-- Prise en main : <https://dangozhang.github.io/mailclaw/fr/getting-started>
-- Concepts : <https://dangozhang.github.io/mailclaw/fr/concepts>
-- Flux multi-agent : <https://dangozhang.github.io/mailclaw/fr/multi-agent-workflows>
-- Console opérateur : <https://dangozhang.github.io/mailclaw/fr/operator-console>
+- Docs : <https://dangozhang.github.io/mailclaws/>
+- Prise en main : <https://dangozhang.github.io/mailclaws/fr/getting-started>
+- Concepts : <https://dangozhang.github.io/mailclaws/fr/concepts>
+- Flux multi-agent : <https://dangozhang.github.io/mailclaws/fr/multi-agent-workflows>
+- Console opérateur : <https://dangozhang.github.io/mailclaws/fr/operator-console>
 
 Lancer la doc en local :
 
@@ -127,7 +127,7 @@ pnpm docs:build
 
 ## État Actuel
 
-MailClaw livre déjà :
+MailClaws livre déjà :
 
 - room kernel et replay
 - onboarding provider et connexion mailbox
@@ -138,7 +138,7 @@ MailClaw livre déjà :
 
 Limites et frontières actuelles :
 
-- <https://dangozhang.github.io/mailclaw/fr/security-boundaries>
+- <https://dangozhang.github.io/mailclaws/fr/security-boundaries>
 
 ## Licence
 

@@ -8,7 +8,7 @@ import type {
   ProviderMailEnvelope
 } from "./types.js";
 
-const DEFAULT_MESSAGE_ID_PREFIX = "mailclaw";
+const DEFAULT_MESSAGE_ID_PREFIX = "mailclaws";
 
 export function normalizeMailEnvelope(input: ProviderMailEnvelope): NormalizedMailEnvelope {
   const headers = normalizeHeaders(input.headers ?? []);

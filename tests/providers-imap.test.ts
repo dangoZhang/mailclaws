@@ -71,7 +71,7 @@ describe("imap provider adapter", () => {
         envelope: {
           subject: "first",
           from: [{ name: "Sender", address: "sender@example.com" }],
-          to: [{ address: "mailclaw@example.com" }],
+          to: [{ address: "mailclaws@example.com" }],
           date: new Date("2026-03-25T00:00:00.000Z")
         },
         source: "raw-101"
@@ -81,7 +81,7 @@ describe("imap provider adapter", () => {
         envelope: {
           subject: "second",
           from: [{ address: "sender@example.com" }],
-          to: [{ address: "mailclaw@example.com" }],
+          to: [{ address: "mailclaws@example.com" }],
           date: new Date("2026-03-25T00:01:00.000Z")
         },
         source: "raw-102"
@@ -91,13 +91,13 @@ describe("imap provider adapter", () => {
     const batch = await fetchConfiguredImapMessages(
       {
         accountId: "acct-imap",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         checkpoint: "100",
         settings: {
           host: "imap.example.com",
           port: 993,
           secure: true,
-          username: "mailclaw@example.com",
+          username: "mailclaws@example.com",
           password: "secret",
           mailbox: "INBOX"
         },
@@ -135,7 +135,7 @@ describe("imap provider adapter", () => {
         port: 993,
         secure: true,
         auth: {
-          user: "mailclaw@example.com",
+          user: "mailclaws@example.com",
           pass: "secret"
         }
       })
@@ -153,7 +153,7 @@ describe("imap provider adapter", () => {
       uid: "101",
       subject: "first",
       from: [{ email: "sender@example.com", name: "Sender" }],
-      to: [{ email: "mailclaw@example.com" }]
+      to: [{ email: "mailclaws@example.com" }]
     });
     expect(batch.messages[1]?.raw).toBe("raw-102");
   });
@@ -257,13 +257,13 @@ describe("imap provider adapter", () => {
     const batch = await fetchConfiguredImapMessages(
       {
         accountId: "acct-imap",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         checkpoint: "100",
         settings: {
           host: "imap.example.com",
           port: 993,
           secure: true,
-          username: "mailclaw@example.com",
+          username: "mailclaws@example.com",
           password: "secret",
           mailbox: "INBOX",
           watch: {

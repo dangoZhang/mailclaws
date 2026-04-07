@@ -24,12 +24,12 @@ afterEach(() => {
 
 describe("thread room persistence", () => {
   it("stores thread rooms and appends ordered ledger events", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-room-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-room-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const handle = initializeDatabase(config);

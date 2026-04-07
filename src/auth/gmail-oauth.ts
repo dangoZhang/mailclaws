@@ -213,7 +213,7 @@ export function renderGmailOAuthCallbackHtml(input: {
       <h1>${escapeHtml(input.title)}</h1>
       <p>${escapeHtml(input.message)}</p>
       ${details}
-      <p>You can close this window and return to MailClaw.</p>
+      <p>You can close this window and return to MailClaws.</p>
     </main>
   </body>
 </html>`;

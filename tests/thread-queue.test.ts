@@ -28,12 +28,12 @@ afterEach(() => {
 });
 
 function createDb() {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-queue-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-queue-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
   });
 
   const handle = initializeDatabase(config);

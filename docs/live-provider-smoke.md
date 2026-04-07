@@ -45,7 +45,7 @@ pnpm mailctl observe accounts
 
 - 能连上真实 IMAP 并返回合法 batch
 - 能得到 durable `uidValidity`
-- 能通过真实 SMTP 发出一封 MailClaw outbox message
+- 能通过真实 SMTP 发出一封 MailClaws outbox message
 
 人工补充检查：
 

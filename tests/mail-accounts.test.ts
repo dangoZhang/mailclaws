@@ -22,20 +22,20 @@ afterEach(() => {
 
 describe("mail account repository", () => {
   it("stores and lists account metadata", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-accounts-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-accounts-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
 
     upsertMailAccount(handle.db, {
       accountId: "acct-1",
       provider: "imap",
-      emailAddress: "mailclaw@example.com",
-      displayName: "MailClaw",
+      emailAddress: "mailclaws@example.com",
+      displayName: "MailClaws",
       status: "active",
       settings: {
         host: "imap.example.com"
@@ -50,7 +50,7 @@ describe("mail account repository", () => {
     expect(account).toMatchObject({
       accountId: "acct-1",
       provider: "imap",
-      emailAddress: "mailclaw@example.com"
+      emailAddress: "mailclaws@example.com"
     });
     expect(accounts).toHaveLength(1);
     expect(accounts[0]?.settings).toMatchObject({

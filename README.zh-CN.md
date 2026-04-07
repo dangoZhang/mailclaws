@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <a href="https://dangozhang.github.io/mailclaw/">网站</a> ·
-  <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/ci.yml">CI</a> ·
-  <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/release.yml">Release</a>
+  <a href="https://dangozhang.github.io/mailclaws/">网站</a> ·
+  <a href="https://github.com/dangoZhang/mailclaws/actions/workflows/ci.yml">CI</a> ·
+  <a href="https://github.com/dangoZhang/mailclaws/actions/workflows/release.yml">Release</a>
 </p>
 
 <p align="center">
@@ -78,15 +78,15 @@ MailClaws 更轻。不是口号。是结构决定的。
 
 ```bash
 ./install.sh
-MAILCLAW_FEATURE_MAIL_INGEST=true mailclaw
+MAILCLAW_FEATURE_MAIL_INGEST=true mailclaws
 ```
 
 再开一个终端：
 
 ```bash
-mailclaw onboard you@example.com
-mailclaw login
-mailclaw dashboard
+mailclaws onboard you@example.com
+mailclaws login
+mailclaws dashboard
 ```
 
 然后这样体验：
@@ -108,14 +108,14 @@ mailclaw dashboard
 
 模板实现代码在这里：
 
-- <https://github.com/dangoZhang/mailclaw/blob/main/src/agents/templates.ts>
+- <https://github.com/dangoZhang/mailclaws/blob/main/src/agents/templates.ts>
 
 应用大编制模板时，生成出来的 `SOUL.md` 会带上上游对齐说明和角色契约，避免只剩名字像、行为却越来越散。
 
 ## 网站与工作台
 
-- 网站：<https://dangozhang.github.io/mailclaw/>
-- 工作台：运行 `mailclaw dashboard`，登录后点击 `Mail`
+- 网站：<https://dangozhang.github.io/mailclaws/>
+- 工作台：运行 `mailclaws dashboard`，登录后点击 `Mail`
 
 网站负责解释模型。  
 工作台负责把系统真相直接展示给你。

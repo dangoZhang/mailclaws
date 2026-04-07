@@ -6,8 +6,8 @@ import { ensureSupportedNodeVersion, suppressKnownNodeWarnings } from "./node-ru
 
 ensureSupportedNodeVersion();
 suppressKnownNodeWarnings();
-void import("./mailclaw-main.js").then(({ runMailclaw }) => {
-  void runMailclaw(process.argv.slice(2)).then((code) => {
+void import("./mailclaws-main.js").then(({ runMailclaws }) => {
+  void runMailclaws(process.argv.slice(2)).then((code) => {
     process.exitCode = code;
   });
 });

@@ -6,22 +6,22 @@
   <a href="./release-assets.fr.md">Français</a>
 </p>
 
-This page defines the repo-native release copy and diagrams for the current MailClaw release shape. Use these assets for README hero copy, `/workbench/mail` positioning, and demo walkthroughs.
+This page defines the repo-native release copy and diagrams for the current MailClaws release shape. Use these assets for README hero copy, `/workbench/mail` positioning, and demo walkthroughs.
 
 For the release-ready changelog and GitHub release body, see [Release Notes: v0.1.0](./release-notes-v0.1.0.md).
 
 ## Release Narrative
 
-- Release headline: MailClaw turns email threads into durable, governed rooms for multi-agent work.
+- Release headline: MailClaws turns email threads into durable, governed rooms for multi-agent work.
 - Release subhead: External email stays transport. Internal coordination becomes virtual mail. Final delivery stays approval-gated, replayable, and inspectable.
-- Launch angle: ship MailClaw as an email-native runtime and workbench surface, not as a generic chat wrapper and not as a full mailbox replacement.
+- Launch angle: ship MailClaws as an email-native runtime and workbench surface, not as a generic chat wrapper and not as a full mailbox replacement.
 
 ## Hero Copy
 
-- One-liner: MailClaw is an email-native runtime for durable, auditable, multi-agent work.
-- Positioning: OpenClaw remains the upstream ecosystem substrate; MailClaw owns room truth, virtual mail collaboration semantics, approval/outbox governance, and replay/recovery.
+- One-liner: MailClaws is an email-native runtime for durable, auditable, multi-agent work.
+- Positioning: OpenClaw remains the upstream ecosystem substrate; MailClaws owns room truth, virtual mail collaboration semantics, approval/outbox governance, and replay/recovery.
 - Boundary: the current Mail workbench is read-only and not a full mailbox client.
-- Short pitch: MailClaw keeps external mail transport-compatible while moving state, approvals, and recovery into a kernel-first room ledger.
+- Short pitch: MailClaws keeps external mail transport-compatible while moving state, approvals, and recovery into a kernel-first room ledger.
 - Workbench pitch: Teams can inspect room history, approvals, provider state, mailbox feeds, inbox pressure, and Gateway projection traces from one surface.
 
 ## What Ships In This Release
@@ -38,7 +38,7 @@ For the release-ready changelog and GitHub release body, see [Release Notes: v0.
 - Do not position this release as a full Outlook-like mailbox client.
 - Do not imply upstream Gateway or Workbench event-stream automation is complete end to end.
 - Do not imply workers or subagents can bypass outbox intents for real external delivery.
-- Do not imply MailClaw replaces provider auth, transport policy, or mailbox-native compliance controls.
+- Do not imply MailClaws replaces provider auth, transport policy, or mailbox-native compliance controls.
 
 ## Proof Points For Launch Copy
 
@@ -63,7 +63,7 @@ For the release-ready changelog and GitHub release body, see [Release Notes: v0.
 ## Ready-To-Publish Copy Snippets
 
 - Announcement opener:
-  "MailClaw now ships as an email-native workbench runtime: room truth, virtual mail collaboration, and governed outbound delivery."
+  "MailClaws now ships as an email-native workbench runtime: room truth, virtual mail collaboration, and governed outbound delivery."
 - Boundary-safe closer:
   "This release ships a read-only Mail workbench and durable control-plane primitives; it does not yet ship a full mailbox client."
 - Workbench CTA:
@@ -107,7 +107,7 @@ flowchart LR
     L2["Implicit state"]
     L3["Weak replay"]
   end
-  subgraph Right["MailClaw Room / Ledger"]
+  subgraph Right["MailClaws Room / Ledger"]
     R1["Room truth"]
     R2["Virtual mail causality"]
     R3["Approval / Outbox governance"]
@@ -117,7 +117,7 @@ flowchart LR
 
 ## Demo Storyboard
 
-1. Show a real inbound email or Gateway turn landing in MailClaw.
+1. Show a real inbound email or Gateway turn landing in MailClaws.
 2. Open the room detail and point out revisioned timeline, room truth, and replayability.
 3. Show internal collaboration as mailbox/feed activity rather than hidden transcript mutation.
 4. Show reviewer, guard, approval, or outbox state before any real outbound delivery.

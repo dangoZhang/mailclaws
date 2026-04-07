@@ -1,6 +1,6 @@
 # Core Concepts
 
-To understand MailClaw, you only need to hold a few ideas in your head.
+To understand MailClaws, you only need to hold a few ideas in your head.
 
 ## 1. Room
 
@@ -35,7 +35,7 @@ Its constraints matter:
 
 ## 3. Pre-First Memory
 
-MailClaw does not build long-term memory on raw reasoning traces.
+MailClaws does not build long-term memory on raw reasoning traces.
 
 Instead it works like this:
 
@@ -53,7 +53,7 @@ Pre usually contains:
 
 ## 4. ReAct-Pre
 
-MailClaw's behavior model can be summarized like this:
+MailClaws's behavior model can be summarized like this:
 
 1. React inside scratch space
 2. Compress the result into Pre
@@ -67,7 +67,7 @@ That means:
 
 ## 5. Approval And Outbox
 
-MailClaw separates side effects from reasoning.
+MailClaws separates side effects from reasoning.
 
 The normal path is:
 
@@ -99,7 +99,7 @@ It is not just a chat history viewer. It exposes the runtime model directly.
 
 ## 7. Durable Agents
 
-Long-lived MailClaw agents are not anonymous workers.
+Long-lived MailClaws agents are not anonymous workers.
 
 Each durable agent has its own:
 
@@ -118,7 +118,7 @@ That keeps multi-agent coordination grounded in a durable roster instead of one 
 
 ## 8. Templates And HeadCount
 
-MailClaw supports three ways to grow an agent roster:
+MailClaws supports three ways to grow an agent roster:
 
 - built-in templates
 - custom durable agents
@@ -128,4 +128,4 @@ Templates are the fast starting point. HeadCount helps decide which roles should
 
 ## In One Sentence
 
-MailClaw turns email into durable rooms, multi-agent collaboration into virtual mail, and long-term memory into compact Pre.
+MailClaws turns email into durable rooms, multi-agent collaboration into virtual mail, and long-term memory into compact Pre.

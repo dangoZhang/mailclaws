@@ -1,6 +1,6 @@
 # Security Boundaries
 
-MailClaw treats all inbound email, headers, and attachments as untrusted input.
+MailClaws treats all inbound email, headers, and attachments as untrusted input.
 
 ## Inbound Guardrails
 

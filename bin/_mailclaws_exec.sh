@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ "$#" -lt 1 ]; then
-  echo "mailclaw launcher missing target entrypoint" >&2
+  echo "mailclaws launcher missing target entrypoint" >&2
   exit 1
 fi
 
@@ -76,7 +76,7 @@ if [ -z "$NODE_BIN" ]; then
   fi
 
   echo >&2
-  echo "MailClaw requires Node.js 22+ because it uses the built-in node:sqlite module." >&2
+  echo "MailClaws requires Node.js 22+ because it uses the built-in node:sqlite module." >&2
   echo "Current runtime: ${CURRENT_VERSION} (${CURRENT_PATH})" >&2
   echo "Install Node 22+ or place a Node 22 binary earlier in PATH and retry." >&2
   exit 1

@@ -149,7 +149,7 @@ describe("mail io command", () => {
           settings: {
             gmail: {
               accessToken: "token",
-              topicName: "projects/example/topics/mailclaw"
+              topicName: "projects/example/topics/mailclaws"
             }
           },
           notification: {

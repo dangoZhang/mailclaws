@@ -900,7 +900,7 @@ function buildMailboxDeliveries(input: {
 }
 
 function buildVirtualMessageIdHeader(messageId: string) {
-  return `<virtual-mail.${messageId}@mailclaw.internal>`;
+  return `<virtual-mail.${messageId}@mailclaws.internal>`;
 }
 
 function appendReference(references: string[], messageIdHeader: string) {

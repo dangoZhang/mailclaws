@@ -27,12 +27,12 @@ afterEach(() => {
 });
 
 function createFixture(configOverrides: Record<string, string> = {}) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-inbox-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-inbox-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     ...configOverrides
   });

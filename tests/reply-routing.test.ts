@@ -21,12 +21,12 @@ afterEach(() => {
 
 describe("reply routing", () => {
   it("preserves reply-all participants without leaking bcc recipients", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-reply-routing-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-reply-routing-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true"
     });
@@ -54,7 +54,7 @@ describe("reply routing", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-1",
           messageId: "<msg-1@example.com>",
@@ -62,8 +62,8 @@ describe("reply routing", () => {
           from: {
             email: "alice@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }, { email: "bob@example.com" }],
-          cc: [{ email: "carol@example.com" }, { email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }, { email: "bob@example.com" }],
+          cc: [{ email: "carol@example.com" }, { email: "mailclaws@example.com" }],
           bcc: [{ email: "hidden@example.com" }],
           replyTo: [{ email: "support@example.com" }],
           headers: [
@@ -93,14 +93,13 @@ describe("reply routing", () => {
 
     const replay = replayRoom(handle.db, processed?.roomKey ?? "");
     expect(replay.room).toMatchObject({
-      frontAgentAddress: "mailclaw@example.com",
-      publicAgentAddresses: ["mailclaw@example.com"],
-      collaboratorAgentAddresses: []
+      frontAgentAddress: "mailclaws@example.com",
+      publicAgentAddresses: ["mailclaws@example.com"]
     });
     expect(replay.participants).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          emailAddress: "mailclaw@example.com",
+          emailAddress: "mailclaws@example.com",
           participantType: "agent",
           visibility: "visible"
         }),
@@ -116,12 +115,12 @@ describe("reply routing", () => {
   });
 
   it("uses canonical public aliases for replies and strips internal worker aliases", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-alias-routing-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-alias-routing-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true"
     });
@@ -209,8 +208,7 @@ describe("reply routing", () => {
     const replay = replayRoom(handle.db, processed?.roomKey ?? "");
     expect(replay.room).toMatchObject({
       frontAgentAddress: "research@ai.example.com",
-      publicAgentAddresses: ["research@ai.example.com", "assistant@ai.example.com"],
-      collaboratorAgentAddresses: []
+      publicAgentAddresses: ["research@ai.example.com", "assistant@ai.example.com"]
     });
     expect(replay.participants).toEqual(
       expect.arrayContaining([
@@ -237,12 +235,12 @@ describe("reply routing", () => {
   });
 
   it("persists additional public agent aliases as visible collaborator agents", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-collaborator-routing-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-collaborator-routing-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true"
     });
@@ -363,12 +361,12 @@ describe("reply routing", () => {
   });
 
   it("keeps the original front agent identity stable across later replies", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-front-agent-stability-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-front-agent-stability-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true"
     });

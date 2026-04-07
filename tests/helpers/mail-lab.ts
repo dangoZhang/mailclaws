@@ -180,7 +180,7 @@ function buildRawMime(input: {
     ].join("\r\n");
   }
 
-  const boundary = "mailclaw-boundary";
+  const boundary = "mailclaws-boundary";
   const parts = [
     ...input.headers.map((header) => `${header.name}: ${header.value}`),
     "MIME-Version: 1.0",

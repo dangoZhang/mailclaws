@@ -50,7 +50,6 @@
     "benchmark:prompt-footprint:json": "tsx scripts/benchmark-prompt-footprint.mts --json",
     "lint": "eslint .",
     "mailclaws": "tsx src/cli/mailclaws.ts",
-    "mailclaw": "tsx src/cli/mailclaw.ts",
     "mailclawsctl": "tsx src/cli/mailclawsctl.ts",
     "mailctl": "tsx src/cli/mailctl.ts",
     "mailclawsioctl": "tsx src/cli/mailclawsioctl.ts",
@@ -74,7 +73,6 @@
   },
   "bin": {
     "mailclaws": "./bin/mailclaws",
-    "mailclaw": "./bin/mailclaw",
     "mailclawsctl": "./bin/mailclawsctl",
     "mailctl": "./bin/mailctl",
     "mailclawsioctl": "./bin/mailclawsioctl",

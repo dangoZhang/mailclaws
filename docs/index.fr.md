@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: MailClaw
+  name: MailClaws
   text: Le Travail Email Qui Garde Sa Forme
-  tagline: MailClaw transforme les conversations email en rooms durables, fait collaborer les agents via du courrier interne, et garde la mémoire longue comme un état Pre compact au lieu d’un transcript qui gonfle.
+  tagline: MailClaws transforme les conversations email en rooms durables, fait collaborer les agents via du courrier interne, et garde la mémoire longue comme un état Pre compact au lieu d’un transcript qui gonfle.
   actions:
     - theme: brand
       text: Démarrer En 3 Minutes
@@ -22,18 +22,18 @@ features:
   - title: Les Agents Collaborent Avec La Sémantique Du Mail
     details: Les agents ne partagent pas un transcript géant. Ils travaillent via des mailboxes virtuelles, des work threads, des replies single-parent et un fan-in piloté par reducer.
   - title: La Mémoire Pre Reste Compacte
-    details: MailClaw conserve des résumés, faits, décisions et engagements comme état Pre durable. Les traces scratch et tentatives ratées restent hors de la mémoire longue par défaut.
+    details: MailClaws conserve des résumés, faits, décisions et engagements comme état Pre durable. Les traces scratch et tentatives ratées restent hors de la mémoire longue par défaut.
   - title: L’Outbound Est Gouverné
     details: Les effets externes passent par draft, review, approval et outbox. Les workers et les mails internes ne peuvent pas contourner cette porte.
   - title: Un Seul Onglet Mail Pour Toute L’Histoire
     details: Accounts, rooms, mailboxes et approvals restent visibles depuis le même onglet Mail aligné sur OpenClaw, avec des deep links stables quand il le faut.
 ---
 
-## Pourquoi MailClaw
+## Pourquoi MailClaws
 
-La plupart des systèmes d’agents traitent l’email comme un transport de plus. MailClaw non.
+La plupart des systèmes d’agents traitent l’email comme un transport de plus. MailClaws non.
 
-MailClaw traite l’email comme la surface de travail elle-même :
+MailClaws traite l’email comme la surface de travail elle-même :
 
 - l’email externe devient un état de room durable
 - la collaboration multi-agent interne devient du virtual mail
@@ -73,7 +73,7 @@ Les agents collaborent via du virtual mail, pas via un gros bloc de contexte par
 
 ### 3. Pre
 
-MailClaw utilise un modèle de mémoire pre-first.
+MailClaws utilise un modèle de mémoire pre-first.
 
 - les agents travaillent dans un espace scratch temporaire
 - à la fin d’un tour, le résultat utile est compressé en état Pre durable
@@ -82,7 +82,7 @@ MailClaw utilise un modèle de mémoire pre-first.
 
 ### 4. Governed Delivery
 
-MailClaw sépare la réflexion des effets externes.
+MailClaws sépare la réflexion des effets externes.
 
 - les workers peuvent produire des drafts, des preuves et des recommandations
 - la delivery externe réelle ne passe que par review, approval et outbox
@@ -97,11 +97,11 @@ MailClaw sépare la réflexion des effets externes.
 
 ## Pour Les Utilisateurs OpenClaw
 
-MailClaw est conçu pour s’insérer dans un workflow à la OpenClaw :
+MailClaws est conçu pour s’insérer dans un workflow à la OpenClaw :
 
-- démarrez le runtime avec `mailclaw`
-- ouvrez la console hôte avec `mailclaw dashboard`
-- cliquez sur `Mail` pour entrer dans le workbench MailClaw
-- utilisez `mailclaw open` seulement comme route de secours directe
+- démarrez le runtime avec `mailclaws`
+- ouvrez la console hôte avec `mailclaws dashboard`
+- cliquez sur `Mail` pour entrer dans le workbench MailClaws
+- utilisez `mailclaws open` seulement comme route de secours directe
 
 Le but n’est pas de remplacer la coque OpenClaw. Le but est d’ajouter un runtime orienté email et un onglet Mail qui comprend les rooms, le virtual mail, la mémoire Pre et la delivery gouvernée.

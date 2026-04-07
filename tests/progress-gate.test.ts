@@ -26,7 +26,7 @@ function buildEnvelope(): ProviderMailEnvelope {
     from: {
       email: "sender@example.com"
     },
-    to: [{ email: "mailclaw@example.com" }],
+    to: [{ email: "mailclaws@example.com" }],
     text: "Please handle this long task.",
     headers: [
       {
@@ -39,12 +39,12 @@ function buildEnvelope(): ProviderMailEnvelope {
 
 describe("progress reply handling", () => {
   it("emits progress before final when the run exceeds the progress interval", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-progress-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-progress-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
       MAILCLAW_REPORTING_ACK_TIMEOUT_MS: "8000",
@@ -75,7 +75,7 @@ describe("progress reply handling", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope()
       }
     );

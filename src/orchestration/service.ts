@@ -1030,7 +1030,7 @@ export async function processLeasedRoomJob(
       revision: leased.revision,
       runId,
       message,
-      mailboxAddress: room.frontAgentAddress ?? message.mailboxAddress ?? "mailclaw@example.com",
+      mailboxAddress: room.frontAgentAddress ?? message.mailboxAddress ?? "mailclaws@example.com",
       ackNeeded:
         Date.parse(execution.completedAt) - Date.parse(execution.startedAt) >=
         deps.config.reporting.ackTimeoutMs,
@@ -1055,7 +1055,7 @@ export async function processLeasedRoomJob(
       persistOutboundMessageIndex(deps.db, {
         accountId: room.accountId,
         stableThreadId: room.stableThreadId,
-        mailboxAddress: room.frontAgentAddress ?? message.mailboxAddress ?? "mailclaw@example.com",
+        mailboxAddress: room.frontAgentAddress ?? message.mailboxAddress ?? "mailclaws@example.com",
         record
       });
       if (record.status === "pending_approval") {
@@ -2219,7 +2219,7 @@ function buildVirtualBodyRef(input: {
 function normalizeWorkerInputRef(ref: string) {
   return /^[a-z][a-z0-9+.-]*:(\/\/)?/i.test(ref) || /^(\/|\.\/|\.\.\/|[A-Za-z]:[\\/])/.test(ref)
     ? ref
-    : `mailclaw-ref:${encodeURIComponent(ref)}`;
+    : `mailclaws-ref:${encodeURIComponent(ref)}`;
 }
 
 function emitReducerFinalReady(input: {
@@ -3348,8 +3348,14 @@ function formatWorkerContext(workerSummaries: WorkerExecutionSummary[]) {
 }
 
 function formatRoutingContext(room: NonNullable<ReturnType<typeof getThreadRoom>>) {
+  const frontAgentIdentity = room.frontAgentId ?? room.frontAgentAddress;
+  const visibleCollaboratorAgents: string[] =
+    (room.collaboratorAgentIds?.length ?? 0) > 0
+      ? [...(room.collaboratorAgentIds ?? [])]
+      : [...(room.collaboratorAgentAddresses ?? [])];
   const lines = [
     room.frontAgentId ? `- Front agent: ${room.frontAgentId}` : "",
+    frontAgentIdentity ? `- Front agent identity: ${frontAgentIdentity}` : "",
     room.frontAgentAddress ? `- Front mailbox identity: ${room.frontAgentAddress}` : "",
     (room.publicAgentIds?.length ?? 0) > 0
       ? `- Public agents: ${room.publicAgentIds?.join(", ")}`
@@ -3357,8 +3363,8 @@ function formatRoutingContext(room: NonNullable<ReturnType<typeof getThreadRoom>
     (room.publicAgentAddresses?.length ?? 0) > 0
       ? `- Public agent identities: ${room.publicAgentAddresses?.join(", ")}`
       : "",
-    (room.collaboratorAgentIds?.length ?? 0) > 0
-      ? `- Visible collaborator agents: ${room.collaboratorAgentIds?.join(", ")}`
+    visibleCollaboratorAgents.length > 0
+      ? `- Visible collaborator agents: ${visibleCollaboratorAgents.join(", ")}`
       : "",
     (room.collaboratorAgentAddresses?.length ?? 0) > 0
       ? `- Collaborator mailbox identities: ${room.collaboratorAgentAddresses?.join(", ")}`
@@ -3988,7 +3994,7 @@ function buildOutboxReplies(input: {
     const ack = renderPreToMail(
       {
         ...thread,
-        messageId: `<mailclaw-${randomUUID()}@local>`
+        messageId: `<mailclaws-${randomUUID()}@local>`
       },
       {
         kind: "ack",
@@ -4023,7 +4029,7 @@ function buildOutboxReplies(input: {
     const progress = renderPreToMail(
       {
         ...thread,
-        messageId: `<mailclaw-${randomUUID()}@local>`
+        messageId: `<mailclaws-${randomUUID()}@local>`
       },
       {
         kind: "progress",
@@ -4056,7 +4062,7 @@ function buildOutboxReplies(input: {
   const final = renderPreToMail(
     {
       ...thread,
-      messageId: `<mailclaw-${randomUUID()}@local>`
+      messageId: `<mailclaws-${randomUUID()}@local>`
     },
     {
       kind: "final",

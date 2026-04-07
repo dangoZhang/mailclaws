@@ -1,6 +1,6 @@
 # Multi-Agent Collaboration
 
-MailClaw does not ask multiple agents to share one giant transcript.
+MailClaws does not ask multiple agents to share one giant transcript.
 
 Instead, it turns collaboration into inspectable mail-shaped objects:
 
@@ -14,12 +14,12 @@ Instead, it turns collaboration into inspectable mail-shaped objects:
 
 When one real email arrives:
 
-1. MailClaw opens or updates one room.
+1. MailClaws opens or updates one room.
 2. The front orchestrator reads the latest inbound plus the latest durable Pre state.
 3. If more work is needed, it sends internal task mail to worker mailboxes.
 4. Workers reply through single-parent internal mail.
 5. A reducer or orchestrator converges the results.
-6. Only then can MailClaw create an approval or governed outbox intent.
+6. Only then can MailClaws create an approval or governed outbox intent.
 
 That means:
 
@@ -29,7 +29,7 @@ That means:
 
 ## Durable Agents Versus One-Off Subagents
 
-MailClaw intentionally keeps these execution types separate:
+MailClaws intentionally keeps these execution types separate:
 
 - durable agents have their own `SOUL.md`, public mailbox, and internal role mailboxes
 - one-off subagents are burst compute workers and do not keep a soul
@@ -40,7 +40,7 @@ That means:
 - elastic task execution belongs to subagents
 - subagent output only enters the room collaboration path after it is normalized into internal reply mail
 
-So MailClaw is not “make every agent permanent.” It is “keep durable agents for organization, keep subagents for elastic compute.”
+So MailClaws is not “make every agent permanent.” It is “keep durable agents for organization, keep subagents for elastic compute.”
 
 ## What To Look At In The Workbench
 
@@ -144,17 +144,17 @@ You will mainly inspect `Approvals` plus the room’s `Governed Outbox`.
 If you want the same story from the terminal:
 
 ```bash
-mailclaw rooms
-mailclaw replay <roomKey>
+mailclaws rooms
+mailclaws replay <roomKey>
 mailctl mailbox view <roomKey> <mailboxId>
 mailctl mailbox feed <accountId> <mailboxId>
-mailclaw approvals room <roomKey>
-mailclaw trace <roomKey>
+mailclaws approvals room <roomKey>
+mailclaws trace <roomKey>
 ```
 
-## What MailClaw Intentionally Avoids
+## What MailClaws Intentionally Avoids
 
-MailClaw does not use:
+MailClaws does not use:
 
 - one shared transcript as the authority for all agents
 - subject-only continuity for collaboration truth

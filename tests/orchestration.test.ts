@@ -34,12 +34,12 @@ function createDb(options: {
   roleAgentIds?: Record<string, string>;
   roleExecutionPolicies?: Record<string, Record<string, string>>;
 } = {}) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-orchestrator-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-orchestrator-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
     MAILCLAW_FEATURE_SWARM_WORKERS: options.swarmWorkers ? "true" : "false",
@@ -69,7 +69,7 @@ function buildEnvelope(overrides: Partial<ProviderMailEnvelope> = {}): ProviderM
     },
     to: [
       {
-        email: "mailclaw@example.com"
+        email: "mailclaws@example.com"
       }
     ],
     headers: [
@@ -127,7 +127,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope()
       }
     );
@@ -146,7 +146,7 @@ describe("mail orchestration", () => {
     expect(new Set(processed?.outbox.map((item) => item.headers["Message-ID"]))).toHaveLength(2);
     expect(requests).toHaveLength(1);
     expect(requests[0]?.sessionKey).toContain("hook:mail:acct-1:");
-    expect(requests[0]?.sessionKey).toContain(":front:mailclaw%40example.com:thread:");
+    expect(requests[0]?.sessionKey).toContain(":front:mailclaws%40example.com:thread:");
     expect(requests[0]?.inputText).toContain("Default mail skills for front-orchestrator:");
     expect(requests[0]?.inputText).toContain("Mail Read:");
     expect(requests[0]?.inputText).toContain("Mail Write:");
@@ -262,7 +262,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           providerMessageId: "provider-a",
           messageId: "<msg-a@example.com>",
@@ -277,7 +277,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-2",
-        mailboxAddress: "mailclaw-two@example.com",
+        mailboxAddress: "mailclaws-two@example.com",
         envelope: buildEnvelope({
           providerMessageId: "provider-b",
           messageId: "<msg-b@example.com>",
@@ -532,7 +532,7 @@ describe("mail orchestration", () => {
     handle.close();
   });
 
-  it("keeps replies to MailClaw outbound message ids in the same room", async () => {
+  it("keeps replies to MailClaws outbound message ids in the same room", async () => {
     const { config, handle } = createDb();
     const client: MailAgentExecutor = {
       async executeMailTurn(request) {
@@ -557,7 +557,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope()
       }
     );
@@ -569,7 +569,7 @@ describe("mail orchestration", () => {
     });
     const finalReplyMessageId = firstProcessed?.outbox.find((item) => item.kind === "final")?.headers["Message-ID"];
 
-    expect(finalReplyMessageId).toMatch(/^<mailclaw-[^>]+@local>$/);
+    expect(finalReplyMessageId).toMatch(/^<mailclaws-[^>]+@local>$/);
 
     const secondIngest = ingestIncomingMail(
       {
@@ -578,7 +578,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           providerMessageId: "provider-2",
           messageId: "<msg-2@example.com>",
@@ -654,7 +654,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -785,7 +785,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -891,7 +891,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -1061,7 +1061,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -1349,7 +1349,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         senderPolicy: {
           allowDomains: ["trusted.example"]
         },
@@ -1423,7 +1423,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope()
       }
     );
@@ -1442,7 +1442,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           providerMessageId: "provider-2",
           messageId: "<msg-2@example.com>",
@@ -1543,7 +1543,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope()
       }
     );
@@ -1618,7 +1618,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope()
       }
     );
@@ -1636,7 +1636,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           providerMessageId: "provider-3",
           messageId: "<msg-3@example.com>",
@@ -1686,7 +1686,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -1720,7 +1720,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           rawMime: "From: sender@example.com\nSubject: Raw MIME\n\nOriginal body"
         })
@@ -1772,7 +1772,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -1847,7 +1847,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           text: "Please store the attachment for later.",
           attachments: [
@@ -1869,7 +1869,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           providerMessageId: "provider-2",
           messageId: "<msg-2@example.com>",
@@ -1921,7 +1921,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -1942,7 +1942,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           providerMessageId: "provider-2",
           messageId: "<msg-2@example.com>",
@@ -2041,7 +2041,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -2209,7 +2209,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -2498,7 +2498,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -2663,7 +2663,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           attachments: [
             {
@@ -2706,7 +2706,7 @@ describe("mail orchestration", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: buildEnvelope({
           providerMessageId: "provider-2",
           messageId: "<msg-2@example.com>",

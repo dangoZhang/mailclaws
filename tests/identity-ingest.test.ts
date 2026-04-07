@@ -19,12 +19,12 @@ afterEach(() => {
 
 describe("identity in ingest", () => {
   it("persists trust metadata with the normalized mail", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-identity-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-identity-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -36,7 +36,7 @@ describe("identity in ingest", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-1",
           messageId: "<msg-1@example.com>",
@@ -44,7 +44,7 @@ describe("identity in ingest", () => {
           from: {
             email: "alice@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           replyTo: [{ email: "alice@example.com" }],
           headers: [
             {

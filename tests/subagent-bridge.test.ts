@@ -31,12 +31,12 @@ function createFixture(
     allowExternalSend?: boolean;
   } = {}
 ) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-subagent-bridge-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-subagent-bridge-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_OPENCLAW_BASE_URL: "http://127.0.0.1:11437",
     MAILCLAW_OPENCLAW_GATEWAY_TOKEN: "super-secret"
   });

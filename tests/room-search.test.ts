@@ -19,12 +19,12 @@ afterEach(() => {
 
 describe("room search", () => {
   it("retrieves only content from the current room", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-room-search-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-room-search-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -36,7 +36,7 @@ describe("room search", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-1",
           messageId: "<msg-1@example.com>",
@@ -44,7 +44,7 @@ describe("room search", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Discuss project atlas rollout",
           attachments: [
             {
@@ -70,7 +70,7 @@ describe("room search", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-2",
           messageId: "<msg-2@example.com>",
@@ -78,7 +78,7 @@ describe("room search", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Discuss unrelated phoenix task",
           attachments: [
             {
@@ -111,12 +111,12 @@ describe("room search", () => {
   });
 
   it("supports room-local prefix retrieval for message content", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-room-search-prefix-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-room-search-prefix-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -128,7 +128,7 @@ describe("room search", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-21",
           messageId: "<msg-21@example.com>",
@@ -136,7 +136,7 @@ describe("room search", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Discuss rollout timing and launch checklist.",
           headers: [
             {
@@ -155,7 +155,7 @@ describe("room search", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-22",
           messageId: "<msg-22@example.com>",
@@ -163,7 +163,7 @@ describe("room search", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Discuss phoenix backlog only.",
           headers: [
             {
@@ -189,12 +189,12 @@ describe("room search", () => {
   });
 
   it("retrieves chunk-backed attachment matches from the current room only", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-room-search-chunks-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-room-search-chunks-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -206,7 +206,7 @@ describe("room search", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-11",
           messageId: "<msg-11@example.com>",
@@ -214,7 +214,7 @@ describe("room search", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Need the attachment evidence.",
           attachments: [
             {
@@ -242,7 +242,7 @@ describe("room search", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-12",
           messageId: "<msg-12@example.com>",
@@ -250,7 +250,7 @@ describe("room search", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Other room context.",
           attachments: [
             {
@@ -285,12 +285,12 @@ describe("room search", () => {
   });
 
   it("retrieves durable room-note content after a room snapshot is captured", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-room-search-notes-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-room-search-notes-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
       MAILCLAW_OPENCLAW_GATEWAY_TOKEN: "room-notes-token"
@@ -304,7 +304,7 @@ describe("room search", () => {
       },
       {
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-31",
           messageId: "<msg-31@example.com>",
@@ -312,7 +312,7 @@ describe("room search", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Please respond with the tracked summary only.",
           headers: [
             {

@@ -21,12 +21,12 @@ afterEach(() => {
 function createFixture(options: {
   env?: Record<string, string>;
 } = {}) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-scheduling-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-scheduling-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
     ...options.env

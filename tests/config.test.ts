@@ -39,7 +39,7 @@ describe("loadConfig", () => {
     expect(config.http.publicBaseUrl).toBe("https://mail.example.com/base/");
   });
 
-  it("inherits compatible OpenClaw environment variables when MailClaw-specific ones are unset", () => {
+  it("inherits compatible OpenClaw environment variables when MailClaws-specific ones are unset", () => {
     const config = loadConfig({
       OPENCLAW_PUBLIC_BASE_URL: "https://gateway.example.com",
       OPENCLAW_BASE_URL: "https://gateway.example.com/api",
@@ -56,7 +56,7 @@ describe("loadConfig", () => {
     expect(config.openClaw.sessionPrefix).toBe("hook:gateway-mail");
   });
 
-  it("keeps the direct MailClaw workbench URL separate from the OpenClaw host URL", () => {
+  it("keeps the direct MailClaws workbench URL separate from the OpenClaw host URL", () => {
     const config = loadConfig({
       MAILCLAW_PUBLIC_BASE_URL: "https://mail.example.com",
       OPENCLAW_PUBLIC_BASE_URL: "https://gateway.example.com"

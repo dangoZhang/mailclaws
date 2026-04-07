@@ -65,12 +65,12 @@ afterEach(() => {
 
 describe("runtime watchers", () => {
   it("starts configured account watchers and persists checkpoints", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-watchers-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-watchers-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "false"
     });
@@ -83,13 +83,13 @@ describe("runtime watchers", () => {
     runtime.upsertAccount({
       accountId: "acct-imap",
       provider: "imap",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {
         host: "imap.example.com",
         port: 993,
         secure: true,
-        username: "mailclaw@example.com",
+        username: "mailclaws@example.com",
         password: "secret",
         mailbox: "INBOX",
         watch: {
@@ -107,7 +107,7 @@ describe("runtime watchers", () => {
             port: 993,
             secure: true,
             auth: {
-              user: "mailclaw@example.com",
+              user: "mailclaws@example.com",
               pass: "secret"
             }
           });
@@ -130,13 +130,13 @@ describe("runtime watchers", () => {
                   envelope: {
                     subject: "Watcher message",
                     from: [{ address: "sender@example.com" }],
-                    to: [{ address: "mailclaw@example.com" }]
+                    to: [{ address: "mailclaws@example.com" }]
                   },
                   source: [
                     "Message-ID: <watcher-2@example.com>",
                     "Subject: Watcher message",
                     "From: sender@example.com",
-                    "To: mailclaw@example.com",
+                    "To: mailclaws@example.com",
                     "",
                     "Watcher body"
                   ].join("\r\n")
@@ -171,12 +171,12 @@ describe("runtime watchers", () => {
   });
 
   it("invalidates the IMAP watch cursor when UIDVALIDITY changes", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-watchers-imap-uidvalidity-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-watchers-imap-uidvalidity-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "false"
     });
@@ -189,13 +189,13 @@ describe("runtime watchers", () => {
     runtime.upsertAccount({
       accountId: "acct-imap",
       provider: "imap",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {
         host: "imap.example.com",
         port: 993,
         secure: true,
-        username: "mailclaw@example.com",
+        username: "mailclaws@example.com",
         password: "secret",
         mailbox: "INBOX",
         watch: {
@@ -263,12 +263,12 @@ describe("runtime watchers", () => {
   });
 
   it("runs a minimal provider-simulator smoke from watcher ingest through final delivery", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-watchers-smoke-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-watchers-smoke-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true"
     });
@@ -438,12 +438,12 @@ describe("runtime watchers", () => {
   });
 
   it("starts built-in gmail watch/history ingestion and persists watch metadata durably", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-gmail-watchers-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-gmail-watchers-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "false"
     });
@@ -465,7 +465,7 @@ describe("runtime watchers", () => {
         },
         gmail: {
           accessToken: "token",
-          topicName: "projects/example/topics/mailclaw",
+          topicName: "projects/example/topics/mailclaws",
           watch: {
             historyId: "90",
             expiration: "2026-03-24T00:00:00.000Z"
@@ -553,12 +553,12 @@ describe("runtime watchers", () => {
   });
 
   it("ingests explicit gmail pubsub notifications and persists the advanced checkpoint", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-gmail-pubsub-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-gmail-pubsub-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "false"
     });
@@ -580,7 +580,7 @@ describe("runtime watchers", () => {
         },
         gmail: {
           accessToken: "token",
-          topicName: "projects/example/topics/mailclaw",
+          topicName: "projects/example/topics/mailclaws",
           watch: {
             historyId: "90",
             expiration: "2026-03-24T00:00:00.000Z"
@@ -602,7 +602,7 @@ describe("runtime watchers", () => {
           messageId: "pubsub-1",
           publishTime: "2026-03-25T00:00:00.000Z"
         },
-        subscription: "projects/example/subscriptions/mailclaw"
+        subscription: "projects/example/subscriptions/mailclaws"
       },
       clientFactory() {
         return {
@@ -680,12 +680,12 @@ describe("runtime watchers", () => {
   });
 
   it("delegates gmail notification fetches through an injected mail io plane", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-gmail-pubsub-mail-io-plane-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-gmail-pubsub-mail-io-plane-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "false"
     });
@@ -740,7 +740,7 @@ describe("runtime watchers", () => {
         },
         gmail: {
           accessToken: "token",
-          topicName: "projects/example/topics/mailclaw",
+          topicName: "projects/example/topics/mailclaws",
           watch: {
             historyId: "90",
             expiration: "2026-03-24T00:00:00.000Z"
@@ -772,12 +772,12 @@ describe("runtime watchers", () => {
   });
 
   it("routes watcher fetches through the configured command mail io plane", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-watchers-mail-io-command-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-watchers-mail-io-command-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "false",
       MAILCLAW_MAIL_IO_MODE: "command",
@@ -816,7 +816,7 @@ describe("runtime watchers", () => {
       expect(payload.operation).toBe("fetch_imap_messages");
       expect(payload.input).toMatchObject({
         accountId: "acct-imap",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         checkpoint: "1"
       });
 
@@ -833,13 +833,13 @@ describe("runtime watchers", () => {
                 envelope: {
                   subject: "Watcher message",
                   from: [{ address: "sender@example.com" }],
-                  to: [{ address: "mailclaw@example.com" }]
+                  to: [{ address: "mailclaws@example.com" }]
                 },
                 source: [
                   "Message-ID: <watcher-2@example.com>",
                   "Subject: Watcher message",
                   "From: sender@example.com",
-                  "To: mailclaw@example.com",
+                  "To: mailclaws@example.com",
                   "",
                   "Watcher body"
                 ].join("\r\n")
@@ -865,13 +865,13 @@ describe("runtime watchers", () => {
     runtime.upsertAccount({
       accountId: "acct-imap",
       provider: "imap",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {
         host: "imap.example.com",
         port: 993,
         secure: true,
-        username: "mailclaw@example.com",
+        username: "mailclaws@example.com",
         password: "secret",
         mailbox: "INBOX",
         watch: {
@@ -892,12 +892,12 @@ describe("runtime watchers", () => {
   });
 
   it("runs explicit full gmail mailbox recovery and persists full recovery metadata", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-gmail-recovery-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-gmail-recovery-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "false"
     });
@@ -915,7 +915,7 @@ describe("runtime watchers", () => {
       settings: {
         gmail: {
           accessToken: "token",
-          topicName: "projects/example/topics/mailclaw"
+          topicName: "projects/example/topics/mailclaws"
         }
       }
     });

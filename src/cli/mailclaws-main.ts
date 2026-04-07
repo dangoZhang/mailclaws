@@ -7,19 +7,19 @@ import process from "node:process";
 import { loadConfig } from "../config.js";
 import { runMailctl } from "./mailctl-main.js";
 
-interface MailclawOutputMode {
+interface MailclawsOutputMode {
   format: "text" | "json";
   verbose: boolean;
 }
 
-interface ParsedMailclawArgs {
-  mode: MailclawOutputMode;
+interface ParsedMailclawsArgs {
+  mode: MailclawsOutputMode;
   help: boolean;
   version: boolean;
   positionals: string[];
 }
 
-export async function runMailclaw(
+export async function runMailclaws(
   args: string[],
   deps?: {
     stdout?: Pick<NodeJS.WriteStream, "write">;
@@ -32,7 +32,7 @@ export async function runMailclaw(
 ) {
   const stdout = deps?.stdout ?? process.stdout;
   const stderr = deps?.stderr ?? process.stderr;
-  const parsedArgs = parseMailclawArgs(args);
+  const parsedArgs = parseMailclawsArgs(args);
   const [command, ...rest] = parsedArgs.positionals;
 
   if (parsedArgs.help || command === "help") {
@@ -177,7 +177,7 @@ function mapUserFacingCommand(command: string, rest: string[]) {
   }
 }
 
-function parseMailclawArgs(args: string[]): ParsedMailclawArgs {
+function parseMailclawsArgs(args: string[]): ParsedMailclawsArgs {
   const positionals: string[] = [];
   let help = false;
   let version = false;
@@ -273,7 +273,7 @@ async function openDashboardUrl(input: {
   targetPath?: string;
   stdout: Pick<NodeJS.WriteStream, "write">;
   stderr: Pick<NodeJS.WriteStream, "write">;
-  mode: MailclawOutputMode;
+  mode: MailclawsOutputMode;
   openExternal: (url: string) => Promise<void> | void;
 }) {
   const gatewayUrl = resolveGatewayUrl(input.targetPath ?? "/");
@@ -301,7 +301,7 @@ async function inspectLocalRuntime(input: {
   command: "status" | "doctor" | "health";
   stdout: Pick<NodeJS.WriteStream, "write">;
   stderr: Pick<NodeJS.WriteStream, "write">;
-  mode: MailclawOutputMode;
+  mode: MailclawsOutputMode;
   fetchJson: (url: string) => Promise<unknown>;
 }) {
   const config = loadConfig(process.env);
@@ -429,7 +429,7 @@ function spawnAndWait(command: string, args: string[]) {
 
 function writePayload(
   stdout: Pick<NodeJS.WriteStream, "write">,
-  mode: MailclawOutputMode,
+  mode: MailclawsOutputMode,
   payload: unknown,
   text: string
 ) {
@@ -444,7 +444,7 @@ function writePayload(
   }
 }
 
-function withMailctlFlags(mode: MailclawOutputMode, args: string[]) {
+function withMailctlFlags(mode: MailclawsOutputMode, args: string[]) {
   const prefix: string[] = [];
   if (mode.format === "json") {
     prefix.push("--json");

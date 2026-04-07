@@ -45,12 +45,12 @@ function createFixture(
     microsoftOAuthClient?: MicrosoftOAuthClientLike;
   } = {}
 ) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-mailctl-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-mailctl-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
     MAILCLAW_FEATURE_APPROVAL_GATE: options.approvalGate ? "true" : "false",
@@ -125,7 +125,7 @@ function runJsonMailctl(
 function buildInboundPayload() {
   return {
     accountId: "acct-1",
-    mailboxAddress: "mailclaw@example.com",
+    mailboxAddress: "mailclaws@example.com",
     envelope: {
       providerMessageId: "provider-1",
       messageId: "<msg-1@example.com>",
@@ -133,7 +133,7 @@ function buildInboundPayload() {
       from: {
         email: "sender@example.com"
       },
-      to: [{ email: "mailclaw@example.com" }],
+      to: [{ email: "mailclaws@example.com" }],
       text: "Hello from mailctl",
       headers: [
         {
@@ -385,11 +385,11 @@ describe("mailctl", () => {
   });
 
   it("renders runtime boundary and embedded session inspection surfaces", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-mailctl-embedded-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-mailctl-embedded-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_RUNTIME_MODE: "embedded"
     });
     const handle = initializeDatabase(config);
@@ -509,7 +509,7 @@ describe("mailctl", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: "2026-03-27T00:00:00.000Z",
@@ -634,7 +634,7 @@ describe("mailctl", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: "2026-03-27T00:00:00.000Z",
@@ -663,7 +663,7 @@ describe("mailctl", () => {
       stableThreadId: "thread-gateway-cli-history",
       accountId: "acct-1",
       normalizedSubject: "cli sync room",
-      participantFingerprint: "mailclaw@example.com|sender@example.com",
+      participantFingerprint: "mailclaws@example.com|sender@example.com",
       createdAt: "2026-03-27T00:03:00.000Z",
       lastMessageAt: "2026-03-27T00:03:00.000Z"
     });
@@ -674,21 +674,21 @@ describe("mailctl", () => {
       stableThreadId: "thread-gateway-cli-history",
       internetMessageId: "<msg-cli-sync-1@example.com>",
       references: [],
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       rawSubject: "CLI sync room",
       textBody: "Inbound message for CLI sync",
       from: "sender@example.com",
-      to: ["mailclaw@example.com"],
+      to: ["mailclaws@example.com"],
       cc: [],
       bcc: [],
       replyTo: [],
       normalizedSubject: "cli sync room",
-      participantFingerprint: "mailclaw@example.com|sender@example.com",
+      participantFingerprint: "mailclaws@example.com|sender@example.com",
       receivedAt: "2026-03-27T00:03:00.000Z",
       createdAt: "2026-03-27T00:03:00.000Z"
     });
 
-    const historyDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-gateway-cli-history-"));
+    const historyDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-gateway-cli-history-"));
     tempDirs.push(historyDir);
     const historyPath = path.join(historyDir, "gateway-history-cli.json");
     fs.writeFileSync(
@@ -823,7 +823,7 @@ describe("mailctl", () => {
       cc: ["cc@example.com"],
       bcc: ["audit@example.com"],
       headers: {
-        "X-MailClaw-Sync-Source-Message-Id": finalReady.message.messageId
+        "X-MailClaws-Sync-Source-Message-Id": finalReady.message.messageId
       }
     });
     expect(stderr.read()).toBe("");
@@ -865,7 +865,7 @@ describe("mailctl", () => {
       updatedAt: "2026-03-27T00:00:00.000Z"
     });
 
-    const historyDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-gateway-cli-explicit-sync-"));
+    const historyDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-gateway-cli-explicit-sync-"));
     tempDirs.push(historyDir);
     const historyPath = path.join(historyDir, "gateway-history-cli-explicit-sync.json");
     fs.writeFileSync(
@@ -983,7 +983,7 @@ describe("mailctl", () => {
     expect(firstSync.to).toEqual(["sender@example.com"]);
     expect(secondSync.to).toEqual(["sender@example.com"]);
     expect(secondSync.headers.To).toContain("sender@example.com");
-    expect(secondSync.headers.To).not.toContain("mailclaw@example.com");
+    expect(secondSync.headers.To).not.toContain("mailclaws@example.com");
 
     fixture.handle.close();
   });
@@ -998,7 +998,7 @@ describe("mailctl", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "imap",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: "2026-03-25T00:00:00.000Z",
@@ -1189,12 +1189,12 @@ describe("mailctl", () => {
   });
 
   it("closes env-backed runtimes between sequential connect commands", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-mailctl-env-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-mailctl-env-"));
     tempDirs.push(tempDir);
     const env = {
       ...process.env,
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
       MAILCLAW_GMAIL_OAUTH_CLIENT_ID: "test-client-id",
@@ -1245,12 +1245,12 @@ describe("mailctl", () => {
   });
 
   it("allows env-backed runtime handles to close more than once", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-mailctl-close-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-mailctl-close-"));
     tempDirs.push(tempDir);
     const previousEnv = { ...process.env };
     Object.assign(process.env, {
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
       MAILCLAW_GMAIL_OAUTH_CLIENT_ID: "test-client-id",
@@ -1267,12 +1267,12 @@ describe("mailctl", () => {
   });
 
   it("drains queued room jobs with the default embedded runtime without closing env-backed runtimes early", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-mailctl-drain-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-mailctl-drain-"));
     tempDirs.push(tempDir);
     const previousEnv = { ...process.env };
     Object.assign(process.env, {
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
 
@@ -1395,7 +1395,7 @@ describe("mailctl", () => {
         "acct-gmail",
         "Support",
         "--topic-name",
-        "projects/example/topics/mailclaw",
+        "projects/example/topics/mailclaws",
         "--label-ids",
         "INBOX,IMPORTANT"
       ],
@@ -1446,7 +1446,7 @@ describe("mailctl", () => {
       settings: {
         gmail: {
           oauthClientConfigured: true,
-          topicName: "projects/example/topics/mailclaw",
+          topicName: "projects/example/topics/mailclaws",
           labelIds: ["INBOX", "IMPORTANT"]
         }
       }
@@ -1584,7 +1584,7 @@ describe("mailctl", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: "2026-03-26T00:00:00.000Z",
@@ -1611,14 +1611,14 @@ describe("mailctl", () => {
     expect(listed).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          agentId: "mailclaw@example.com"
+          agentId: "mailclaws@example.com"
         })
       ])
     );
 
     const projectStdout = createWritableBuffer();
     const projectExitCode = await runJsonMailctl(
-      ["inboxes", "project", "acct-1", "mailclaw@example.com", "2", "45", "90"],
+      ["inboxes", "project", "acct-1", "mailclaws@example.com", "2", "45", "90"],
       {
         runtime: fixture.runtime,
         stdout: projectStdout.stream,
@@ -1629,7 +1629,7 @@ describe("mailctl", () => {
     expect(projectExitCode).toBe(0);
     expect(JSON.parse(projectStdout.read())).toMatchObject({
       inbox: {
-        agentId: "mailclaw@example.com"
+        agentId: "mailclaws@example.com"
       },
       items: [
         expect.objectContaining({
@@ -1650,7 +1650,7 @@ describe("mailctl", () => {
     expect(JSON.parse(itemsStdout.read())).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          agentId: "mailclaw@example.com",
+          agentId: "mailclaws@example.com",
           state: expect.any(String)
         })
       ])
@@ -1671,7 +1671,7 @@ describe("mailctl", () => {
       publicAgentInboxes: expect.arrayContaining([
         expect.objectContaining({
           inbox: expect.objectContaining({
-            agentId: "mailclaw@example.com"
+            agentId: "mailclaws@example.com"
           })
         })
       ])
@@ -2162,7 +2162,7 @@ describe("mailctl", () => {
 
     const ingested = await fixture.runtime.ingest({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "provider-retrieve-1",
@@ -2171,7 +2171,7 @@ describe("mailctl", () => {
         from: {
           email: "sender@example.com"
         },
-        to: [{ email: "mailclaw@example.com" }],
+        to: [{ email: "mailclaws@example.com" }],
         text: "Atlas follow-up",
         attachments: [
           {

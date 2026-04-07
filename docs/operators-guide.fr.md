@@ -1,6 +1,6 @@
 # Guide Opérateurs
 
-Cette page s’adresse aux personnes qui doivent garder MailClaw en bonne santé au quotidien.
+Cette page s’adresse aux personnes qui doivent garder MailClaws en bonne santé au quotidien.
 
 Elle se concentre sur ce qu’il faut vérifier quand les utilisateurs disent :
 
@@ -10,7 +10,7 @@ Elle se concentre sur ce qu’il faut vérifier quand les utilisateurs disent :
 
 ## Les Objets Principaux À Vérifier
 
-Les opérations MailClaw sont plus simples si vous suivez le même modèle que le runtime :
+Les opérations MailClaws sont plus simples si vous suivez le même modèle que le runtime :
 
 - `account` : une boîte connectée et sa posture provider
 - `room` : la frontière de vérité durable d’une conversation
@@ -28,8 +28,8 @@ Confirmez que la boîte connectée existe et paraît saine.
 Commandes utiles :
 
 ```bash
-mailclaw accounts
-mailclaw accounts show <accountId>
+mailclaws accounts
+mailclaws accounts show <accountId>
 ```
 
 API utile :
@@ -38,13 +38,13 @@ API utile :
 
 ### 2. Room
 
-Confirmez que MailClaw a créé ou mis à jour la room.
+Confirmez que MailClaws a créé ou mis à jour la room.
 
 Commandes utiles :
 
 ```bash
-mailclaw rooms
-mailclaw replay <roomKey>
+mailclaws rooms
+mailclaws replay <roomKey>
 ```
 
 ### 3. Mailbox View
@@ -54,7 +54,7 @@ Si la room existe mais que le comportement reste flou, inspectez ensuite la mail
 Commandes utiles :
 
 ```bash
-mailclaw inboxes <accountId>
+mailclaws inboxes <accountId>
 mailctl observe mailbox-feed <accountId> <mailboxId>
 mailctl observe mailbox-view <roomKey> <mailboxId>
 ```
@@ -98,13 +98,13 @@ Vérifiez :
 
 - la posture du compte et du provider
 - la configuration du chemin entrant
-- si le message a atteint MailClaw
+- si le message a atteint MailClaws
 
 Commencez avec :
 
 ```bash
-mailclaw accounts show <accountId>
-mailclaw rooms
+mailclaws accounts show <accountId>
+mailclaws rooms
 ```
 
 ### La Room Existe Mais Il N’Y A Pas Encore De Réponse
@@ -118,7 +118,7 @@ Vérifiez :
 Commencez avec :
 
 ```bash
-mailclaw replay <roomKey>
+mailclaws replay <roomKey>
 mailctl observe mailbox-view <roomKey> <mailboxId>
 mailctl observe approvals room <roomKey>
 ```
@@ -172,4 +172,4 @@ Si quelque chose n’est pas clair, inspectez dans cet ordre :
 3. mailbox
 4. approval
 
-Cet ordre suit la façon dont MailClaw est structuré, donc il mène généralement plus vite à la bonne réponse que de partir des traces d’exécution brutes.
+Cet ordre suit la façon dont MailClaws est structuré, donc il mène généralement plus vite à la bonne réponse que de partir des traces d’exécution brutes.

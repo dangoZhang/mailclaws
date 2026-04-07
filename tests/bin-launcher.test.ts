@@ -15,10 +15,10 @@ afterEach(() => {
 
 describe("npm bin launchers", () => {
   it("resolve the real package directory when invoked through node_modules/.bin symlinks", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-bin-launcher-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-bin-launcher-"));
     tempDirs.push(tempDir);
 
-    const packageDir = path.join(tempDir, "node_modules", "mailclaw");
+    const packageDir = path.join(tempDir, "node_modules", "mailclaws");
     const binDir = path.join(packageDir, "bin");
     const cliDir = path.join(packageDir, "dist", "cli");
     const npmBinDir = path.join(tempDir, "node_modules", ".bin");

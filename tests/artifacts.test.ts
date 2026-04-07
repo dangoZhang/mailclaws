@@ -26,12 +26,12 @@ afterEach(() => {
 
 describe("thread artifacts", () => {
   it("isolates artifacts per room and writes JSON payloads", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-artifacts-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-artifacts-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const inboundPath = persistInboundArtifact(config, {
@@ -79,12 +79,12 @@ describe("thread artifacts", () => {
   });
 
   it("persists attachment artifacts with extracted text and summaries", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-attachment-artifacts-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-attachment-artifacts-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const metadataPath = persistAttachmentArtifact(config, {
@@ -113,12 +113,12 @@ describe("thread artifacts", () => {
   });
 
   it("persists chunk files and summary pyramid for larger attachment text", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-attachment-chunks-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-attachment-chunks-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const longText = Array.from({ length: 8 }, (_, index) =>
@@ -160,12 +160,12 @@ describe("thread artifacts", () => {
   });
 
   it("persists raw inbound mime payloads alongside normalized artifacts", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-inbound-mime-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-inbound-mime-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const mimePath = persistInboundMimeArtifact(config, {
@@ -180,12 +180,12 @@ describe("thread artifacts", () => {
   });
 
   it("writes versioned room facts snapshots while keeping shared/facts.json current", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-room-facts-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-room-facts-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const firstSnapshot = persistRoomFactsArtifact(config, {
@@ -228,12 +228,12 @@ describe("thread artifacts", () => {
   });
 
   it("sanitizes account, thread, and artifact identifiers before writing to disk", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-artifacts-safe-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-artifacts-safe-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
 
     const accountId = "../acct-unsafe";

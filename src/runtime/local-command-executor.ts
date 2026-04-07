@@ -223,7 +223,7 @@ function sanitizeCommandRequest(command: string, body: Record<string, unknown>) 
     url: `command://${normalizeCommandLabel(command)}`,
     method: "POST" as const,
     headers: {
-      "x-mailclaw-runtime": "command"
+      "x-mailclaws-runtime": "command"
     },
     body
   };

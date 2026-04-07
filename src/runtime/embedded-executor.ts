@@ -140,7 +140,7 @@ function sanitizeEmbeddedRequest(command: string, body: EmbeddedRuntimeTurnReque
     url: `embedded://${normalizeCommandLabel(command)}`,
     method: "POST" as const,
     headers: {
-      "x-mailclaw-runtime": "embedded"
+      "x-mailclaws-runtime": "embedded"
     },
     body: body as unknown as Record<string, unknown>
   };

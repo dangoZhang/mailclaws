@@ -1,6 +1,6 @@
 # Mail Workbench
 
-The Mail workbench is the user-facing surface for MailClaw.
+The Mail workbench is the user-facing surface for MailClaws.
 
 In the intended setup, it appears as the `Mail` tab inside OpenClaw/Gateway. The direct `/workbench/mail` route exists as a fallback and deep-link target.
 
@@ -9,7 +9,7 @@ In the intended setup, it appears as the `Mail` tab inside OpenClaw/Gateway. The
 Preferred path:
 
 ```bash
-mailclaw dashboard
+mailclaws dashboard
 ```
 
 Then sign in to OpenClaw/Gateway and click `Mail`.
@@ -17,7 +17,7 @@ Then sign in to OpenClaw/Gateway and click `Mail`.
 Direct fallback:
 
 ```bash
-mailclaw open
+mailclaws open
 ```
 
 ## What Each Tab Means

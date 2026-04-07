@@ -1,6 +1,6 @@
 # 多智能体协作
 
-MailClaw 不让多个智能体共享一锅越来越长的上下文。
+MailClaws 不让多个智能体共享一锅越来越长的上下文。
 
 它把协作变成可检查、可回放、可治理的“邮件形对象”：
 
@@ -14,7 +14,7 @@ MailClaw 不让多个智能体共享一锅越来越长的上下文。
 
 当一封真实邮件到达时：
 
-1. MailClaw 打开或更新一个房间。
+1. MailClaws 打开或更新一个房间。
 2. 前台主智能体读取最新来信和最新预摘要。
 3. 如果需要更多工作，就向内部协作邮箱发送任务邮件。
 4. 工作智能体通过单父结构的内部回复进行回应。
@@ -29,7 +29,7 @@ MailClaw 不让多个智能体共享一锅越来越长的上下文。
 
 ## 常驻智能体与单次子智能体
 
-MailClaw 故意把这两类执行体分开：
+MailClaws 故意把这两类执行体分开：
 
 - 常驻智能体有自己的 `SOUL.md`、公开邮箱和内部角色邮箱
 - 单次子智能体只是短时计算助手，不保留长期人格
@@ -40,7 +40,7 @@ MailClaw 故意把这两类执行体分开：
 - 临时任务增强属于子智能体
 - 子智能体结果只有在被归一化成内部回复邮件后，才会进入房间协作链
 
-因此 MailClaw 不是“所有智能体都长期化”，而是“长期智能体管组织，短期子智能体管算力”。
+因此 MailClaws 不是“所有智能体都长期化”，而是“长期智能体管组织，短期子智能体管算力”。
 
 ## 在 Workbench 里看什么
 
@@ -142,17 +142,17 @@ MailClaw 故意把这两类执行体分开：
 如果你想在命令行看同样的信息：
 
 ```bash
-mailclaw rooms
-mailclaw replay <roomKey>
+mailclaws rooms
+mailclaws replay <roomKey>
 mailctl mailbox view <roomKey> <mailboxId>
 mailctl mailbox feed <accountId> <mailboxId>
-mailclaw approvals room <roomKey>
-mailclaw trace <roomKey>
+mailclaws approvals room <roomKey>
+mailclaws trace <roomKey>
 ```
 
-## MailClaw 故意避免的东西
+## MailClaws 故意避免的东西
 
-MailClaw 刻意避免这些模式：
+MailClaws 刻意避免这些模式：
 
 - 把所有智能体都绑在一段共享上下文上
 - 用主题猜测连续性并把它当成内部协作真相

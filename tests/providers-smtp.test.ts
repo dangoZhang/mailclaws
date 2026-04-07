@@ -32,12 +32,12 @@ afterEach(() => {
 
 describe("deliverQueuedOutbox", () => {
   it("delivers queued mail, skips approval-gated mail, and marks failures", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-smtp-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-smtp-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-1");
@@ -154,12 +154,12 @@ describe("deliverQueuedOutbox", () => {
   });
 
   it("redacts credential material from failed delivery attempts", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-smtp-redact-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-smtp-redact-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-redact");
@@ -217,12 +217,12 @@ describe("deliverQueuedOutbox", () => {
   });
 
   it("redacts sensitive delivery failure text before it reaches attempts and outbox state", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-smtp-redact-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-smtp-redact-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-redact");
@@ -284,12 +284,12 @@ describe("deliverQueuedOutbox", () => {
   });
 
   it("claims queued outbox rows before send so repeated delivery passes do not double send", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-smtp-claim-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-smtp-claim-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-claim");
@@ -355,12 +355,12 @@ describe("deliverQueuedOutbox", () => {
   });
 
   it("suppresses a repeated delivery pass once a prior attempt already reached the provider", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-smtp-repeat-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-smtp-repeat-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-repeat");
@@ -434,12 +434,12 @@ describe("deliverQueuedOutbox", () => {
   });
 
   it("skips queued outbox delivery while the room is in handoff", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-smtp-handoff-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-smtp-handoff-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-handoff");
@@ -501,12 +501,12 @@ describe("deliverQueuedOutbox", () => {
   });
 
   it("delivers queued control-plane outbox rows without requiring a legacy mirror table", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-smtp-intent-only-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-smtp-intent-only-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-intent-only");

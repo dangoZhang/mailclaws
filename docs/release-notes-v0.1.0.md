@@ -1,10 +1,10 @@
 # Release Notes: v0.1.0
 
-MailClaw `v0.1.0` is the first cleaned release cut from the current email-native runtime branch.
+MailClaws `v0.1.0` is the first cleaned release cut from the current email-native runtime branch.
 
 ## Headline
 
-MailClaw ships as an email-native runtime for durable rooms, virtual internal mail, approval-gated delivery, and workbench-grade replay.
+MailClaws ships as an email-native runtime for durable rooms, virtual internal mail, approval-gated delivery, and workbench-grade replay.
 
 ## What Is In v0.1.0
 
@@ -54,10 +54,10 @@ pnpm release:ship
 
 ## Release Assets
 
-- Runtime bundle: `output/release/mailclaw-v0.1.0/`
-- Tarball: `output/release/mailclaw-v0.1.0.tar.gz`
-- npm tarball: `output/release/npm/mailclaw-0.1.0.tgz`
-- Homebrew formula: `output/release/homebrew/mailclaw.rb`
+- Runtime bundle: `output/release/mailclaws-v0.1.0/`
+- Tarball: `output/release/mailclaws-v0.1.0.tar.gz`
+- npm tarball: `output/release/npm/mailclaws-0.1.0.tgz`
+- Homebrew formula: `output/release/homebrew/mailclaws.rb`
 - Checksums: `output/release/checksums.txt`
 
 ## Install
@@ -65,10 +65,10 @@ pnpm release:ship
 Local release assets:
 
 ```bash
-npm install -g ./output/release/npm/mailclaw-0.1.0.tgz
+npm install -g ./output/release/npm/mailclaws-0.1.0.tgz
 pnpm setup
-pnpm add -g "file://$PWD/output/release/npm/mailclaw-0.1.0.tgz"
-brew install ./output/release/homebrew/mailclaw.rb
+pnpm add -g "file://$PWD/output/release/npm/mailclaws-0.1.0.tgz"
+brew install ./output/release/homebrew/mailclaws.rb
 ```
 
 For `pnpm add -g`, use an absolute path or `file://` URL for the local tarball. Local Homebrew installs still require Homebrew to reach its own download infrastructure.
@@ -89,7 +89,7 @@ pnpm dev
 ## Suggested GitHub Release Body
 
 ```md
-MailClaw v0.1.0 ships as an email-native runtime for durable rooms, virtual internal mail, approval-gated delivery, and workbench-grade replay.
+MailClaws v0.1.0 ships as an email-native runtime for durable rooms, virtual internal mail, approval-gated delivery, and workbench-grade replay.
 
 Highlights
 - Room-first truth with replay, recovery, quarantine, resend, and approval flows

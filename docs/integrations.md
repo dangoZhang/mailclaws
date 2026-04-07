@@ -1,12 +1,12 @@
 # Integrations
 
-This page explains how MailClaw connects to the outside world.
+This page explains how MailClaws connects to the outside world.
 
-MailClaw is built to sit on top of real email systems and, when needed, inside an OpenClaw/Gateway host workflow.
+MailClaws is built to sit on top of real email systems and, when needed, inside an OpenClaw/Gateway host workflow.
 
 ## Integration Model
 
-MailClaw separates responsibilities:
+MailClaws separates responsibilities:
 
 - providers move mail in and out
 - rooms keep durable truth
@@ -14,11 +14,11 @@ MailClaw separates responsibilities:
 - approvals and outbox govern external side effects
 - the Mail tab lets users inspect the whole system
 
-That means MailClaw can connect to existing mailbox providers without treating any one provider as the system of record.
+That means MailClaws can connect to existing mailbox providers without treating any one provider as the system of record.
 
 ## Which Mailbox Paths Are Supported
 
-MailClaw currently supports three practical connection paths.
+MailClaws currently supports three practical connection paths.
 
 ### 1. OAuth Mailboxes
 
@@ -60,21 +60,21 @@ Why choose this path:
 
 - simple migration path
 - useful for staged adoption
-- lets MailClaw receive mail even when native watch support is not available yet
+- lets MailClaws receive mail even when native watch support is not available yet
 
 ## Recommended Order For Users
 
 If you only know the mailbox address and want the easiest path:
 
 ```bash
-mailclaw onboard you@example.com
-mailclaw login
+mailclaws onboard you@example.com
+mailclaws login
 ```
 
 If you want to inspect supported paths first:
 
 ```bash
-mailclaw providers
+mailclaws providers
 ```
 
 General recommendation:
@@ -85,24 +85,24 @@ General recommendation:
 
 ## OpenClaw / Gateway Fit
 
-MailClaw is designed to fit into an OpenClaw-shaped workflow.
+MailClaws is designed to fit into an OpenClaw-shaped workflow.
 
 Use it like this:
 
-1. start MailClaw
-2. run `mailclaw dashboard`
+1. start MailClaws
+2. run `mailclaws dashboard`
 3. sign in to OpenClaw/Gateway
 4. click `Mail`
 
 In that setup:
 
 - OpenClaw/Gateway remains the host shell
-- MailClaw provides the Mail tab and email-native runtime semantics
+- MailClaws provides the Mail tab and email-native runtime semantics
 - direct `/workbench/mail` access remains available as a fallback
 
 ## Inbound Paths
 
-MailClaw can receive mail through:
+MailClaws can receive mail through:
 
 - provider-native watchers and fetchers
 - normalized API ingress
@@ -119,7 +119,7 @@ Typical examples:
 
 ## Outbound Paths
 
-MailClaw can deliver external mail through:
+MailClaws can deliver external mail through:
 
 - Gmail API send
 - SMTP
@@ -134,8 +134,8 @@ real external send happens through approval and outbox control, not directly fro
 Useful commands:
 
 ```bash
-mailclaw providers
-mailclaw login
+mailclaws providers
+mailclaws login
 mailctl connect providers [provider]
 mailctl connect login gmail <accountId> [displayName]
 mailctl connect login outlook <accountId> [displayName]

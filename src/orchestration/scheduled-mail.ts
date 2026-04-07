@@ -193,14 +193,14 @@ export function runScheduledMailJobs(input: {
       });
     }
 
-    const recipients = buildReplyRecipients(sourceMessage, room.frontAgentAddress ?? sourceMessage.mailboxAddress ?? "mailclaw@example.com");
+    const recipients = buildReplyRecipients(sourceMessage, room.frontAgentAddress ?? sourceMessage.mailboxAddress ?? "mailclaws@example.com");
     const reply = composeFinalReply(
       {
         subject: sourceMessage.rawSubject ?? sourceMessage.normalizedSubject,
-        from: room.frontAgentAddress ?? sourceMessage.mailboxAddress ?? "mailclaw@example.com",
+        from: room.frontAgentAddress ?? sourceMessage.mailboxAddress ?? "mailclaws@example.com",
         to: recipients.to,
         cc: recipients.cc,
-        messageId: `<mailclaw-${randomUUID()}@local>`,
+        messageId: `<mailclaws-${randomUUID()}@local>`,
         inReplyTo: sourceMessage.internetMessageId,
         references: [...sourceMessage.references, sourceMessage.internetMessageId]
       },
@@ -225,7 +225,7 @@ export function runScheduledMailJobs(input: {
     persistScheduledOutboundMessageIndex(input.db, {
       accountId: room.accountId,
       stableThreadId: room.stableThreadId,
-      mailboxAddress: room.frontAgentAddress ?? sourceMessage.mailboxAddress ?? "mailclaw@example.com",
+      mailboxAddress: room.frontAgentAddress ?? sourceMessage.mailboxAddress ?? "mailclaws@example.com",
       record: outbox
     });
 

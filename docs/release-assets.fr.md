@@ -6,20 +6,20 @@
   <a href="./release-assets.fr.md"><strong>Français</strong></a>
 </p>
 
-Cette page fixe le texte et les schémas natifs au dépôt pour la forme actuelle de la release MailClaw. Ces assets servent au hero README, au positionnement de `/workbench/mail` et aux démonstrations.
+Cette page fixe le texte et les schémas natifs au dépôt pour la forme actuelle de la release MailClaws. Ces assets servent au hero README, au positionnement de `/workbench/mail` et aux démonstrations.
 
 ## Narratif De Release
 
-- Titre de release : MailClaw transforme les threads email en rooms durables et gouvernées pour le travail multi-agent.
+- Titre de release : MailClaws transforme les threads email en rooms durables et gouvernées pour le travail multi-agent.
 - Sous-titre : l’email externe reste un transport, la coordination interne devient du virtual mail, et l’envoi final reste approval-gated et replayable.
-- Angle de lancement : présenter MailClaw comme un runtime et une surface d’observabilité pour opérateurs, pas comme un simple wrapper de chat ni comme un client mailbox complet.
+- Angle de lancement : présenter MailClaws comme un runtime et une surface d’observabilité pour opérateurs, pas comme un simple wrapper de chat ni comme un client mailbox complet.
 
 ## Texte Hero
 
-- One-liner : MailClaw est un runtime email-native pour un travail durable, auditable et multi-agent.
-- Positionnement : OpenClaw reste le substrate amont de l’écosystème ; MailClaw possède la vérité des rooms, la sémantique de collaboration virtual mail, la gouvernance approval/outbox, ainsi que replay/recovery.
+- One-liner : MailClaws est un runtime email-native pour un travail durable, auditable et multi-agent.
+- Positionnement : OpenClaw reste le substrate amont de l’écosystème ; MailClaws possède la vérité des rooms, la sémantique de collaboration virtual mail, la gouvernance approval/outbox, ainsi que replay/recovery.
 - Limite : le mail workbench actuel est une surface en lecture seule, pas un client mailbox complet.
-- Pitch court : MailClaw garde la compatibilité transport côté email externe tout en replaçant l’état, les approbations et la récupération dans un ledger room kernel-first.
+- Pitch court : MailClaws garde la compatibilité transport côté email externe tout en replaçant l’état, les approbations et la récupération dans un ledger room kernel-first.
 - Pitch opérateur : les équipes peuvent inspecter l’historique room, les approbations, le provider state, le mailbox feed, les public inboxes et les traces Gateway depuis une seule surface.
 
 ## Ce Qui Est Livré
@@ -36,7 +36,7 @@ Cette page fixe le texte et les schémas natifs au dépôt pour la forme actuell
 - Ne pas présenter cette release comme un client mailbox complet de type Outlook.
 - Ne pas laisser entendre que l’automatisation amont Gateway ou Workbench est entièrement câblée de bout en bout.
 - Ne pas laisser entendre que workers ou subagents peuvent contourner les outbox intents pour l’envoi externe réel.
-- Ne pas laisser entendre que MailClaw remplace l’auth provider, les politiques de transport ou les contrôles de conformité natifs des boîtes mail.
+- Ne pas laisser entendre que MailClaws remplace l’auth provider, les politiques de transport ou les contrôles de conformité natifs des boîtes mail.
 
 ## Preuves À Mettre En Avant
 
@@ -61,7 +61,7 @@ Cette page fixe le texte et les schémas natifs au dépôt pour la forme actuell
 ## Snippets De Copy Prêts À L’Emploi
 
 - Ouverture d’annonce:
-  "MailClaw est maintenant livré comme runtime email orienté opérateur: vérité room, collaboration virtual mail, et envoi externe gouverné."
+  "MailClaws est maintenant livré comme runtime email orienté opérateur: vérité room, collaboration virtual mail, et envoi externe gouverné."
 - Fermeture compatible limites:
   "Cette release livre un mail workbench en lecture seule et des primitives de contrôle durables; elle ne livre pas encore un client mailbox complet."
 - CTA opérateur:
@@ -105,7 +105,7 @@ flowchart LR
     L2["État implicite"]
     L3["Replay faible"]
   end
-  subgraph Right["MailClaw Room / Ledger"]
+  subgraph Right["MailClaws Room / Ledger"]
     R1["Vérité room"]
     R2["Causalité virtual mail"]
     R3["Gouvernance approval / outbox"]
@@ -115,7 +115,7 @@ flowchart LR
 
 ## Storyboard De Démo
 
-1. Montrer un email entrant réel ou un Gateway turn qui arrive dans MailClaw.
+1. Montrer un email entrant réel ou un Gateway turn qui arrive dans MailClaws.
 2. Ouvrir le détail room et souligner la timeline révisionnée, la vérité room et la capacité de replay.
 3. Montrer la collaboration interne dans les vues mailbox/feed plutôt que comme transcript partagé opaque.
 4. Montrer reviewer, guard, approval ou outbox avant tout envoi externe réel.

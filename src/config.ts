@@ -35,7 +35,7 @@ const envSchema = z.object({
   MAILCLAW_HTTP_PORT: z.coerce.number().int().positive().default(3000),
   MAILCLAW_PUBLIC_BASE_URL: z.string().default(""),
   MAILCLAW_STATE_DIR: z.string().default("./state"),
-  MAILCLAW_SQLITE_PATH: z.string().default("./state/mailclaw.sqlite"),
+  MAILCLAW_SQLITE_PATH: z.string().default("./state/mailclaws.sqlite"),
   MAILCLAW_RUNTIME_MODE: z.enum(["bridge", "command", "embedded"]).default("embedded"),
   MAILCLAW_RUNTIME_COMMAND: z.string().default(""),
   MAILCLAW_RUNTIME_POLICY_MANIFEST_JSON: z.string().default(""),
@@ -98,7 +98,7 @@ export function loadConfig(source: NodeJS.ProcessEnv | Record<string, string | u
   const runtimePolicyManifest = parseRuntimePolicyManifest(env.MAILCLAW_RUNTIME_POLICY_MANIFEST_JSON);
 
   return {
-    serviceName: "mailclaw",
+    serviceName: "mailclaws",
     env: env.MAILCLAW_ENV,
     http: {
       host: env.MAILCLAW_HTTP_HOST,

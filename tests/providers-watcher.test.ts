@@ -38,7 +38,7 @@ describe("provider watcher daemons", () => {
               uid: "1",
               subject: "First",
               from: [{ email: "sender@example.com" }],
-              to: [{ email: "mailclaw@example.com" }],
+              to: [{ email: "mailclaws@example.com" }],
               text: "First body"
             }
           ],
@@ -54,7 +54,7 @@ describe("provider watcher daemons", () => {
               uid: "2",
               subject: "Second",
               from: [{ email: "sender@example.com" }],
-              to: [{ email: "mailclaw@example.com" }],
+              to: [{ email: "mailclaws@example.com" }],
               text: "Second body"
             }
           ],
@@ -67,7 +67,7 @@ describe("provider watcher daemons", () => {
     });
     const poller = startImapPoller({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       ingest,
       fetch,
       sleep
@@ -104,7 +104,7 @@ describe("provider watcher daemons", () => {
 
     expect(ingest.mock.calls[0]?.[0]).toMatchObject({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "1",
@@ -163,14 +163,14 @@ describe("provider watcher daemons", () => {
           { name: "Message-ID", value: `<${notification.id}@example.com>` },
           { name: "Subject", value: notification.id === "gmail-1" ? "First" : "Second" },
           { name: "From", value: "sender@example.com" },
-          { name: "To", value: "mailclaw@example.com" }
+          { name: "To", value: "mailclaws@example.com" }
         ]
       },
       textBody: notification.id === "gmail-1" ? "First body" : "Second body"
     }));
     const watcher = startGmailWatcher({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       ingest,
       listen,
       fetch,
@@ -201,7 +201,7 @@ describe("provider watcher daemons", () => {
 
     expect(ingest.mock.calls[0]?.[0]).toMatchObject({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "gmail-1",

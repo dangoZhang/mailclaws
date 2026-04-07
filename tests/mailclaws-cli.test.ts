@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { runMailclaw } from "../src/cli/mailclaw-main.js";
+import { runMailclaws } from "../src/cli/mailclaws-main.js";
 
 function createWritableBuffer() {
   let buffer = "";
@@ -16,13 +16,13 @@ function createWritableBuffer() {
   };
 }
 
-describe("mailclaw user-facing cli", () => {
+describe("mailclaws user-facing cli", () => {
   it("delegates onboarding, register, login, and skills to mailctl", async () => {
     const stdout = createWritableBuffer();
     const stderr = createWritableBuffer();
     const delegated: string[][] = [];
 
-    const exitCode = await runMailclaw(["onboard", "person@gmail.com"], {
+    const exitCode = await runMailclaws(["onboard", "person@gmail.com"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       runMailctl: async (args) => {
@@ -36,7 +36,7 @@ describe("mailclaw user-facing cli", () => {
     expect(stdout.read()).toBe("");
     expect(stderr.read()).toBe("");
 
-    const loginExitCode = await runMailclaw(["login", "qq"], {
+    const loginExitCode = await runMailclaws(["login", "qq"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       runMailctl: async (args) => {
@@ -48,7 +48,7 @@ describe("mailclaw user-facing cli", () => {
     expect(loginExitCode).toBe(0);
     expect(delegated.at(-1)).toEqual(["connect", "login", "qq"]);
 
-    const registerExitCode = await runMailclaw(["register", "person@gmail.com"], {
+    const registerExitCode = await runMailclaws(["register", "person@gmail.com"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       runMailctl: async (args) => {
@@ -60,7 +60,7 @@ describe("mailclaw user-facing cli", () => {
     expect(registerExitCode).toBe(0);
     expect(delegated.at(-1)).toEqual(["connect", "start", "person@gmail.com"]);
 
-    const skillsExitCode = await runMailclaw(["skills", "list", "acct-1"], {
+    const skillsExitCode = await runMailclaws(["skills", "list", "acct-1"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       runMailctl: async (args) => {
@@ -72,7 +72,7 @@ describe("mailclaw user-facing cli", () => {
     expect(skillsExitCode).toBe(0);
     expect(delegated.at(-1)).toEqual(["skills", "list", "acct-1"]);
 
-    const syncExitCode = await runMailclaw(["sync-mail", "room-1", "msg-1"], {
+    const syncExitCode = await runMailclaws(["sync-mail", "room-1", "msg-1"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       runMailctl: async (args) => {
@@ -88,7 +88,7 @@ describe("mailclaw user-facing cli", () => {
   it("starts the server by default", async () => {
     const startServer = vi.fn(async () => undefined);
 
-    const exitCode = await runMailclaw([], {
+    const exitCode = await runMailclaws([], {
       startServer
     });
 
@@ -99,7 +99,7 @@ describe("mailclaw user-facing cli", () => {
   it("treats `gateway` as the service-style start command", async () => {
     const startServer = vi.fn(async () => undefined);
 
-    const exitCode = await runMailclaw(["gateway"], {
+    const exitCode = await runMailclaws(["gateway"], {
       startServer
     });
 
@@ -112,7 +112,7 @@ describe("mailclaw user-facing cli", () => {
     const stderr = createWritableBuffer();
     const openExternal = vi.fn(async () => undefined);
 
-    const exitCode = await runMailclaw(["open"], {
+    const exitCode = await runMailclaws(["open"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       openExternal
@@ -134,7 +134,7 @@ describe("mailclaw user-facing cli", () => {
     process.env.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL = "https://gateway.example.com";
 
     try {
-      const exitCode = await runMailclaw(["dashboard"], {
+      const exitCode = await runMailclaws(["dashboard"], {
         stdout: stdout.stream,
         stderr: stderr.stream,
         openExternal
@@ -163,7 +163,7 @@ describe("mailclaw user-facing cli", () => {
     process.env.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL = "https://gateway.example.com";
 
     try {
-      const exitCode = await runMailclaw(["dashboard"], {
+      const exitCode = await runMailclaws(["dashboard"], {
         stdout: stdout.stream,
         stderr: stderr.stream,
         openExternal
@@ -189,7 +189,7 @@ describe("mailclaw user-facing cli", () => {
     const delegated: string[][] = [];
     const openExternal = vi.fn(async () => undefined);
 
-    const exitCode = await runMailclaw(["gateway", "trace", "room-1"], {
+    const exitCode = await runMailclaws(["gateway", "trace", "room-1"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       openExternal,
@@ -213,7 +213,7 @@ describe("mailclaw user-facing cli", () => {
     delete process.env.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL;
 
     try {
-      const exitCode = await runMailclaw(["dashboard"], {
+      const exitCode = await runMailclaws(["dashboard"], {
         stdout: stdout.stream,
         stderr: stderr.stream,
         openExternal
@@ -241,7 +241,7 @@ describe("mailclaw user-facing cli", () => {
     delete process.env.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL;
 
     try {
-      const exitCode = await runMailclaw(["dashboard", "rooms/room-1"], {
+      const exitCode = await runMailclaws(["dashboard", "rooms/room-1"], {
         stdout: stdout.stream,
         stderr: stderr.stream,
         openExternal
@@ -269,7 +269,7 @@ describe("mailclaw user-facing cli", () => {
     process.env.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL = "https://gateway.example.com";
 
     try {
-      const exitCode = await runMailclaw(["gateway", "rooms/room-1"], {
+      const exitCode = await runMailclaws(["gateway", "rooms/room-1"], {
         stdout: stdout.stream,
         stderr: stderr.stream,
         openExternal
@@ -295,7 +295,7 @@ describe("mailclaw user-facing cli", () => {
     process.env.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL = "https://gateway.example.com";
 
     try {
-      const exitCode = await runMailclaw(["browser"], {
+      const exitCode = await runMailclaws(["browser"], {
         stdout: stdout.stream,
         stderr: stderr.stream,
         openExternal
@@ -317,7 +317,7 @@ describe("mailclaw user-facing cli", () => {
     const stderr = createWritableBuffer();
     const openExternal = vi.fn(async () => undefined);
 
-    const exitCode = await runMailclaw(["login", "web"], {
+    const exitCode = await runMailclaws(["login", "web"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       openExternal,
@@ -342,7 +342,7 @@ describe("mailclaw user-facing cli", () => {
     process.env.MAILCLAW_OPENCLAW_PUBLIC_BASE_URL = "https://gateway.example.com";
 
     try {
-      const exitCode = await runMailclaw(["login", "web"], {
+      const exitCode = await runMailclaws(["login", "web"], {
         stdout: stdout.stream,
         stderr: stderr.stream,
         openExternal,
@@ -365,7 +365,7 @@ describe("mailclaw user-facing cli", () => {
   it("prints help that matches the supported user-facing commands", async () => {
     const stdout = createWritableBuffer();
 
-    const exitCode = await runMailclaw(["--help"], {
+    const exitCode = await runMailclaws(["--help"], {
       stdout: stdout.stream
     });
 
@@ -381,7 +381,7 @@ describe("mailclaw user-facing cli", () => {
     const stdout = createWritableBuffer();
     const stderr = createWritableBuffer();
 
-    const exitCode = await runMailclaw(["status"], {
+    const exitCode = await runMailclaws(["status"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       fetchJson: async (url) => {
@@ -402,7 +402,7 @@ describe("mailclaw user-facing cli", () => {
     const stdout = createWritableBuffer();
     const stderr = createWritableBuffer();
 
-    const healthExitCode = await runMailclaw(["health"], {
+    const healthExitCode = await runMailclaws(["health"], {
       stdout: stdout.stream,
       stderr: stderr.stream,
       fetchJson: async (url) => {
@@ -417,7 +417,7 @@ describe("mailclaw user-facing cli", () => {
     expect(stdout.read()).toContain("status: ok / ready: ok");
 
     const versionStdout = createWritableBuffer();
-    const versionExitCode = await runMailclaw(["--version"], {
+    const versionExitCode = await runMailclaws(["--version"], {
       stdout: versionStdout.stream
     });
 
@@ -428,7 +428,7 @@ describe("mailclaw user-facing cli", () => {
   it("prints doctor guidance when the runtime is unavailable", async () => {
     const stdout = createWritableBuffer();
 
-    const exitCode = await runMailclaw(["doctor"], {
+    const exitCode = await runMailclaws(["doctor"], {
       stdout: stdout.stream,
       fetchJson: async () => {
         throw new Error("connect ECONNREFUSED 127.0.0.1:3000");

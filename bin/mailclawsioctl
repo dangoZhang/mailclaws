@@ -83,4 +83,4 @@ if [ -z "$NODE_BIN" ]; then
   exit 1
 fi
 
-exec "$NODE_BIN" "$PACKAGE_DIR/dist/cli/mailioctl.js" "$@"
+exec "$NODE_BIN" "$PACKAGE_DIR/dist/cli/mailclawsioctl.js" "$@"

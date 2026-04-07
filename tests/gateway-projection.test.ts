@@ -39,12 +39,12 @@ async function waitFor(assertion: () => void, timeoutMs = 1_000) {
 function createFixture(options: {
   gatewayOutcomeDispatcher?: NonNullable<Parameters<typeof createMailSidecarRuntime>[0]["gatewayOutcomeDispatcher"]>;
 } = {}) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-gateway-projection-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-gateway-projection-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
   });
   const handle = initializeDatabase(config);
   const runtime = createMailSidecarRuntime({

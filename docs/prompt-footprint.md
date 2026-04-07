@@ -1,6 +1,6 @@
 # Prompt Footprint
 
-MailClaw's current agent behavior is deliberately **pre-first**:
+MailClaws's current agent behavior is deliberately **pre-first**:
 
 - load the latest inbound mail
 - load the latest persisted room Pre snapshot
@@ -30,7 +30,7 @@ The current script reports:
 
 ## Estimate Method
 
-MailClaw does **not** claim these are provider-billed tokens. The benchmark uses:
+MailClaws does **not** claim these are provider-billed tokens. The benchmark uses:
 
 ```text
 estimated_tokens = ceil(characters / 4)
@@ -51,7 +51,7 @@ Measured on `2026-03-28`:
 - The first two numbers approximate the savings from replacing "load the whole room transcript again" with "load latest inbound + latest Pre snapshot".
 - The multi-agent number approximates the savings from reducer summaries instead of replaying every worker's prompt and raw output back into the front orchestrator.
 
-In practice, this means MailClaw's prompt growth should stay much flatter than a session-first OpenClaw-style baseline once a room becomes long or once multiple workers collaborate in parallel.
+In practice, this means MailClaws's prompt growth should stay much flatter than a session-first OpenClaw-style baseline once a room becomes long or once multiple workers collaborate in parallel.
 
 ## Baselines Used
 
@@ -84,7 +84,7 @@ Smaller orchestrator prompts improve three things at once:
 - lower latency variance on long rooms
 - lower risk of transcript pollution across rooms or across worker lanes
 
-That is the architectural reason MailClaw keeps durable **Pre** and treats transcript/scratch/tool traces as short-lived execution state instead of long-lived memory.
+That is the architectural reason MailClaws keeps durable **Pre** and treats transcript/scratch/tool traces as short-lived execution state instead of long-lived memory.
 
 ## Reproduce In Tests
 

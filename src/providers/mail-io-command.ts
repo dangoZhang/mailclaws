@@ -12,7 +12,7 @@ import { fetchConfiguredImapMessages, type ImapClientConfig, type ImapClientLike
 import { createAccountSmtpSender, createSmtpTransportSender, type SmtpTransportFactory } from "./smtp.js";
 import type { GmailWatchBatch, ImapPollBatch } from "./watcher.js";
 
-export const MAIL_IO_PROTOCOL_NAME = "mailclaw.mail-io";
+export const MAIL_IO_PROTOCOL_NAME = "mailclaws.mail-io";
 export const MAIL_IO_PROTOCOL_VERSION = 1;
 
 export type MailIoCommandCapability =

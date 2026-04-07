@@ -12,7 +12,7 @@ const BUILTIN_POLICY_MANIFEST: MailRuntimePolicyManifest = {
 
 export function createBuiltInEmbeddedRuntimeAdapter(): EmbeddedRuntimeAdapter {
   return {
-    adapterId: "mailclaw-embedded",
+    adapterId: "mailclaws-embedded",
     policyManifest: BUILTIN_POLICY_MANIFEST,
     async executeMailTurn(input) {
       return {

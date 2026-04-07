@@ -48,7 +48,7 @@ describe("createAppServer", () => {
     expect(readinessResponse.status).toBe(200);
     await expect(healthResponse.json()).resolves.toMatchObject({
       status: "ok",
-      service: "mailclaw"
+      service: "mailclaws"
     });
   });
 });

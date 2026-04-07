@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <a href="https://dangozhang.github.io/mailclaw/">Website</a> ·
-  <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/ci.yml">CI</a> ·
-  <a href="https://github.com/dangoZhang/mailclaw/actions/workflows/release.yml">Release</a>
+  <a href="https://dangozhang.github.io/mailclaws/">Website</a> ·
+  <a href="https://github.com/dangoZhang/mailclaws/actions/workflows/ci.yml">CI</a> ·
+  <a href="https://github.com/dangoZhang/mailclaws/actions/workflows/release.yml">Release</a>
 </p>
 
 <p align="center">
@@ -76,15 +76,15 @@ Users already know how to work in threads. MailClaws starts there.
 
 ```bash
 ./install.sh
-MAILCLAW_FEATURE_MAIL_INGEST=true mailclaw
+MAILCLAW_FEATURE_MAIL_INGEST=true mailclaws
 ```
 
 In a second terminal:
 
 ```bash
-mailclaw onboard you@example.com
-mailclaw login
-mailclaw dashboard
+mailclaws onboard you@example.com
+mailclaws login
+mailclaws dashboard
 ```
 
 Then do this:
@@ -106,14 +106,14 @@ Templates exist for one reason: fast setup.
 
 Template implementation lives here:
 
-- <https://github.com/dangoZhang/mailclaw/blob/main/src/agents/templates.ts>
+- <https://github.com/dangoZhang/mailclaws/blob/main/src/agents/templates.ts>
 
 When you apply the larger roster, generated `SOUL.md` files include upstream alignment notes and role contracts so the team shape stays intentional instead of drifting into a name-only homage.
 
 ## Website And Workbench
 
-- Website: <https://dangozhang.github.io/mailclaw/>
-- Workbench: run `mailclaw dashboard`, sign in, and click `Mail`
+- Website: <https://dangozhang.github.io/mailclaws/>
+- Workbench: run `mailclaws dashboard`, sign in, and click `Mail`
 
 The website explains the model.  
 The Workbench shows it live.

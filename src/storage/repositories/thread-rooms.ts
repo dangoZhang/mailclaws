@@ -133,25 +133,7 @@ export function getThreadRoom(db: DatabaseSync, roomKey: string): ThreadRoom | n
     return null;
   }
 
-  return {
-    roomKey: row.room_key,
-    accountId: row.account_id,
-    stableThreadId: row.stable_thread_id,
-    parentSessionKey: row.parent_session_key,
-    frontAgentAddress: row.front_agent_address ?? undefined,
-    frontAgentId: row.front_agent_id ?? undefined,
-    publicAgentAddresses: parseAddressList(row.public_agent_addresses_json),
-    publicAgentIds: parseAddressList(row.public_agent_ids_json),
-    collaboratorAgentAddresses: parseAddressList(row.collaborator_agent_addresses_json),
-    collaboratorAgentIds: parseAddressList(row.collaborator_agent_ids_json),
-    summonedRoles: parseRoleList(row.summoned_roles_json),
-    state: row.state,
-    revision: row.revision,
-    lastInboundSeq: row.last_inbound_seq,
-    lastOutboundSeq: row.last_outbound_seq,
-    summaryRef: row.summary_ref ?? undefined,
-    sharedFactsRef: row.shared_facts_ref ?? undefined
-  };
+  return mapThreadRoomRow(row);
 }
 
 export function getThreadRoomByParentSessionKey(db: DatabaseSync, parentSessionKey: string): ThreadRoom | null {
@@ -207,25 +189,7 @@ export function getThreadRoomByParentSessionKey(db: DatabaseSync, parentSessionK
     return null;
   }
 
-  return {
-    roomKey: row.room_key,
-    accountId: row.account_id,
-    stableThreadId: row.stable_thread_id,
-    parentSessionKey: row.parent_session_key,
-    frontAgentAddress: row.front_agent_address ?? undefined,
-    frontAgentId: row.front_agent_id ?? undefined,
-    publicAgentAddresses: parseAddressList(row.public_agent_addresses_json),
-    publicAgentIds: parseAddressList(row.public_agent_ids_json),
-    collaboratorAgentAddresses: parseAddressList(row.collaborator_agent_addresses_json),
-    collaboratorAgentIds: parseAddressList(row.collaborator_agent_ids_json),
-    summonedRoles: parseRoleList(row.summoned_roles_json),
-    state: row.state,
-    revision: row.revision,
-    lastInboundSeq: row.last_inbound_seq,
-    lastOutboundSeq: row.last_outbound_seq,
-    summaryRef: row.summary_ref ?? undefined,
-    sharedFactsRef: row.shared_facts_ref ?? undefined
-  };
+  return mapThreadRoomRow(row);
 }
 
 export function listThreadRooms(db: DatabaseSync): ThreadRoom[] {
@@ -274,25 +238,53 @@ export function listThreadRooms(db: DatabaseSync): ThreadRoom[] {
     shared_facts_ref: string | null;
   }>;
 
-  return rows.map((row) => ({
+  return rows.map((row) => mapThreadRoomRow(row));
+}
+
+function mapThreadRoomRow(row: {
+  room_key: string;
+  account_id: string;
+  stable_thread_id: string;
+  parent_session_key: string;
+  front_agent_address: string | null;
+  front_agent_id: string | null;
+  public_agent_addresses_json: string;
+  public_agent_ids_json: string;
+  collaborator_agent_addresses_json: string;
+  collaborator_agent_ids_json: string;
+  summoned_roles_json: string;
+  state: ThreadRoom["state"];
+  revision: number;
+  last_inbound_seq: number;
+  last_outbound_seq: number;
+  summary_ref: string | null;
+  shared_facts_ref: string | null;
+}): ThreadRoom {
+  const publicAgentAddresses = parseAddressList(row.public_agent_addresses_json);
+  const publicAgentIds = parseAddressList(row.public_agent_ids_json);
+  const collaboratorAgentAddresses = parseAddressList(row.collaborator_agent_addresses_json);
+  const collaboratorAgentIds = parseAddressList(row.collaborator_agent_ids_json);
+  const summonedRoles = parseRoleList(row.summoned_roles_json);
+
+  return {
     roomKey: row.room_key,
     accountId: row.account_id,
     stableThreadId: row.stable_thread_id,
     parentSessionKey: row.parent_session_key,
-    frontAgentAddress: row.front_agent_address ?? undefined,
-    frontAgentId: row.front_agent_id ?? undefined,
-    publicAgentAddresses: parseAddressList(row.public_agent_addresses_json),
-    publicAgentIds: parseAddressList(row.public_agent_ids_json),
-    collaboratorAgentAddresses: parseAddressList(row.collaborator_agent_addresses_json),
-    collaboratorAgentIds: parseAddressList(row.collaborator_agent_ids_json),
-    summonedRoles: parseRoleList(row.summoned_roles_json),
+    ...(row.front_agent_address ? { frontAgentAddress: row.front_agent_address } : {}),
+    ...(row.front_agent_id ? { frontAgentId: row.front_agent_id } : {}),
+    ...(publicAgentAddresses.length > 0 ? { publicAgentAddresses } : {}),
+    ...(publicAgentIds.length > 0 ? { publicAgentIds } : {}),
+    ...(collaboratorAgentAddresses.length > 0 ? { collaboratorAgentAddresses } : {}),
+    ...(collaboratorAgentIds.length > 0 ? { collaboratorAgentIds } : {}),
+    ...(summonedRoles.length > 0 ? { summonedRoles } : {}),
     state: row.state,
     revision: row.revision,
     lastInboundSeq: row.last_inbound_seq,
     lastOutboundSeq: row.last_outbound_seq,
-    summaryRef: row.summary_ref ?? undefined,
-    sharedFactsRef: row.shared_facts_ref ?? undefined
-  }));
+    ...(row.summary_ref ? { summaryRef: row.summary_ref } : {}),
+    ...(row.shared_facts_ref ? { sharedFactsRef: row.shared_facts_ref } : {})
+  };
 }
 
 function parseAddressList(value: string | null | undefined) {

@@ -26,7 +26,7 @@ describe("openclaw bridge", () => {
     expect(request.body).toContain('"model":"openclaw:mail"');
   });
 
-  it("serializes bounded mailclaw context into metadata when provided", () => {
+  it("serializes bounded mailclaws context into metadata when provided", () => {
     const request = buildOpenClawResponsesRequest({
       baseUrl: "http://127.0.0.1:11437",
       agentId: "mail-reviewer",
@@ -94,7 +94,7 @@ describe("openclaw bridge", () => {
       sessionKey: "hook:mail:acct:thread:abc",
       inputText: "hello",
       sessionHeaders: {
-        "x-mailclaw-bridge-session-id": "bridge-session-1"
+        "x-mailclaws-bridge-session-id": "bridge-session-1"
       },
       sessionMetadata: {
         mailclaw_bridge_session_id: "bridge-session-1"
@@ -105,7 +105,7 @@ describe("openclaw bridge", () => {
       metadata?: Record<string, string>;
     };
 
-    expect(request.headers["x-mailclaw-bridge-session-id"]).toBe("bridge-session-1");
+    expect(request.headers["x-mailclaws-bridge-session-id"]).toBe("bridge-session-1");
     expect(request.headers["x-openclaw-session-key"]).toBe("hook:mail:acct:thread:abc");
     expect(payload.metadata?.mailclaw_bridge_session_id).toBe("bridge-session-1");
   });

@@ -51,14 +51,9 @@ function mapWorkbenchBrowserPath(pathname: string, search: string) {
   ) {
     return `/console/connect${suffix}`;
   }
-  if (pathname === "/workbench/mailclaw" || pathname === "/workbench/mailclaw/") {
-    return `/console/connect${suffix}`;
-  }
   if (
     pathname === "/workbench/mail/tab" ||
     pathname === "/workbench/mail/tab/" ||
-    pathname === "/workbench/mailclaw/tab" ||
-    pathname === "/workbench/mailclaw/tab/" ||
     pathname === "/workbench/mailclaws/tab" ||
     pathname === "/workbench/mailclaws/tab/"
   ) {
@@ -67,16 +62,12 @@ function mapWorkbenchBrowserPath(pathname: string, search: string) {
   if (
     pathname === "/mail/login" ||
     pathname === "/workbench/mail/login" ||
-    pathname === "/workbench/mailclaw/login" ||
     pathname === "/workbench/mailclaws/login"
   ) {
     return `/console/connect${suffix}`;
   }
   if (pathname.startsWith("/workbench/mail/tab/")) {
     return withSearch(`/console/${pathname.slice("/workbench/mail/tab/".length)}`, search, "shell", "embedded");
-  }
-  if (pathname.startsWith("/workbench/mailclaw/tab/")) {
-    return withSearch(`/console/${pathname.slice("/workbench/mailclaw/tab/".length)}`, search, "shell", "embedded");
   }
   if (pathname.startsWith("/workbench/mailclaws/tab/")) {
     return withSearch(`/console/${pathname.slice("/workbench/mailclaws/tab/".length)}`, search, "shell", "embedded");
@@ -92,9 +83,6 @@ function mapWorkbenchBrowserPath(pathname: string, search: string) {
   }
   if (pathname.startsWith("/workbench/mailclaws/")) {
     return `/console/${pathname.slice("/workbench/mailclaws/".length)}${suffix}`;
-  }
-  if (pathname.startsWith("/workbench/mailclaw/")) {
-    return `/console/${pathname.slice("/workbench/mailclaw/".length)}${suffix}`;
   }
   return null;
 }
@@ -134,18 +122,13 @@ function isWorkbenchShellPath(pathname: string) {
     pathname === "/workbench/mail/" ||
     pathname === "/workbench/mail/tab" ||
     pathname === "/workbench/mail/tab/" ||
-    pathname === "/workbench/mailclaw/tab" ||
-    pathname === "/workbench/mailclaw/tab/" ||
     pathname === "/workbench/mailclaws/tab" ||
     pathname === "/workbench/mailclaws/tab/" ||
     pathname === "/workbench/mailclaws" ||
     pathname === "/workbench/mailclaws/" ||
-    pathname === "/workbench/mailclaw" ||
-    pathname === "/workbench/mailclaw/" ||
     pathname === "/mail/login" ||
     pathname === "/workbench/mail/login" ||
-    pathname === "/workbench/mailclaws/login" ||
-    pathname === "/workbench/mailclaw/login"
+    pathname === "/workbench/mailclaws/login"
   ) {
     return true;
   }
@@ -153,11 +136,9 @@ function isWorkbenchShellPath(pathname: string) {
     pathname.startsWith("/dashboard/") ||
     pathname.startsWith("/mail/") ||
     pathname.startsWith("/workbench/mail/tab/") ||
-    pathname.startsWith("/workbench/mailclaw/tab/") ||
     pathname.startsWith("/workbench/mailclaws/tab/") ||
-    pathname.startsWith("/workbench/mailclaws/") ||
     pathname.startsWith("/workbench/mail/") ||
-    pathname.startsWith("/workbench/mailclaw/")
+    pathname.startsWith("/workbench/mailclaws/")
   );
 }
 

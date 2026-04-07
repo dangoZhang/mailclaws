@@ -20,12 +20,12 @@ afterEach(() => {
 
 describe("runtime drainQueue", () => {
   it("uses the built-in embedded executor in a fresh default runtime", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-embedded-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-embedded-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -36,7 +36,7 @@ describe("runtime drainQueue", () => {
 
     await runtime.ingest({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "provider-embedded-1",
@@ -45,7 +45,7 @@ describe("runtime drainQueue", () => {
         from: {
           email: "sender@example.com"
         },
-        to: [{ email: "mailclaw@example.com" }],
+        to: [{ email: "mailclaws@example.com" }],
         text: "Hello from a fresh runtime.",
         headers: [
           {
@@ -65,12 +65,12 @@ describe("runtime drainQueue", () => {
   });
 
   it("processes multiple rooms up to the configured concurrency cap", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-drain-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-drain-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
       MAILCLAW_QUEUE_MAX_CONCURRENT_ROOMS: "2",
@@ -108,7 +108,7 @@ describe("runtime drainQueue", () => {
     for (const id of ["1", "2", "3"]) {
       await runtime.ingest({
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         processImmediately: false,
         envelope: {
           providerMessageId: `provider-${id}`,
@@ -117,7 +117,7 @@ describe("runtime drainQueue", () => {
           from: {
             email: `sender-${id}@example.com`
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: `Hello ${id}`,
           headers: [
             {
@@ -139,12 +139,12 @@ describe("runtime drainQueue", () => {
   });
 
   it("round-robins queued rooms instead of draining the same room back-to-back", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-fairness-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-fairness-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
       MAILCLAW_QUEUE_MAX_CONCURRENT_ROOMS: "1",
@@ -161,7 +161,7 @@ describe("runtime drainQueue", () => {
           followUpQueued = true;
           await runtimeRef.current?.ingest({
             accountId: "acct-1",
-            mailboxAddress: "mailclaw@example.com",
+            mailboxAddress: "mailclaws@example.com",
             processImmediately: false,
             envelope: {
               providerMessageId: "provider-a-2",
@@ -170,7 +170,7 @@ describe("runtime drainQueue", () => {
               from: {
                 email: "sender-a@example.com"
               },
-              to: [{ email: "mailclaw@example.com" }],
+              to: [{ email: "mailclaws@example.com" }],
               text: "Hello A2",
               headers: [
                 {
@@ -212,7 +212,7 @@ describe("runtime drainQueue", () => {
 
     const roomAFirst = await runtime.ingest({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "provider-a-1",
@@ -221,7 +221,7 @@ describe("runtime drainQueue", () => {
         from: {
           email: "sender-a@example.com"
         },
-        to: [{ email: "mailclaw@example.com" }],
+        to: [{ email: "mailclaws@example.com" }],
         text: "Hello A1",
         headers: [
           {
@@ -234,7 +234,7 @@ describe("runtime drainQueue", () => {
 
     const roomB = await runtime.ingest({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "provider-b-1",
@@ -243,7 +243,7 @@ describe("runtime drainQueue", () => {
         from: {
           email: "sender-b@example.com"
         },
-        to: [{ email: "mailclaw@example.com" }],
+        to: [{ email: "mailclaws@example.com" }],
         text: "Hello B1",
         headers: [
           {
@@ -266,12 +266,12 @@ describe("runtime drainQueue", () => {
   });
 
   it("avoids draining the same room twice in a row when another room is queued", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-fairness-cycle-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-fairness-cycle-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
       MAILCLAW_QUEUE_MAX_CONCURRENT_ROOMS: "1",
@@ -289,7 +289,7 @@ describe("runtime drainQueue", () => {
           enqueuedFollowUp = true;
           await runtimeRef.current?.ingest({
             accountId: "acct-1",
-            mailboxAddress: "mailclaw@example.com",
+            mailboxAddress: "mailclaws@example.com",
             processImmediately: false,
             envelope: {
               providerMessageId: "provider-a-2",
@@ -298,7 +298,7 @@ describe("runtime drainQueue", () => {
               from: {
                 email: "sender-a@example.com"
               },
-              to: [{ email: "mailclaw@example.com" }],
+              to: [{ email: "mailclaws@example.com" }],
               text: "Hello A2",
               headers: [
                 {
@@ -340,7 +340,7 @@ describe("runtime drainQueue", () => {
 
     const roomAFirst = await runtime.ingest({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "provider-a-1",
@@ -349,7 +349,7 @@ describe("runtime drainQueue", () => {
         from: {
           email: "sender-a@example.com"
         },
-        to: [{ email: "mailclaw@example.com" }],
+        to: [{ email: "mailclaws@example.com" }],
         text: "Hello A1",
         headers: [
           {
@@ -362,7 +362,7 @@ describe("runtime drainQueue", () => {
 
     const roomB = await runtime.ingest({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "provider-b-1",
@@ -371,7 +371,7 @@ describe("runtime drainQueue", () => {
         from: {
           email: "sender-b@example.com"
         },
-        to: [{ email: "mailclaw@example.com" }],
+        to: [{ email: "mailclaws@example.com" }],
         text: "Hello B1",
         headers: [
           {
@@ -396,12 +396,12 @@ describe("runtime drainQueue", () => {
   });
 
   it("lets a heavily prioritized room outrank fairness penalties during a drain cycle", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-runtime-weighted-fairness-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-weighted-fairness-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true",
       MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
       MAILCLAW_QUEUE_MAX_CONCURRENT_ROOMS: "1",
@@ -420,7 +420,7 @@ describe("runtime drainQueue", () => {
         if (runCount === 1) {
           await runtimeRef.current?.ingest({
             accountId: "acct-1",
-            mailboxAddress: "mailclaw@example.com",
+            mailboxAddress: "mailclaws@example.com",
             processImmediately: false,
             envelope: {
               providerMessageId: "provider-a-2",
@@ -429,7 +429,7 @@ describe("runtime drainQueue", () => {
               from: {
                 email: "sender-a@example.com"
               },
-              to: [{ email: "mailclaw@example.com" }],
+              to: [{ email: "mailclaws@example.com" }],
               text: "Hello A2",
               headers: [
                 {
@@ -480,7 +480,7 @@ describe("runtime drainQueue", () => {
 
     const roomAFirst = await runtime.ingest({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "provider-a-1",
@@ -489,7 +489,7 @@ describe("runtime drainQueue", () => {
         from: {
           email: "sender-a@example.com"
         },
-        to: [{ email: "mailclaw@example.com" }],
+        to: [{ email: "mailclaws@example.com" }],
         text: "Hello A1",
         headers: [
           {
@@ -502,7 +502,7 @@ describe("runtime drainQueue", () => {
 
     const roomB = await runtime.ingest({
       accountId: "acct-1",
-      mailboxAddress: "mailclaw@example.com",
+      mailboxAddress: "mailclaws@example.com",
       processImmediately: false,
       envelope: {
         providerMessageId: "provider-b-1",
@@ -511,7 +511,7 @@ describe("runtime drainQueue", () => {
         from: {
           email: "sender-b@example.com"
         },
-        to: [{ email: "mailclaw@example.com" }],
+        to: [{ email: "mailclaws@example.com" }],
         text: "Hello B1",
         headers: [
           {

@@ -28,7 +28,7 @@ afterEach(() => {
 
 describe("local command executor", () => {
   it("passes stdin JSON to a local runner and sanitizes audit metadata", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-local-command-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-local-command-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -173,7 +173,7 @@ describe("local command executor", () => {
   });
 
   it("does not inherit arbitrary host environment variables into command runtimes", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-local-command-env-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-local-command-env-"));
     tempDirs.push(tempDir);
     const scriptPath = path.join(tempDir, "print-env.js");
     fs.writeFileSync(
@@ -217,15 +217,15 @@ describe("local command executor", () => {
   });
 
   it("builds a minimal process environment for local command runtimes", () => {
-    const env = buildRuntimeProcessEnvironment("/tmp/mailclaw-runtime");
+    const env = buildRuntimeProcessEnvironment("/tmp/mailclaws-runtime");
 
     expect(env.MAILCLAW_RUNTIME_TRANSPORT).toBe("local-command");
-    expect(env.MAILCLAW_RUNTIME_CWD).toBe("/tmp/mailclaw-runtime");
+    expect(env.MAILCLAW_RUNTIME_CWD).toBe("/tmp/mailclaws-runtime");
     expect(env.MAILCLAW_TEST_LEAK).toBeUndefined();
   });
 
-  it("rejects command runtime attachment descriptors that point outside the MailClaw state directory", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-local-command-boundary-"));
+  it("rejects command runtime attachment descriptors that point outside the MailClaws state directory", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-local-command-boundary-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -282,7 +282,7 @@ describe("local command executor", () => {
         }
       })
     ).rejects.toThrow(
-      "attachment attachment-1 preferredInputPath must stay within the MailClaw state directory"
+      "attachment attachment-1 preferredInputPath must stay within the MailClaws state directory"
     );
   });
 });

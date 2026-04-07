@@ -114,7 +114,7 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     notes: [
       "Browser redirects can use GET /api/auth/gmail/start, but pass client secrets only through POST or env-backed CLI login.",
       "Add a Pub/Sub topic to make Gmail watch/history recovery ready immediately after login.",
-      "Use Gmail browser OAuth for the best MailClaw fit; it preserves Gmail watch/history semantics instead of falling back to generic IMAP."
+      "Use Gmail browser OAuth for the best MailClaws fit; it preserves Gmail watch/history semantics instead of falling back to generic IMAP."
     ]
   },
   {
@@ -140,7 +140,7 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     requiredEnvVars: ["MAILCLAW_MICROSOFT_OAUTH_CLIENT_ID"],
     optionalEnvVars: ["MAILCLAW_MICROSOFT_OAUTH_CLIENT_SECRET", "MAILCLAW_MICROSOFT_OAUTH_TENANT"],
     notes: [
-      "Outlook and Microsoft 365 currently land in MailClaw as IMAP/SMTP accounts with OAuth-backed credentials.",
+      "Outlook and Microsoft 365 currently land in MailClaws as IMAP/SMTP accounts with OAuth-backed credentials.",
       "If tenant-specific consent is needed, pass --tenant or configure MAILCLAW_MICROSOFT_OAUTH_TENANT."
     ]
   },
@@ -175,7 +175,7 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     optionalEnvVars: [],
     notes: [
       "iCloud usually needs an app-specific password generated from Apple ID settings.",
-      "Use this preset when you want MailClaw to receive and send mail through iCloud over IMAP/SMTP."
+      "Use this preset when you want MailClaws to receive and send mail through iCloud over IMAP/SMTP."
     ]
   },
   {
@@ -255,8 +255,8 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     optionalEnvVars: [],
     notes: [
       "Create or update the account through POST /api/accounts, then send RFC822 content to POST /api/inbound/raw.",
-      "Use this when the mailbox app can forward RFC822 mail to MailClaw but does not have a direct first-party provider adapter here.",
-      "Forward mode keeps MailClaw provider-agnostic while still letting the room kernel, outbox, and virtual mail plane stay in control."
+      "Use this when the mailbox app can forward RFC822 mail to MailClaws but does not have a direct first-party provider adapter here.",
+      "Forward mode keeps MailClaws provider-agnostic while still letting the room kernel, outbox, and virtual mail plane stay in control."
     ]
   }
 ];
@@ -443,8 +443,8 @@ export function buildConnectOnboardingPlan(input: {
             ? `${MAILCTL_CMD} observe workbench <accountId>`
             : `${MAILCTL_CMD} observe workbench ${accountIdSuggestion}`,
         notes: [
-          "Keep Gateway/bridge mode enabled first; MailClaw adds room truth, virtual mail, approvals, and replay on top of the OpenClaw substrate.",
-          "Do not treat OpenClaw session transcript as MailClaw truth. Inspect rooms, mailbox feeds, and `/workbench/mail` instead."
+          "Keep Gateway/bridge mode enabled first; MailClaws adds room truth, virtual mail, approvals, and replay on top of the OpenClaw substrate.",
+          "Do not treat OpenClaw session transcript as MailClaws truth. Inspect rooms, mailbox feeds, and `/workbench/mail` instead."
         ]
       }
     },

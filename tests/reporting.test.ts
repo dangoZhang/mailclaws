@@ -13,7 +13,7 @@ import { normalizeAndValidateOutboundHeaders } from "../src/reporting/rfc.js";
 describe("reporting helpers", () => {
   const baseThread = {
     subject: "Re: Example thread",
-    from: "MailClaw <mailclaw@example.com>",
+    from: "MailClaws <mailclaws@example.com>",
     to: ["User <user@example.com>"],
     cc: ["Team <team@example.com>"],
     messageId: "<reply-1@example.com>",

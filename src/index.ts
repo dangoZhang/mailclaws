@@ -21,7 +21,7 @@ const server = createAppServer({
 });
 
 server.listen(config.http.port, config.http.host, () => {
-  logger.info("mailclaw listening", {
+  logger.info("mailclaws listening", {
     host: config.http.host,
     port: config.http.port,
     sqlitePath: config.storage.sqlitePath
@@ -33,16 +33,16 @@ server.listen(config.http.port, config.http.host, () => {
     console.log(
       [
         "",
-        "MailClaw is ready.",
+        "MailClaws is ready.",
         `Gateway ${gatewayUrl || "not configured"}`,
         `Mail tab ${mailTabUrl}`,
         `Health ${baseUrl}/healthz`,
         "",
         "Next:",
-        "  mailclaw onboard you@example.com",
-        "  mailclaw login",
-        "  mailclaw gateway",
-        "  mailclaw dashboard"
+        "  mailclaws onboard you@example.com",
+        "  mailclaws login",
+        "  mailclaws gateway",
+        "  mailclaws dashboard"
       ].join("\n")
     );
   }
@@ -50,7 +50,7 @@ server.listen(config.http.port, config.http.host, () => {
 
 const shutdown = (signal: NodeJS.Signals) => {
   ready = false;
-  logger.info("mailclaw shutting down", { signal });
+  logger.info("mailclaws shutting down", { signal });
   server.close((error) => {
     if (error) {
       logger.error("server close failed", {

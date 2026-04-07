@@ -1,6 +1,6 @@
 # 运维指南
 
-这一页面向需要日常维护 MailClaw 的人。
+这一页面向需要日常维护 MailClaws 的人。
 
 重点不是讲邮箱客户端怎么用，而是讲当用户说下面这些话时该怎么查：
 
@@ -10,7 +10,7 @@
 
 ## 先看哪几个对象
 
-MailClaw 的运维最好沿着它自己的模型排查：
+MailClaws 的运维最好沿着它自己的模型排查：
 
 - `account`：一个已连接邮箱及其 provider 状态
 - `room`：一段会话的 durable truth boundary
@@ -28,8 +28,8 @@ MailClaw 的运维最好沿着它自己的模型排查：
 常用命令：
 
 ```bash
-mailclaw accounts
-mailclaw accounts show <accountId>
+mailclaws accounts
+mailclaws accounts show <accountId>
 ```
 
 常用 API：
@@ -38,13 +38,13 @@ mailclaw accounts show <accountId>
 
 ### 2. Room
 
-再确认 MailClaw 是否创建或续接了 room。
+再确认 MailClaws 是否创建或续接了 room。
 
 常用命令：
 
 ```bash
-mailclaw rooms
-mailclaw replay <roomKey>
+mailclaws rooms
+mailclaws replay <roomKey>
 ```
 
 ### 3. Mailbox
@@ -54,7 +54,7 @@ mailclaw replay <roomKey>
 常用命令：
 
 ```bash
-mailclaw inboxes <accountId>
+mailclaws inboxes <accountId>
 mailctl observe mailbox-feed <accountId> <mailboxId>
 mailctl observe mailbox-view <roomKey> <mailboxId>
 ```
@@ -98,13 +98,13 @@ mailctl operate deliver-outbox
 
 - 账号和 provider 是否正常
 - 入站配置是否正确
-- 这封邮件到底有没有到达 MailClaw
+- 这封邮件到底有没有到达 MailClaws
 
 从这里开始：
 
 ```bash
-mailclaw accounts show <accountId>
-mailclaw rooms
+mailclaws accounts show <accountId>
+mailclaws rooms
 ```
 
 ### room 已经有了，但没有回复
@@ -118,7 +118,7 @@ mailclaw rooms
 从这里开始：
 
 ```bash
-mailclaw replay <roomKey>
+mailclaws replay <roomKey>
 mailctl observe mailbox-view <roomKey> <mailboxId>
 mailctl observe approvals room <roomKey>
 ```
@@ -172,4 +172,4 @@ console read model：
 3. mailbox
 4. approval
 
-这和 MailClaw 自己的结构一致，通常比直接扎进底层执行痕迹更快定位问题。
+这和 MailClaws 自己的结构一致，通常比直接扎进底层执行痕迹更快定位问题。

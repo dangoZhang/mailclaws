@@ -19,12 +19,12 @@ afterEach(() => {
 });
 
 function createFixture() {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-security-secrets-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-security-secrets-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true"
   });
@@ -42,12 +42,12 @@ function createFixture() {
 }
 
 function createExecutorFixture() {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-security-executor-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-security-executor-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true"
   });
@@ -94,25 +94,25 @@ function seedSensitiveAccount(
     status: "active",
     settings: {
       gmail: {
-        oauthAccessToken: "mailclaw-test-access-token",
-        oauthRefreshToken: "mailclaw-test-refresh-token",
-        oauthClientSecret: "mailclaw-test-client-secret",
-        oauthClientId: "mailclaw-test-client-id",
-        topicName: "projects/test/topics/mailclaw"
+        oauthAccessToken: "mailclaws-test-access-token",
+        oauthRefreshToken: "mailclaws-test-refresh-token",
+        oauthClientSecret: "mailclaws-test-client-secret",
+        oauthClientId: "mailclaws-test-client-id",
+        topicName: "projects/test/topics/mailclaws"
       },
       smtp: {
         host: "smtp.example.test",
         port: 587,
         secure: false,
         username: "user@example.test",
-        password: "mailclaw-test-smtp-password"
+        password: "mailclaws-test-smtp-password"
       },
       imap: {
         host: "imap.example.test",
         port: 993,
         secure: true,
         username: "user@example.test",
-        password: "mailclaw-test-imap-password"
+        password: "mailclaws-test-imap-password"
       },
       watch: {
         checkpoint: "history:12345"
@@ -155,11 +155,11 @@ describe("security secrets regression", () => {
     const roomKey = ingested.ingested.roomKey;
 
     const secrets = [
-      "mailclaw-test-access-token",
-      "mailclaw-test-refresh-token",
-      "mailclaw-test-client-secret",
-      "mailclaw-test-smtp-password",
-      "mailclaw-test-imap-password"
+      "mailclaws-test-access-token",
+      "mailclaws-test-refresh-token",
+      "mailclaws-test-client-secret",
+      "mailclaws-test-smtp-password",
+      "mailclaws-test-imap-password"
     ];
 
     expectNoSecrets(fixture.runtime.replay(roomKey), secrets);
@@ -181,11 +181,11 @@ describe("security secrets regression", () => {
     const accountId = seedSensitiveAccount(fixture.runtime);
 
     const secrets = [
-      "mailclaw-test-access-token",
-      "mailclaw-test-refresh-token",
-      "mailclaw-test-client-secret",
-      "mailclaw-test-smtp-password",
-      "mailclaw-test-imap-password"
+      "mailclaws-test-access-token",
+      "mailclaws-test-refresh-token",
+      "mailclaws-test-client-secret",
+      "mailclaws-test-smtp-password",
+      "mailclaws-test-imap-password"
     ];
 
     expectNoSecrets(fixture.runtime.listPublicAccounts(), secrets);
@@ -216,11 +216,11 @@ describe("security secrets regression", () => {
     expect(result.processed?.status).toBe("completed");
     expect(fixture.requests.length).toBeGreaterThan(0);
     expectNoSecrets(fixture.requests[0], [
-      "mailclaw-test-access-token",
-      "mailclaw-test-refresh-token",
-      "mailclaw-test-client-secret",
-      "mailclaw-test-smtp-password",
-      "mailclaw-test-imap-password"
+      "mailclaws-test-access-token",
+      "mailclaws-test-refresh-token",
+      "mailclaws-test-client-secret",
+      "mailclaws-test-smtp-password",
+      "mailclaws-test-imap-password"
     ]);
 
     fixture.handle.close();
@@ -250,11 +250,11 @@ describe("security secrets regression", () => {
     expect(fixture.requests.length).toBeGreaterThan(0);
     expect(JSON.stringify(fixture.requests[0])).not.toContain(hiddenRecipient);
     expectNoSecrets(fixture.requests[0], [
-      "mailclaw-test-access-token",
-      "mailclaw-test-refresh-token",
-      "mailclaw-test-client-secret",
-      "mailclaw-test-smtp-password",
-      "mailclaw-test-imap-password"
+      "mailclaws-test-access-token",
+      "mailclaws-test-refresh-token",
+      "mailclaws-test-client-secret",
+      "mailclaws-test-smtp-password",
+      "mailclaws-test-imap-password"
     ]);
 
     fixture.handle.close();
@@ -282,11 +282,11 @@ describe("security secrets regression", () => {
 
     const roomKey = result.ingested.roomKey;
     const secrets = [
-      "mailclaw-test-access-token",
-      "mailclaw-test-refresh-token",
-      "mailclaw-test-client-secret",
-      "mailclaw-test-smtp-password",
-      "mailclaw-test-imap-password",
+      "mailclaws-test-access-token",
+      "mailclaws-test-refresh-token",
+      "mailclaws-test-client-secret",
+      "mailclaws-test-smtp-password",
+      "mailclaws-test-imap-password",
       hiddenRecipient
     ];
 

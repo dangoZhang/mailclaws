@@ -85,7 +85,7 @@ export function createFileBackedOpenClawBridgeSessionManager(
         transcriptPath,
         history: readTranscript(transcriptPath),
         transportHeaders: {
-          "x-mailclaw-bridge-session-id": nextState.sessionId
+          "x-mailclaws-bridge-session-id": nextState.sessionId
         },
         metadata: {
           mailclaw_bridge_session_id: nextState.sessionId,

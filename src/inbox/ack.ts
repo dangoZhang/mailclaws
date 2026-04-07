@@ -61,7 +61,7 @@ export function emitInboxAck(
     return null;
   }
 
-  const mailboxAddress = input.room.frontAgentAddress ?? latestMessage.mailboxAddress ?? "mailclaw@example.com";
+  const mailboxAddress = input.room.frontAgentAddress ?? latestMessage.mailboxAddress ?? "mailclaws@example.com";
   const recipients = buildReplyRecipients(latestMessage, mailboxAddress);
   if (recipients.to.length === 0) {
     return null;
@@ -74,7 +74,7 @@ export function emitInboxAck(
       from: mailboxAddress,
       to: recipients.to,
       cc: recipients.cc,
-      messageId: `<mailclaw-${outboxId}@local>`,
+      messageId: `<mailclaws-${outboxId}@local>`,
       inReplyTo: latestMessage.internetMessageId,
       references: [...latestMessage.references, latestMessage.internetMessageId]
     },

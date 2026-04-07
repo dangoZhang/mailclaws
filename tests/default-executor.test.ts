@@ -58,7 +58,7 @@ describe("default executor", () => {
   });
 
   it("selects the embedded executor when runtime mode is embedded", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-default-embedded-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-default-embedded-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -93,7 +93,7 @@ describe("default executor", () => {
   });
 
   it("prefers the embedded adapter over shell command execution", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-default-embedded-adapter-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-default-embedded-adapter-"));
     tempDirs.push(tempDir);
     const runner = vi.fn(async () => ({
       stdout: JSON.stringify({
@@ -136,7 +136,7 @@ describe("default executor", () => {
   });
 
   it("rejects embedded mode when no in-process adapter is provided", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-default-embedded-missing-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-default-embedded-missing-"));
     tempDirs.push(tempDir);
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
@@ -153,7 +153,7 @@ describe("default executor", () => {
     ).resolves.toMatchObject({
       responseText: expect.stringContaining('Received your message about "Fresh install".'),
       request: {
-        url: "embedded://mailclaw-embedded"
+        url: "embedded://mailclaws-embedded"
       }
     });
   });

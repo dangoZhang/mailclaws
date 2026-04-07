@@ -1461,13 +1461,13 @@ export function createMailSidecarRuntime(deps: MailSidecarRuntimeDeps) {
           "/dashboard",
           "/mail",
           "/workbench/mailclaws",
-          "/workbench/mailclaw",
+          "/workbench/mailclaws",
           "/workbench/mailclaws/tab",
-          "/workbench/mailclaw/tab"
+          "/workbench/mailclaws/tab"
         ]
       },
       hostIntegration: {
-        tabId: "mailclaw.mail",
+        tabId: "mailclaws.mail",
         label: "Mail",
         standalonePath: standaloneBasePath,
         embeddedPath: embeddedBasePath,
@@ -3720,7 +3720,7 @@ function queueRoomMessageEmailSync(
 
   const latestMailMessage = findLatestRoomEmailSyncAnchor(db, room.stableThreadId, input.mailboxAddress);
   const existing = listOutboxIntentsForRoom(db, room.roomKey).find(
-    (intent) => intent.headers["X-MailClaw-Sync-Source-Message-Id"] === message.messageId
+    (intent) => intent.headers["X-MailClaws-Sync-Source-Message-Id"] === message.messageId
   );
   if (existing) {
     return mapOutboxIntentToMailOutboxRecord(existing);
@@ -3732,7 +3732,7 @@ function queueRoomMessageEmailSync(
     room.frontAgentAddress ||
     latestMailMessage?.mailboxAddress ||
     getMailAccount(db, room.accountId)?.emailAddress ||
-    "mailclaw@example.com";
+    "mailclaws@example.com";
   const recipients = buildEmailSyncRecipients({
     latestMailMessage,
     mailboxAddress,
@@ -3759,7 +3759,7 @@ function queueRoomMessageEmailSync(
           from: mailboxAddress,
           to: recipients.to,
           cc: recipients.cc,
-          messageId: `<mailclaw-${randomUUID()}@local>`,
+          messageId: `<mailclaws-${randomUUID()}@local>`,
           inReplyTo: latestMailMessage.internetMessageId,
           references: [...latestMailMessage.references, latestMailMessage.internetMessageId]
         },
@@ -3777,7 +3777,7 @@ function queueRoomMessageEmailSync(
           from: mailboxAddress,
           to: recipients.to,
           cc: recipients.cc,
-          messageId: `<mailclaw-${randomUUID()}@local>`
+          messageId: `<mailclaws-${randomUUID()}@local>`
         })
       };
   const status = input.approvalRequired ?? config.features.approvalGate ? "pending_approval" : "queued";
@@ -3794,8 +3794,8 @@ function queueRoomMessageEmailSync(
     bcc: recipients.bcc,
     headers: {
       ...rendered.headers,
-      "X-MailClaw-Sync-Source-Message-Id": message.messageId,
-      "X-MailClaw-Sync-Origin": message.originKind
+      "X-MailClaws-Sync-Source-Message-Id": message.messageId,
+      "X-MailClaws-Sync-Origin": message.originKind
     },
     createdAt,
     updatedAt: createdAt

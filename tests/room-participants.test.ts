@@ -20,12 +20,12 @@ afterEach(() => {
 
 describe("room participants repository", () => {
   it("upserts participants and preserves the strongest visibility", () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-room-participants-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-room-participants-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite")
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite")
     });
     const handle = initializeDatabase(config);
     const roomKey = buildRoomSessionKey("acct-1", "thread-1");

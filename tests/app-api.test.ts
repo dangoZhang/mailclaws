@@ -56,12 +56,12 @@ function createFixture(options: {
     Parameters<typeof createMailSidecarRuntime>[0]["gatewayOutcomeDispatcher"]
   >;
 } = {}) {
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-api-"));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-api-"));
   tempDirs.push(tempDir);
 
   const config = loadConfig({
     MAILCLAW_STATE_DIR: tempDir,
-    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+    MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
     MAILCLAW_FEATURE_MAIL_INGEST: "true",
     MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true",
     ...options.env
@@ -102,7 +102,7 @@ function createFixture(options: {
 function buildInboundPayload() {
   return {
     accountId: "acct-1",
-    mailboxAddress: "mailclaw@example.com",
+    mailboxAddress: "mailclaws@example.com",
     envelope: {
       providerMessageId: "provider-1",
       messageId: "<msg-1@example.com>",
@@ -110,7 +110,7 @@ function buildInboundPayload() {
       from: {
         email: "sender@example.com"
       },
-      to: [{ email: "mailclaw@example.com" }],
+      to: [{ email: "mailclaws@example.com" }],
       text: "Hello from the API",
       headers: [
         {
@@ -128,12 +128,12 @@ function extractModuleScript(html: string) {
 
 describe("app api", () => {
   it("processes inbound mail immediately in the default embedded runtime", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-api-embedded-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-api-embedded-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "true"
     });
     const handle = initializeDatabase(config);
@@ -229,7 +229,7 @@ describe("app api", () => {
       },
       body: JSON.stringify({
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         envelope: {
           providerMessageId: "provider-2",
           messageId: "<msg-2@example.com>",
@@ -237,7 +237,7 @@ describe("app api", () => {
           from: {
             email: "sender@example.com"
           },
-          to: [{ email: "mailclaw@example.com" }],
+          to: [{ email: "mailclaws@example.com" }],
           text: "Follow up on the same thread.",
           headers: [
             {
@@ -403,7 +403,7 @@ describe("app api", () => {
     const rawEnvelope = lab.newMail({
       subject: "Raw HTTP room",
       text: "Hello from raw HTTP.",
-      to: [{ email: "mailclaw@example.com" }]
+      to: [{ email: "mailclaws@example.com" }]
     });
 
     const baseUrl = `http://127.0.0.1:${address.port}`;
@@ -414,7 +414,7 @@ describe("app api", () => {
       },
       body: JSON.stringify({
         accountId: "acct-1",
-        mailboxAddress: "mailclaw@example.com",
+        mailboxAddress: "mailclaws@example.com",
         rawMime: rawEnvelope.rawMime
       })
     });
@@ -778,13 +778,13 @@ describe("app api", () => {
       expect.arrayContaining([
         expect.objectContaining({
           accountId: "acct-1",
-          agentId: "mailclaw@example.com"
+          agentId: "mailclaws@example.com"
         })
       ])
     );
 
     const projectedResponse = await fetch(
-      `${baseUrl}/api/accounts/acct-1/inboxes/${encodeURIComponent("mailclaw@example.com")}/project`
+      `${baseUrl}/api/accounts/acct-1/inboxes/${encodeURIComponent("mailclaws@example.com")}/project`
     );
     const projectedJson = (await projectedResponse.json()) as {
       inbox: { inboxId: string; agentId: string };
@@ -794,7 +794,7 @@ describe("app api", () => {
     expect(projectedResponse.status).toBe(200);
     expect(projectedJson).toMatchObject({
       inbox: {
-        agentId: "mailclaw@example.com"
+        agentId: "mailclaws@example.com"
       }
     });
     expect(projectedJson.items).toEqual(
@@ -832,7 +832,7 @@ describe("app api", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {
         smtp: {
@@ -940,7 +940,7 @@ describe("app api", () => {
       expect.arrayContaining([
         expect.objectContaining({
           inbox: expect.objectContaining({
-            agentId: "mailclaw@example.com"
+            agentId: "mailclaws@example.com"
           }),
           items: expect.arrayContaining([
             expect.objectContaining({
@@ -1006,13 +1006,13 @@ describe("app api", () => {
           "/dashboard",
           "/mail",
           "/workbench/mailclaws",
-          "/workbench/mailclaw",
+          "/workbench/mailclaws",
           "/workbench/mailclaws/tab",
-          "/workbench/mailclaw/tab"
+          "/workbench/mailclaws/tab"
         ])
       },
       hostIntegration: {
-        tabId: "mailclaw.mail",
+        tabId: "mailclaws.mail",
         label: "Mail",
         embeddedPath: "/workbench/mail/tab"
       },
@@ -1076,7 +1076,7 @@ describe("app api", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: "2026-03-26T00:00:00.000Z",
@@ -1145,7 +1145,7 @@ describe("app api", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: "2026-03-27T00:00:00.000Z",
@@ -1220,7 +1220,7 @@ describe("app api", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {
         smtp: {
@@ -1393,7 +1393,7 @@ describe("app api", () => {
     expect(accountJson.inboxes).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          agentId: "mailclaw@example.com"
+          agentId: "mailclaws@example.com"
         })
       ])
     );
@@ -1440,13 +1440,13 @@ describe("app api", () => {
           "/dashboard",
           "/mail",
           "/workbench/mailclaws",
-          "/workbench/mailclaw",
+          "/workbench/mailclaws",
           "/workbench/mailclaws/tab",
-          "/workbench/mailclaw/tab"
+          "/workbench/mailclaws/tab"
         ])
       },
       hostIntegration: {
-        tabId: "mailclaw.mail",
+        tabId: "mailclaws.mail",
         label: "Mail"
       },
       connect: {
@@ -1524,16 +1524,16 @@ describe("app api", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: "2026-03-27T00:00:00.000Z",
       updatedAt: "2026-03-27T00:00:00.000Z"
     });
     fixture.runtime.upsertVirtualMailbox({
-      mailboxId: "public:mailclaw",
+      mailboxId: "public:mailclaws",
       accountId: "acct-1",
-      principalId: "principal:mailclaw",
+      principalId: "principal:mailclaws",
       kind: "public",
       active: true,
       createdAt: "2026-03-27T00:00:00.000Z",
@@ -1595,12 +1595,12 @@ describe("app api", () => {
     expect(() => new vm.Script(extractModuleScript(inboxHtml))).not.toThrow();
 
     const mailboxResponse = await fetch(
-      `${baseUrl}/workbench/mail/mailboxes/acct-1/${encodeURIComponent("public:mailclaw")}`
+      `${baseUrl}/workbench/mail/mailboxes/acct-1/${encodeURIComponent("public:mailclaws")}`
     );
     const mailboxHtml = await mailboxResponse.text();
 
     expect(mailboxResponse.status).toBe(200);
-    expect(mailboxHtml).toContain(encodeURIComponent("public:mailclaw"));
+    expect(mailboxHtml).toContain(encodeURIComponent("public:mailclaws"));
     expect(mailboxHtml).toContain("/console/workbench");
     expect(mailboxHtml).not.toContain("<iframe");
     expect(() => new vm.Script(extractModuleScript(mailboxHtml))).not.toThrow();
@@ -1621,7 +1621,7 @@ describe("app api", () => {
     expect(embeddedResponse.status).toBe(200);
     expect(embeddedHtml).toContain("OpenClaw Workbench");
     expect(embeddedHtml).toContain('"embeddedShell":true');
-    expect(embeddedHtml).toContain("mailclaw.workbench.ready");
+    expect(embeddedHtml).toContain("mailclaws.workbench.ready");
     expect(embeddedHtml).toContain("window.parent.postMessage");
     expect(embeddedHtml).toContain("/console/workbench");
     expect(() => new vm.Script(extractModuleScript(embeddedHtml))).not.toThrow();
@@ -1645,7 +1645,7 @@ describe("app api", () => {
     expect(hostResponse.status).toBe(200);
     expect(hostJson).toMatchObject({
       integration: {
-        tabId: "mailclaw.mail",
+        tabId: "mailclaws.mail",
         embeddedPath: "/workbench/mail/tab",
         defaultShell: "embedded",
         capabilities: {
@@ -1692,7 +1692,7 @@ describe("app api", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-templates",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: "2026-03-27T00:00:00.000Z",
@@ -3145,12 +3145,12 @@ describe("app api", () => {
   });
 
   it("rejects inbound processing when the feature flag is disabled", async () => {
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaw-api-disabled-"));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-api-disabled-"));
     tempDirs.push(tempDir);
 
     const config = loadConfig({
       MAILCLAW_STATE_DIR: tempDir,
-      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaw.sqlite"),
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
       MAILCLAW_FEATURE_MAIL_INGEST: "false"
     });
     const handle = initializeDatabase(config);
@@ -3212,7 +3212,7 @@ describe("app api", () => {
       body: JSON.stringify({
         accountId: "acct-1",
         provider: "imap",
-        emailAddress: "mailclaw@example.com",
+        emailAddress: "mailclaws@example.com",
         displayName: "MailClaws",
         status: "active",
         settings: {
@@ -3435,7 +3435,7 @@ describe("app api", () => {
       status: "active",
       settings: {
         gmail: {
-          topicName: "projects/test/topics/mailclaw",
+          topicName: "projects/test/topics/mailclaws",
           userId: "me",
           labelIds: ["INBOX"],
           oauthAccessToken: "access-token-secret",
@@ -3546,7 +3546,7 @@ describe("app api", () => {
       status: "active",
       settings: {
         gmail: {
-          topicName: "projects/test/topics/mailclaw"
+          topicName: "projects/test/topics/mailclaws"
         }
       },
       createdAt: "2026-03-25T00:00:00.000Z",
@@ -3708,7 +3708,7 @@ describe("app api", () => {
         accountId: "acct-gmail",
         displayName: "Support",
         loginHint: "user@gmail.com",
-        topicName: "projects/example/topics/mailclaw",
+        topicName: "projects/example/topics/mailclaws",
         labelIds: ["INBOX", "IMPORTANT"],
         scopes: ["scope-a", "scope-b"]
       })
@@ -3733,7 +3733,7 @@ describe("app api", () => {
         loginHint: "user@gmail.com",
         redirectUri: `http://127.0.0.1:${address.port}/api/auth/gmail/callback`,
         tenant: undefined,
-        topicName: "projects/example/topics/mailclaw",
+        topicName: "projects/example/topics/mailclaws",
         userId: undefined,
         labelIds: ["INBOX", "IMPORTANT"],
         scopes: ["scope-a", "scope-b"]
@@ -4166,7 +4166,7 @@ describe("app api", () => {
               })
             ).toString("base64url")
           },
-          subscription: "projects/example/subscriptions/mailclaw"
+          subscription: "projects/example/subscriptions/mailclaws"
         })
       }
     );
@@ -4197,7 +4197,7 @@ describe("app api", () => {
               })
             ).toString("base64url")
           },
-          subscription: "projects/example/subscriptions/mailclaw"
+          subscription: "projects/example/subscriptions/mailclaws"
         }
       }
     ]);
@@ -4344,7 +4344,7 @@ describe("app api", () => {
     upsertMailAccount(fixture.handle.db, {
       accountId: "acct-1",
       provider: "forward",
-      emailAddress: "mailclaw@example.com",
+      emailAddress: "mailclaws@example.com",
       status: "active",
       settings: {},
       createdAt: "2026-03-27T02:00:00.000Z",
@@ -4415,7 +4415,7 @@ describe("app api", () => {
 
     expect(syncResponse.status).toBe(200);
     expect(syncJson.status).toBe("queued");
-    expect(syncJson.headers["X-MailClaw-Sync-Source-Message-Id"]).toBe(finalReady.message.messageId);
+    expect(syncJson.headers["X-MailClaws-Sync-Source-Message-Id"]).toBe(finalReady.message.messageId);
 
     const deliverResponse = await fetch(`${baseUrl}/api/outbox/deliver`, {
       method: "POST"
@@ -4519,7 +4519,7 @@ describe("app api", () => {
       cc: ["cc@example.com"],
       bcc: ["audit@example.com"]
     });
-    expect(syncJson.headers["X-MailClaw-Sync-Source-Message-Id"]).toBe(finalReady.message.messageId);
+    expect(syncJson.headers["X-MailClaws-Sync-Source-Message-Id"]).toBe(finalReady.message.messageId);
 
     fixture.handle.close();
   });
