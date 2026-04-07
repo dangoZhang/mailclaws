@@ -105,6 +105,8 @@ export interface ConsoleRoomDetail {
   room: ConsoleRoomSummary;
   tasks: ConsoleMailTaskSummary[];
   preSnapshots: RoomPreSnapshot[];
+  roomNotes: ReturnType<typeof replayRoom>["roomNotes"];
+  attachments: ReturnType<typeof replayRoom>["attachments"];
   virtualMessages: ConsoleVirtualMessageSummary[];
   mailboxDeliveries: ConsoleMailboxDeliverySummary[];
   outboxIntents: ConsoleOutboxIntentSummary[];
@@ -303,6 +305,8 @@ export function getConsoleRoom(db: DatabaseSync, roomKey: string): ConsoleRoomDe
     room: buildConsoleRoomSummary(snapshot),
     tasks: buildRoomTaskSummaries(snapshot),
     preSnapshots: snapshot.preSnapshots,
+    roomNotes: snapshot.roomNotes,
+    attachments: snapshot.attachments,
     virtualMessages: buildConsoleVirtualMessageSummaries(snapshot),
     mailboxDeliveries: buildConsoleMailboxDeliverySummaries(snapshot),
     outboxIntents: buildConsoleOutboxIntentSummaries(snapshot),

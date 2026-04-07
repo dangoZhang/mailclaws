@@ -18,7 +18,7 @@ import { upsertMailAccount } from "../src/storage/repositories/mail-accounts.js"
 import { upsertProviderCursor } from "../src/storage/repositories/provider-cursors.js";
 import { appendProviderEvent } from "../src/storage/repositories/provider-events.js";
 import { saveThreadRoom } from "../src/storage/repositories/thread-rooms.js";
-import type { MailAgentExecutor } from "../src/runtime/agent-executor.js";
+import type { ExecuteMailTurnInput, MailAgentExecutor } from "../src/runtime/agent-executor.js";
 import type { LocalCommandRunner } from "../src/runtime/local-command-executor.js";
 import { buildRoomSessionKey } from "../src/threading/session-key.js";
 import { createMailLab } from "./helpers/mail-lab.js";
@@ -51,6 +51,7 @@ afterEach(async () => {
 function createFixture(options: {
   sender?: SmtpSender;
   env?: Record<string, string>;
+  agentExecutor?: MailAgentExecutor;
   mailIoCommandRunner?: LocalCommandRunner;
   gatewayOutcomeDispatcher?: NonNullable<
     Parameters<typeof createMailSidecarRuntime>[0]["gatewayOutcomeDispatcher"]
@@ -67,7 +68,7 @@ function createFixture(options: {
     ...options.env
   });
   const handle = initializeDatabase(config);
-  const client: MailAgentExecutor = {
+  const client: MailAgentExecutor = options.agentExecutor ?? {
     async executeMailTurn() {
       return {
         startedAt: "2026-03-25T03:00:00.000Z",
@@ -2133,6 +2134,406 @@ describe("app api", () => {
           items: expect.arrayContaining([
             expect.objectContaining({ roomKey: firstInboundJson.ingested.roomKey }),
             expect.objectContaining({ roomKey: secondInboundJson.ingested.roomKey })
+          ])
+        })
+      ])
+    );
+
+    fixture.handle.close();
+  });
+
+  it("exercises diplomat room collaboration, isolated worker context, and workbench room resources without external delivery", async () => {
+    const requests: ExecuteMailTurnInput[] = [];
+    const fixture = createFixture({
+      env: {
+        MAILCLAW_FEATURE_SWARM_WORKERS: "true",
+        MAILCLAW_FEATURE_APPROVAL_GATE: "true"
+      },
+      agentExecutor: {
+        async executeMailTurn(request) {
+          requests.push(request);
+
+          if (request.sessionKey.endsWith(":agent:mail-attachment-reader")) {
+            return {
+              startedAt: "2026-04-08T08:00:00.000Z",
+              completedAt: "2026-04-08T08:00:01.000Z",
+              responseText: JSON.stringify({
+                summary: "Indexed the pricing and security attachments for this room.",
+                facts: [
+                  {
+                    claim: "The room includes pricing.txt and security.txt.",
+                    evidenceRef: "artifact://room/attachments"
+                  }
+                ]
+              }),
+              request: {
+                url: "http://127.0.0.1:11437/v1/responses",
+                method: "POST",
+                headers: {},
+                body: {}
+              }
+            };
+          }
+
+          if (request.sessionKey.endsWith(":agent:mail-researcher")) {
+            return {
+              startedAt: "2026-04-08T08:00:02.000Z",
+              completedAt: "2026-04-08T08:00:03.000Z",
+              responseText: JSON.stringify({
+                summary: "Separated pricing and security findings for the diplomat.",
+                facts: [
+                  {
+                    claim: "Pilot pricing starts at $12k.",
+                    evidenceRef: "attachment:pricing.txt"
+                  },
+                  {
+                    claim: "Security review requires SSO and audit logs.",
+                    evidenceRef: "attachment:security.txt"
+                  }
+                ],
+                open_questions: ["Need legal approval before external send."],
+                recommended_action: "Prepare a concise reply with separate pricing and security bullets."
+              }),
+              request: {
+                url: "http://127.0.0.1:11437/v1/responses",
+                method: "POST",
+                headers: {},
+                body: {}
+              }
+            };
+          }
+
+          if (request.sessionKey.endsWith(":agent:mail-reviewer")) {
+            return {
+              startedAt: "2026-04-08T08:00:04.000Z",
+              completedAt: "2026-04-08T08:00:05.000Z",
+              responseText: JSON.stringify({
+                summary: "Draft is grounded in room evidence and safe to move to approval."
+              }),
+              request: {
+                url: "http://127.0.0.1:11437/v1/responses",
+                method: "POST",
+                headers: {},
+                body: {}
+              }
+            };
+          }
+
+          if (request.sessionKey.endsWith(":agent:mail-guard")) {
+            return {
+              startedAt: "2026-04-08T08:00:06.000Z",
+              completedAt: "2026-04-08T08:00:07.000Z",
+              responseText: JSON.stringify({
+                summary: "Keep the reply in approval. Do not deliver externally yet.",
+                approvalRequired: true
+              }),
+              request: {
+                url: "http://127.0.0.1:11437/v1/responses",
+                method: "POST",
+                headers: {},
+                body: {}
+              }
+            };
+          }
+
+          return {
+            startedAt: "2026-04-08T08:00:08.000Z",
+            completedAt: "2026-04-08T08:00:09.000Z",
+            responseText:
+              "Draft reply: Pricing is split from security for parallel review. Pricing: pilot starts at $12k. Security: SSO and audit log support are required before rollout.",
+            request: {
+              url: "http://127.0.0.1:11437/v1/responses",
+              method: "POST",
+              headers: {},
+              body: {}
+            }
+          };
+        }
+      }
+    });
+    upsertMailAccount(fixture.handle.db, {
+      accountId: "acct-collab",
+      provider: "forward",
+      emailAddress: "diplomat@example.com",
+      status: "active",
+      settings: {},
+      createdAt: "2026-04-08T07:59:00.000Z",
+      updatedAt: "2026-04-08T07:59:00.000Z"
+    });
+    const server = createAppServer({
+      config: fixture.config,
+      mailApi: fixture.runtime
+    });
+
+    servers.push(server);
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+
+    const address = server.address();
+    if (address === null || typeof address === "string") {
+      throw new Error("Expected address info");
+    }
+
+    const baseUrl = `http://127.0.0.1:${address.port}`;
+    const applyResponse = await fetch(`${baseUrl}/api/console/agent-templates/diplomat-front-desk/apply`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        accountId: "acct-collab"
+      })
+    });
+
+    expect(applyResponse.status).toBe(200);
+
+    const inboundResponse = await fetch(`${baseUrl}/api/inbound?processImmediately=true`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        accountId: "acct-collab",
+        mailboxAddress: "diplomat@example.com",
+        envelope: {
+          providerMessageId: "provider-collab-1",
+          messageId: "<collab-msg-1@example.com>",
+          subject: "Need pricing and security reply",
+          from: {
+            email: "founder@example.com"
+          },
+          to: [{ email: "diplomat@example.com" }],
+          text: "Please draft a reply that separates pricing and security. Use the attachments so finance and security can work in parallel.",
+          attachments: [
+            {
+              filename: "pricing.txt",
+              contentType: "text/plain",
+              contentBase64: Buffer.from("Pilot pricing starts at $12k and renews annually.").toString("base64")
+            },
+            {
+              filename: "security.txt",
+              contentType: "text/plain",
+              contentBase64: Buffer.from("Security review requires SSO, audit logs, and legal sign-off.").toString("base64")
+            }
+          ],
+          headers: [
+            {
+              name: "Message-ID",
+              value: "<collab-msg-1@example.com>"
+            }
+          ]
+        }
+      })
+    });
+    const inboundJson = (await inboundResponse.json()) as {
+      ingested: { roomKey: string };
+      processed: { status: string } | null;
+    };
+
+    expect(inboundResponse.status).toBe(200);
+    expect(inboundJson.processed?.status).toBe("completed");
+
+    const replayResponse = await fetch(
+      `${baseUrl}/api/rooms/${encodeURIComponent(inboundJson.ingested.roomKey)}/replay`
+    );
+    const replayJson = (await replayResponse.json()) as {
+      room: {
+        frontAgentAddress?: string;
+        frontAgentId?: string;
+        publicAgentIds?: string[];
+        collaboratorAgentIds?: string[];
+      } | null;
+      roomNotes: null | {
+        documents?: Array<{ title: string }>;
+      };
+      attachments: Array<{ filename: string }>;
+      workerSessions: Array<{ role: string; state: string }>;
+      virtualMessages: Array<{ kind: string; subject: string }>;
+      mailboxDeliveries: Array<{ mailboxId: string; status: string }>;
+      outbox: Array<{ kind: string; status: string; textBody: string }>;
+      outboxAttempts: unknown[];
+    };
+
+    expect(replayResponse.status).toBe(200);
+    expect(replayJson.room).toMatchObject({
+      frontAgentAddress: "diplomat@example.com",
+      frontAgentId: "diplomat",
+      publicAgentIds: expect.arrayContaining(["diplomat", "research", "ops"]),
+      collaboratorAgentIds: expect.arrayContaining(["research", "ops"])
+    });
+    expect(replayJson.attachments.map((attachment) => attachment.filename)).toEqual(
+      expect.arrayContaining(["pricing.txt", "security.txt"])
+    );
+    expect(replayJson.roomNotes?.documents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: "Room Memory" }),
+        expect.objectContaining({ title: "Shared Facts" })
+      ])
+    );
+    expect(replayJson.workerSessions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ role: "mail-attachment-reader", state: "idle" }),
+        expect.objectContaining({ role: "mail-researcher", state: "idle" }),
+        expect.objectContaining({ role: "mail-reviewer", state: "idle" }),
+        expect.objectContaining({ role: "mail-guard", state: "idle" })
+      ])
+    );
+    expect(replayJson.virtualMessages.map((message) => message.kind)).toEqual(
+      expect.arrayContaining(["task", "claim", "review", "final_ready"])
+    );
+    expect(replayJson.mailboxDeliveries.length).toBeGreaterThanOrEqual(4);
+    expect(replayJson.outbox).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "final",
+          status: "pending_approval",
+          textBody: expect.stringContaining("Pricing: pilot starts at $12k.")
+        })
+      ])
+    );
+    expect(replayJson.outboxAttempts).toEqual([]);
+
+    const attachmentReaderRequest = requests.find((request) =>
+      request.sessionKey.endsWith(":agent:mail-attachment-reader")
+    );
+    const researcherRequest = requests.find((request) =>
+      request.sessionKey.endsWith(":agent:mail-researcher")
+    );
+    const reviewerRequest = requests.find((request) =>
+      request.sessionKey.endsWith(":agent:mail-reviewer")
+    );
+    const guardRequest = requests.find((request) => request.sessionKey.endsWith(":agent:mail-guard"));
+
+    expect(attachmentReaderRequest?.inputText).toContain(
+      "Summarize the most relevant attachment evidence for the current reply."
+    );
+    expect(attachmentReaderRequest?.inputText).toContain("pricing.txt");
+    expect(attachmentReaderRequest?.inputText).not.toContain("Draft reply:");
+    expect(researcherRequest?.inputText).toContain("Attachment inventory:");
+    expect(researcherRequest?.inputText).not.toContain("Draft reply:");
+    expect(reviewerRequest?.inputText).toContain("Draft reply:");
+    expect(reviewerRequest?.inputText).toContain("Worker summaries:");
+    expect(reviewerRequest?.inputText).not.toContain("Attachment inventory:");
+    expect(guardRequest?.inputText).toContain("Draft reply:");
+    expect(guardRequest?.inputText).not.toContain("Attachment inventory:");
+
+    const workbenchResponse = await fetch(
+      `${baseUrl}/api/console/workbench?accountId=acct-collab&roomKey=${encodeURIComponent(inboundJson.ingested.roomKey)}`
+    );
+    const workbenchJson = (await workbenchResponse.json()) as {
+      workspace: {
+        connect: {
+          agentDirectory: Array<{ agentId: string; virtualMailboxes: string[] }>;
+        };
+      };
+      accountDetail: null | {
+        account: { mailboxCount: number; inboxCount: number };
+        inboxes: Array<{ agentId: string }>;
+        mailboxes: Array<{ mailboxId: string; role: string | null }>;
+      };
+      roomDetail: null | {
+        room: {
+          roomKey: string;
+          frontAgentId: string | null;
+          mailboxCount: number;
+          pendingApprovalCount: number;
+        };
+        roomNotes: null | {
+          documents?: Array<{ title: string }>;
+        };
+        attachments: Array<{ filename: string }>;
+        mailboxes: Array<{ mailboxId: string; role: string | null }>;
+        counts: {
+          virtualMessages: number;
+          mailboxDeliveries: number;
+          outboxIntents: number;
+        };
+        outboxIntents: Array<{ kind: string; status: string; subject: string }>;
+      };
+    };
+
+    expect(workbenchResponse.status).toBe(200);
+    expect(workbenchJson.workspace.connect.agentDirectory).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          agentId: "diplomat",
+          virtualMailboxes: expect.arrayContaining([
+            "public:diplomat",
+            "internal:diplomat:orchestrator",
+            "internal:diplomat:reviewer",
+            "internal:diplomat:guard"
+          ])
+        })
+      ])
+    );
+    expect(workbenchJson.accountDetail).toMatchObject({
+      account: {
+        mailboxCount: expect.any(Number),
+        inboxCount: expect.any(Number)
+      },
+      inboxes: expect.arrayContaining([
+        expect.objectContaining({ agentId: "diplomat" }),
+        expect.objectContaining({ agentId: "research" }),
+        expect.objectContaining({ agentId: "ops" })
+      ])
+    });
+    expect(workbenchJson.accountDetail?.account.inboxCount).toBeGreaterThanOrEqual(3);
+    expect(workbenchJson.accountDetail?.account.mailboxCount).toBeGreaterThanOrEqual(12);
+    expect(workbenchJson.roomDetail).toMatchObject({
+      room: {
+        roomKey: inboundJson.ingested.roomKey,
+        frontAgentId: "diplomat",
+        mailboxCount: expect.any(Number),
+        pendingApprovalCount: expect.any(Number)
+      },
+      attachments: expect.arrayContaining([
+        expect.objectContaining({ filename: "pricing.txt" }),
+        expect.objectContaining({ filename: "security.txt" })
+      ]),
+      outboxIntents: expect.arrayContaining([
+        expect.objectContaining({
+          kind: "final",
+          status: "pending_approval"
+        })
+      ])
+    });
+    expect(workbenchJson.roomDetail?.roomNotes?.documents).toEqual(
+      expect.arrayContaining([expect.objectContaining({ title: "Room Memory" })])
+    );
+    expect(workbenchJson.roomDetail?.counts.virtualMessages).toBeGreaterThanOrEqual(4);
+    expect(workbenchJson.roomDetail?.counts.mailboxDeliveries).toBeGreaterThanOrEqual(4);
+    expect(workbenchJson.roomDetail?.counts.outboxIntents).toBeGreaterThan(0);
+    expect(workbenchJson.roomDetail?.mailboxes.map((mailbox) => mailbox.role)).toEqual(
+      expect.arrayContaining(["attachment-reader", "researcher", "reviewer", "guard"])
+    );
+
+    const mailboxConsoleResponse = await fetch(`${baseUrl}/api/accounts/acct-collab/mailbox-console`);
+    const mailboxConsoleJson = (await mailboxConsoleResponse.json()) as {
+      publicAgentInboxes: Array<{
+        inbox: { agentId: string };
+        items: Array<{ roomKey: string; participantRole: string }>;
+      }>;
+    };
+
+    expect(mailboxConsoleResponse.status).toBe(200);
+    expect(mailboxConsoleJson.publicAgentInboxes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          inbox: expect.objectContaining({ agentId: "diplomat" }),
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              roomKey: inboundJson.ingested.roomKey,
+              participantRole: "front"
+            })
+          ])
+        }),
+        expect.objectContaining({
+          inbox: expect.objectContaining({ agentId: "research" }),
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              roomKey: inboundJson.ingested.roomKey,
+              participantRole: "collaborator"
+            })
           ])
         })
       ])
