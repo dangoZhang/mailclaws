@@ -1086,32 +1086,55 @@ select {
 
 .source-mail-card__summary {
   display: grid;
-  gap: 10px;
+  gap: 14px;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.8fr);
 }
 
 .source-mail-card__meta {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
 }
 
 .source-mail-card__body {
   padding: 0 14px 14px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.8fr);
   border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
 }
 
-.source-mail-card__grid {
+.source-mail-card__rail {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+.source-mail-card__content {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
 }
 
 .source-mail-card__field {
   display: grid;
   gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg) 22%, transparent);
+}
+
+.source-mail-card__excerpt {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg) 24%, transparent);
+  color: color-mix(in srgb, var(--text) 88%, var(--muted) 12%);
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .mail-body {
@@ -1124,6 +1147,13 @@ select {
   white-space: pre-wrap;
   word-break: break-word;
   font: 400 13px/1.6 var(--font-body);
+}
+
+@media (max-width: 820px) {
+  .source-mail-card__summary,
+  .source-mail-card__body {
+    grid-template-columns: 1fr;
+  }
 }
 
 .list-card.active::before {
@@ -2992,18 +3022,23 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         return (
           '<details class="source-mail-card"' + (expanded ? " open" : "") + '>' +
           '<summary class="source-mail-card__summary">' +
-          '<div class="source-mail-card__meta"><div><div class="title">' + escapeHtmlClient((mail && mail.subject) || "Mail") + '</div><div class="card-subtitle">' + escapeHtmlClient((mail && mail.from) || "n/a") + '</div></div><div class="chips">' + (badge ? renderPill(badge, "pill--ok") : "") + '<span class="muted">' + escapeHtmlClient(formatTime(mail && mail.receivedAt)) + '</span></div></div>' +
-          '<div class="detail">' + escapeHtmlClient(summaryLine) + '</div>' +
+          '<div class="source-mail-card__meta">' +
+          '<div><div class="title">' + escapeHtmlClient((mail && mail.subject) || "Mail") + '</div><div class="card-subtitle">' + escapeHtmlClient((mail && mail.from) || "n/a") + '</div></div>' +
+          '<div class="chips">' + (badge ? renderPill(badge, "pill--ok") : "") + '<span class="muted">' + escapeHtmlClient(formatTime(mail && mail.receivedAt)) + '</span></div>' +
+          '</div>' +
+          '<div class="source-mail-card__excerpt">' + escapeHtmlClient(summaryLine) + '</div>' +
           '</summary>' +
           '<div class="source-mail-card__body">' +
-          '<div class="source-mail-card__grid">' +
+          '<div class="source-mail-card__rail">' +
           '<div class="source-mail-card__field"><div class="section-label">' + escapeHtmlClient(t("fromLabel")) + '</div><div class="detail">' + escapeHtmlClient((mail && mail.from) || "n/a") + '</div></div>' +
           '<div class="source-mail-card__field"><div class="section-label">' + escapeHtmlClient(t("toLabel")) + '</div><div class="detail">' + escapeHtmlClient(recipients) + '</div></div>' +
           (ccList ? '<div class="source-mail-card__field"><div class="section-label">' + escapeHtmlClient(t("ccLabel")) + '</div><div class="detail">' + escapeHtmlClient(ccList) + '</div></div>' : '') +
           '<div class="source-mail-card__field"><div class="section-label">' + escapeHtmlClient(t("receivedAtLabel")) + '</div><div class="detail">' + escapeHtmlClient(formatTime(mail && mail.receivedAt)) + '</div></div>' +
           '</div>' +
+          '<div class="source-mail-card__content">' +
           '<div class="section-label">' + escapeHtmlClient(t("bodyLabel")) + '</div>' +
           '<pre class="mail-body">' + escapeHtmlClient(body || "") + '</pre>' +
+          '</div>' +
           '</div>' +
           '</details>'
         );
