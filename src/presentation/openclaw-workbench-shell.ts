@@ -2826,28 +2826,92 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         const roomMailboxes = Array.isArray(roomDetail && roomDetail.mailboxes)
           ? roomDetail.mailboxes.filter(isAgentVirtualMailbox)
           : [];
-        return directory.map(function(entry) {
-          const entryMailboxIds = Array.isArray(entry && entry.virtualMailboxes) ? entry.virtualMailboxes : [];
-          const matchedRoomMailboxes = roomMailboxes.filter(function(mailbox) {
-            return entryMailboxIds.includes(mailbox.mailboxId);
-          });
-          const visible =
-            [
-              entry && entry.agentId,
-              entry && entry.publicMailboxId,
-              entry && entry.displayName
-            ].concat(entryMailboxIds).some(function(value) {
-              const normalized = String(value || "").trim();
-              return normalized.length > 0 && visibleTokenSet.has(normalized);
-            }) || matchedRoomMailboxes.length > 0;
-          if (!visible) {
+        const directoryByAgentId = new Map(directory.map(function(entry) {
+          return [String(entry.agentId || "").trim(), entry];
+        }).filter(function(pair) {
+          return pair[0];
+        }));
+        const directoryByPublicMailboxId = new Map(directory.map(function(entry) {
+          return [String(entry.publicMailboxId || "").trim(), entry];
+        }).filter(function(pair) {
+          return pair[0];
+        }));
+
+        function inferAgentIdFromMailboxId(mailboxId) {
+          const normalized = String(mailboxId || "").trim();
+          if (!normalized) {
+            return "";
+          }
+          const byPublicMailbox = directoryByPublicMailboxId.get(normalized);
+          if (byPublicMailbox && byPublicMailbox.agentId) {
+            return byPublicMailbox.agentId;
+          }
+          if (normalized.startsWith("internal:")) {
+            const parts = normalized.split(":");
+            return parts[1] || "";
+          }
+          if (normalized.startsWith("public:")) {
+            return normalized.slice("public:".length);
+          }
+          return "";
+        }
+
+        const grouped = new Map();
+        function ensureEntry(agentId) {
+          const normalized = String(agentId || "").trim();
+          if (!normalized) {
             return null;
           }
-          return {
-            ...entry,
-            roomMailboxes: matchedRoomMailboxes
+          const existing = grouped.get(normalized);
+          if (existing) {
+            return existing;
+          }
+          const directoryEntry = directoryByAgentId.get(normalized) || null;
+          const created = {
+            agentId: normalized,
+            displayName: directoryEntry && directoryEntry.displayName ? directoryEntry.displayName : normalized,
+            publicMailboxId: directoryEntry && directoryEntry.publicMailboxId ? directoryEntry.publicMailboxId : "",
+            purpose: directoryEntry && directoryEntry.purpose ? directoryEntry.purpose : "",
+            roomMailboxes: []
           };
-        }).filter(Boolean);
+          grouped.set(normalized, created);
+          return created;
+        }
+
+        roomMailboxes.forEach(function(mailbox) {
+          const agentId = inferAgentIdFromMailboxId(mailbox.mailboxId);
+          const entry = ensureEntry(agentId);
+          if (!entry) {
+            return;
+          }
+          entry.roomMailboxes.push(mailbox);
+        });
+
+        directory.forEach(function(entry) {
+          const entryMailboxIds = Array.isArray(entry && entry.virtualMailboxes) ? entry.virtualMailboxes : [];
+          const visible = [
+            entry && entry.agentId,
+            entry && entry.publicMailboxId,
+            entry && entry.displayName
+          ].concat(entryMailboxIds).some(function(value) {
+            const normalized = String(value || "").trim();
+            return normalized.length > 0 && visibleTokenSet.has(normalized);
+          });
+          if (!visible && !grouped.has(entry.agentId || "")) {
+            return;
+          }
+          const ensured = ensureEntry(entry.agentId);
+          if (!ensured) {
+            return;
+          }
+          ensured.displayName = entry.displayName || ensured.displayName;
+          ensured.publicMailboxId = entry.publicMailboxId || ensured.publicMailboxId;
+          ensured.purpose = entry.purpose || ensured.purpose;
+        });
+
+        return Array.from(grouped.values()).filter(function(entry) {
+          return entry.roomMailboxes.length > 0 || visibleTokenSet.has(entry.agentId);
+        });
       }
 
       function renderRoomAgentMailboxCard(entry, room) {
