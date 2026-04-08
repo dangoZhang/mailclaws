@@ -1,0 +1,29 @@
+id: newsroom
+display_name: 新闻编辑部
+source_mode: mixed
+default_front_agent: assignment-editor
+roles:
+  - agent_id: assignment-editor
+    display_name: Assignment Editor
+    prompt: assignment-editor.prompt.md
+    responsibility: angle and scope
+  - agent_id: researcher
+    display_name: Researcher
+    prompt: researcher.prompt.md
+    responsibility: sourcing and timeline
+  - agent_id: reporter
+    display_name: Reporter
+    prompt: reporter.prompt.md
+    responsibility: story draft
+  - agent_id: fact-checker
+    display_name: Fact Checker
+    prompt: fact-checker.prompt.md
+    responsibility: factual verification
+  - agent_id: copy-editor
+    display_name: Copy Editor
+    prompt: copy-editor.prompt.md
+    responsibility: line edit
+  - agent_id: headline-editor
+    display_name: Headline Editor
+    prompt: headline-editor.prompt.md
+    responsibility: headline and abstract

@@ -1,3 +1,5 @@
+import fs from "node:fs";
+
 import type { MailRuntimePolicyManifest, WorkerRole } from "../core/types.js";
 import { workerRoles } from "../core/types.js";
 import type { EmbeddedRuntimeAdapter, EmbeddedRuntimeTurnRequest } from "./embedded-executor.js";
@@ -52,42 +54,51 @@ function renderEmbeddedResponse(input: EmbeddedRuntimeTurnRequest) {
 }
 
 function buildOrchestratorReply(input: EmbeddedRuntimeTurnRequest) {
-  const subject = extractLineValue(input.inputText, "Subject:");
-  const body = extractPrimaryBody(input.inputText);
-  const snippet = truncateToSentence(body, 220);
-  const historyNote =
-    input.history.filter((entry) => entry.role === "assistant").length > 0
-      ? "I kept the earlier room summary and this reply stays on the same thread."
-      : "I created a durable room for this message and can continue on the same thread.";
+  const draftReply = extractWorkerDraftReply(input.inputText);
+  if (draftReply) {
+    return draftReply;
+  }
 
-  return [
-    subject ? `Received your message about "${subject}".` : "Received your message.",
-    snippet ? `Summary: ${snippet}` : "",
-    historyNote,
-    "Reply with more details or attachments if you want me to continue from here."
-  ]
-    .filter((line) => line.length > 0)
-    .join("\n\n");
+  const attachmentClaims = collectAttachmentClaims(input.attachments ?? []);
+  if (attachmentClaims.length > 0) {
+    return attachmentClaims.join("\n");
+  }
+
+  const body = extractPrimaryBody(input.inputText);
+  if (body) {
+    return body;
+  }
+
+  const subject = extractLineValue(input.inputText, "Subject:");
+
+  return subject ? `Received your message about "${subject}".` : "Received your message.";
 }
 
 function buildAttachmentReaderResult(input: EmbeddedRuntimeTurnRequest) {
   const attachments = input.attachments ?? [];
-  const attachmentFacts = attachments.slice(0, 5).map((attachment) => ({
-    claim: `${attachment.filename} is available for the current room.`,
-    evidenceRef: attachment.summaryPath ?? attachment.extractedTextPath ?? attachment.artifactPath,
+  const attachmentFacts = collectAttachmentClaims(attachments, 5).map((claim, index) => ({
+    key: normalizeFactKey(claim, index),
+    claim,
+    evidenceRef: resolveAttachmentEvidenceRef(attachments[index]),
     confidence: "high" as const
   }));
 
   return {
     summary:
-      attachments.length > 0
-        ? `Indexed ${attachments.length} attachment${attachments.length === 1 ? "" : "s"} for the room.`
+      attachmentFacts.length > 0
+        ? `Read ${attachments.length} attachment${attachments.length === 1 ? "" : "s"} and extracted ${attachmentFacts.length} evidence point${attachmentFacts.length === 1 ? "" : "s"}.`
+        : attachments.length > 0
+          ? `Indexed ${attachments.length} attachment${attachments.length === 1 ? "" : "s"} for the room.`
         : "No attachments were present on this message.",
     status: "ok",
     facts: attachmentFacts,
     openQuestions: attachments.length > 0 ? [] : ["No attachment content was available to inspect."],
     recommendedAction:
-      attachments.length > 0 ? "Use the attachment summaries as supporting evidence." : "Proceed without attachment evidence."
+      attachmentFacts.length > 0
+        ? "Use the extracted attachment facts in the reply."
+        : attachments.length > 0
+          ? "Use the attachment summaries as supporting evidence."
+          : "Proceed without attachment evidence."
   };
 }
 
@@ -95,22 +106,33 @@ function buildResearchResult(input: EmbeddedRuntimeTurnRequest) {
   const subject = extractLineValue(input.inputText, "Subject:");
   const body = extractPrimaryBody(input.inputText);
   const snippet = truncateToSentence(body, 180);
-
-  return {
-    summary: subject
-      ? `Captured the current request context for "${subject}".`
-      : "Captured the current request context.",
-    status: "ok",
-    facts: snippet
+  const attachmentClaims = collectAttachmentClaims(input.attachments ?? [], 2);
+  const facts = [
+    ...(snippet
       ? [
           {
             claim: snippet,
             confidence: "medium" as const
           }
         ]
-      : [],
-    openQuestions: snippet ? [] : ["The inbound message did not include a usable text body."],
-    recommendedAction: "Draft a concise reply anchored on the latest inbound message."
+      : []),
+    ...attachmentClaims.map((claim) => ({
+      claim,
+      confidence: "high" as const
+    }))
+  ];
+
+  return {
+    summary: subject
+      ? `Captured the current request context for "${subject}".`
+      : "Captured the current request context.",
+    status: "ok",
+    facts,
+    openQuestions: snippet || attachmentClaims.length > 0 ? [] : ["The inbound message did not include usable evidence."],
+    recommendedAction:
+      attachmentClaims.length > 0
+        ? "Draft a concise reply that directly answers with the attachment facts."
+        : "Draft a concise reply anchored on the latest inbound message."
   };
 }
 
@@ -168,6 +190,7 @@ function extractPrimaryBody(inputText: string) {
     "Reply-To:",
     "Role:",
     "Routing context:",
+    "Relevant room context:",
     "Latest room pre snapshot:",
     "Shared facts:",
     "Worker summaries:",
@@ -254,4 +277,143 @@ function truncateToSentence(inputText: string, limit: number) {
   const sentenceMatch = normalized.match(/^(.+?[.!?])(?:\s|$)/);
   const sentence = sentenceMatch?.[1]?.trim() ?? normalized;
   return sentence.length <= limit ? sentence : `${sentence.slice(0, Math.max(0, limit - 1)).trim()}…`;
+}
+
+function collectAttachmentClaims(
+  attachments: NonNullable<EmbeddedRuntimeTurnRequest["attachments"]>,
+  limit = 4
+) {
+  const claims: string[] = [];
+
+  for (const attachment of attachments) {
+    const text = readAttachmentText(attachment);
+    if (!text) {
+      continue;
+    }
+
+    const pieces = text
+      .split(/\n+/)
+      .flatMap((line) => line.split(/(?<=[.!?])\s+/))
+      .map((entry) => entry.replace(/\s+/g, " ").trim())
+      .filter(Boolean);
+
+    for (const piece of pieces) {
+      const normalized = piece.length <= 180 ? piece : `${piece.slice(0, 177).trim()}...`;
+      if (!claims.includes(normalized)) {
+        claims.push(normalized);
+      }
+      if (claims.length >= limit) {
+        return claims;
+      }
+    }
+  }
+
+  return claims;
+}
+
+function readAttachmentText(
+  attachment: NonNullable<EmbeddedRuntimeTurnRequest["attachments"]>[number]
+) {
+  const candidatePaths = [
+    attachment.preferredInputPath,
+    attachment.extractedTextPath,
+    attachment.summaryShortPath,
+    attachment.summaryPath
+  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+  for (const candidatePath of candidatePaths) {
+    try {
+      if (!fs.existsSync(candidatePath)) {
+        continue;
+      }
+      const text = fs.readFileSync(candidatePath, "utf8").trim();
+      if (text) {
+        return stripAttachmentMetadataPrefix(maybeDecodeBase64Text(text), attachment.filename);
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  if (attachment.summaryText?.trim()) {
+    return stripAttachmentMetadataPrefix(maybeDecodeBase64Text(attachment.summaryText.trim()), attachment.filename);
+  }
+
+  return "";
+}
+
+function stripAttachmentMetadataPrefix(inputText: string, filename?: string) {
+  const text = inputText.trim();
+  const prefixes = [filename ? `${filename}:` : "", filename ? `${filename} ` : ""].filter(Boolean);
+  for (const prefix of prefixes) {
+    if (text.startsWith(prefix)) {
+      return text.slice(prefix.length).trim();
+    }
+  }
+
+  return text;
+}
+
+function maybeDecodeBase64Text(inputText: string) {
+  const compact = inputText.replace(/\s+/g, "");
+  if (compact.length < 16 || compact.length % 4 !== 0 || /[^A-Za-z0-9+/=]/.test(compact)) {
+    return inputText;
+  }
+
+  try {
+    const decoded = Buffer.from(compact, "base64").toString("utf8").replace(/\0/g, "").trim();
+    if (!decoded) {
+      return inputText;
+    }
+    const printableChars = [...decoded].filter((char) => char >= " " || char === "\n" || char === "\t").length;
+    return printableChars / decoded.length >= 0.85 ? decoded : inputText;
+  } catch {
+    return inputText;
+  }
+}
+
+function resolveAttachmentEvidenceRef(
+  attachment: NonNullable<EmbeddedRuntimeTurnRequest["attachments"]>[number] | undefined
+) {
+  if (!attachment) {
+    return undefined;
+  }
+  return attachment.summaryPath ?? attachment.extractedTextPath ?? attachment.artifactPath;
+}
+
+function normalizeFactKey(claim: string, index: number) {
+  const slug = claim
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+  return slug || `attachment-fact-${index + 1}`;
+}
+
+function extractWorkerDraftReply(inputText: string) {
+  const lines = inputText.split("\n");
+  const start = lines.findIndex((line) => line.trim() === "Worker draft replies:");
+  if (start < 0) {
+    return "";
+  }
+
+  for (const line of lines.slice(start + 1)) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      continue;
+    }
+    if (!trimmed.startsWith("- ")) {
+      break;
+    }
+    const separatorIndex = trimmed.indexOf(":");
+    if (separatorIndex < 0) {
+      continue;
+    }
+    const value = trimmed.slice(separatorIndex + 1).trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
 }

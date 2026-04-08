@@ -1,0 +1,29 @@
+id: one-person-company
+display_name: 一人公司内容台
+source_mode: adapted
+default_front_agent: founder
+roles:
+  - agent_id: founder
+    display_name: Founder
+    prompt: founder.prompt.md
+    responsibility: thesis and final call
+  - agent_id: chief-of-staff
+    display_name: Chief of Staff
+    prompt: chief-of-staff.prompt.md
+    responsibility: brief shaping and orchestration
+  - agent_id: researcher
+    display_name: Researcher
+    prompt: researcher.prompt.md
+    responsibility: source gathering
+  - agent_id: writer
+    display_name: Writer
+    prompt: writer.prompt.md
+    responsibility: drafting
+  - agent_id: editor
+    display_name: Editor
+    prompt: editor.prompt.md
+    responsibility: editing and tightening
+  - agent_id: publisher
+    display_name: Publisher
+    prompt: publisher.prompt.md
+    responsibility: channel adaptation and publishing checklist

@@ -13,7 +13,6 @@ import type { SmtpSender } from "../src/providers/smtp.js";
 import { initializeDatabase } from "../src/storage/db.js";
 import { findProviderCursor } from "../src/storage/repositories/provider-cursors.js";
 import { listProviderEventsForAccount } from "../src/storage/repositories/provider-events.js";
-import type { MailAgentExecutor } from "../src/runtime/agent-executor.js";
 import { createMailLab } from "./helpers/mail-lab.js";
 
 const tempDirs: string[] = [];
@@ -274,26 +273,12 @@ describe("runtime watchers", () => {
     });
     const handle = initializeDatabase(config);
     const lab = createMailLab("watcher-smoke");
-    const sent: Array<{ subject: string; to: string[] }> = [];
-    const agentExecutor: MailAgentExecutor = {
-      async executeMailTurn() {
-        return {
-          startedAt: "2026-03-26T02:00:00.000Z",
-          completedAt: "2026-03-26T02:00:02.000Z",
-          responseText: "Watcher smoke final reply.",
-          request: {
-            url: "http://127.0.0.1:11437/v1/responses",
-            method: "POST",
-            headers: {},
-            body: {}
-          }
-        };
-      }
-    };
+    const sent: Array<{ subject: string; textBody: string; to: string[] }> = [];
     const smtpSender: SmtpSender = {
       async send(message) {
         sent.push({
           subject: message.subject,
+          textBody: message.textBody,
           to: [...message.to]
         });
         return {
@@ -304,7 +289,6 @@ describe("runtime watchers", () => {
     const runtime = createMailSidecarRuntime({
       db: handle.db,
       config,
-      agentExecutor,
       smtpSender
     });
 
@@ -330,7 +314,7 @@ describe("runtime watchers", () => {
     const inbound = lab.newMail({
       providerMessageId: "watcher-smoke-provider-1",
       subject: "Watcher smoke room",
-      text: "Please confirm the minimal watcher path.",
+      text: "hello world",
       attachments: [
         {
           filename: "notes.txt",
@@ -414,6 +398,7 @@ describe("runtime watchers", () => {
     expect(sent).toEqual([
       {
         subject: "Watcher smoke room",
+        textBody: "hello world",
         to: [lab.addresses.customerA]
       }
     ]);
@@ -421,7 +406,8 @@ describe("runtime watchers", () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: "final",
-          status: "sent"
+          status: "sent",
+          textBody: "hello world"
         })
       ])
     );

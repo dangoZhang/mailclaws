@@ -1770,6 +1770,7 @@ function renderConnectProviderGuide(guide: ReturnType<typeof resolveConnectProvi
       : []),
     ...(guide.requiredEnvVars.length > 0 ? [`Required env: ${guide.requiredEnvVars.join(", ")}`] : []),
     ...(guide.optionalEnvVars.length > 0 ? [`Optional env: ${guide.optionalEnvVars.join(", ")}`] : []),
+    ...(guide.helpUrl ? [`Help: ${guide.helpLabel ?? "Provider docs"} | ${guide.helpUrl}`] : []),
     ...(guide.notes.length > 0 ? ["Notes:", ...guide.notes.map((note) => `  ${note}`)] : [])
   ].join("\n");
 }

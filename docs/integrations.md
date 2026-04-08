@@ -20,6 +20,8 @@ That means MailClaws can connect to existing mailbox providers without treating 
 
 MailClaws currently supports three practical connection paths.
 
+For the complete mailbox matrix and required user actions, see [Mailbox Provider Matrix](./mailbox-providers.md).
+
 ### 1. OAuth Mailboxes
 
 Best choice when available.

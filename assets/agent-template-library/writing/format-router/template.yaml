@@ -1,0 +1,33 @@
+id: format-router
+display_name: 格式路由工厂
+source_mode: adapted
+default_front_agent: router
+roles:
+  - agent_id: router
+    display_name: Router
+    prompt: router.prompt.md
+    responsibility: route and consistency
+  - agent_id: blog-researcher
+    display_name: Blog Researcher
+    prompt: blog-researcher.prompt.md
+    responsibility: longform angle extraction
+  - agent_id: blog-writer
+    display_name: Blog Writer
+    prompt: blog-writer.prompt.md
+    responsibility: blog drafting
+  - agent_id: newsletter-researcher
+    display_name: Newsletter Researcher
+    prompt: newsletter-researcher.prompt.md
+    responsibility: scannable insight extraction
+  - agent_id: newsletter-writer
+    display_name: Newsletter Writer
+    prompt: newsletter-writer.prompt.md
+    responsibility: newsletter drafting
+  - agent_id: linkedin-researcher
+    display_name: LinkedIn Researcher
+    prompt: linkedin-researcher.prompt.md
+    responsibility: professional-social angle extraction
+  - agent_id: linkedin-writer
+    display_name: LinkedIn Writer
+    prompt: linkedin-writer.prompt.md
+    responsibility: linkedin drafting

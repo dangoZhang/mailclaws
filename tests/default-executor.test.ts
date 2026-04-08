@@ -151,7 +151,7 @@ describe("default executor", () => {
         inputText: "Subject: Fresh install\n\nHello from a built-in executor."
       })
     ).resolves.toMatchObject({
-      responseText: expect.stringContaining('Received your message about "Fresh install".'),
+      responseText: "Hello from a built-in executor.",
       request: {
         url: "embedded://mailclaws-embedded"
       }

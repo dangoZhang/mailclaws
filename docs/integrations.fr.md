@@ -20,6 +20,8 @@ Cela permet à MailClaws de se connecter à des providers existants sans traiter
 
 MailClaws prend aujourd’hui en charge trois chemins pratiques de connexion.
 
+Pour la matrice complète des mailbox et les actions requises côté utilisateur, voir [Matrice Des Providers Mailbox](./mailbox-providers.fr.md).
+
 ### 1. Boîtes OAuth
 
 Le meilleur choix quand il est disponible.

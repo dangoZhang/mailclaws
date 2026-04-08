@@ -107,6 +107,7 @@ export function renderOAuthCallbackHtml(input: {
   message: string;
   accountId?: string;
   emailAddress?: string;
+  returnUrl?: string;
 }) {
   const details = [
     input.accountId ? `<p><strong>Account ID:</strong> ${escapeHtml(input.accountId)}</p>` : "",
@@ -114,6 +115,15 @@ export function renderOAuthCallbackHtml(input: {
   ]
     .filter(Boolean)
     .join("");
+  const autoReturnScript =
+    input.success && input.returnUrl
+      ? `
+    <script>
+      window.setTimeout(function () {
+        window.location.assign(${JSON.stringify(input.returnUrl)});
+      }, 1200);
+    </script>`
+      : "";
 
   return `<!doctype html>
 <html lang="en">
@@ -154,6 +164,29 @@ export function renderOAuthCallbackHtml(input: {
         background: ${input.success ? "#dff4e5" : "#fde7e7"};
         color: ${input.success ? "#1d6b3f" : "#9a2f2f"};
       }
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+      }
+      .actions a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .actions__primary {
+        background: #17212b;
+        color: #ffffff;
+      }
+      .actions__secondary {
+        background: #eef2f7;
+        color: #17212b;
+      }
     </style>
   </head>
   <body>
@@ -162,9 +195,22 @@ export function renderOAuthCallbackHtml(input: {
       <h1>${escapeHtml(input.title)}</h1>
       <p>${escapeHtml(input.message)}</p>
       ${details}
-      <p>You can close this window and return to MailClaws.</p>
+      <p>${
+        input.success && input.returnUrl
+          ? "MailClaws will return you to the workbench automatically."
+          : "You can close this window and return to MailClaws."
+      }</p>
+      <div class="actions">
+        ${
+          input.returnUrl
+            ? `<a class="actions__primary" href="${escapeHtml(input.returnUrl)}">Return To Workbench</a>`
+            : ""
+        }
+        <a class="actions__secondary" href="/workbench/mail">Open Mail Workbench</a>
+      </div>
       <p><small>Provider: ${escapeHtml(input.providerName)}</small></p>
     </main>
+    ${autoReturnScript}
   </body>
 </html>`;
 }

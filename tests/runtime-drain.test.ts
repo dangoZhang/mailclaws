@@ -59,7 +59,72 @@ describe("runtime drainQueue", () => {
     const drained = await runtime.drainQueue();
 
     expect(drained.processed).toHaveLength(1);
-    expect(drained.processed[0]?.run.responseText).toContain('Received your message about "Embedded default".');
+    expect(drained.processed[0]?.run.responseText).toBe("Hello from a fresh runtime.");
+
+    handle.close();
+  });
+
+  it("decodes contentBase64 text attachments and uses them in the embedded final reply", async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "mailclaws-runtime-embedded-attachments-"));
+    tempDirs.push(tempDir);
+
+    const config = loadConfig({
+      MAILCLAW_STATE_DIR: tempDir,
+      MAILCLAW_SQLITE_PATH: path.join(tempDir, "mailclaws.sqlite"),
+      MAILCLAW_FEATURE_MAIL_INGEST: "true",
+      MAILCLAW_FEATURE_OPENCLAW_BRIDGE: "true"
+    });
+    const handle = initializeDatabase(config);
+    const runtime = createMailSidecarRuntime({
+      db: handle.db,
+      config
+    });
+
+    const ingested = await runtime.ingest({
+      accountId: "acct-1",
+      mailboxAddress: "mailclaws@example.com",
+      processImmediately: true,
+      envelope: {
+        providerMessageId: "provider-embedded-attachment-1",
+        messageId: "<msg-embedded-attachment-1@example.com>",
+        subject: "Need pricing and security",
+        from: {
+          email: "sender@example.com"
+        },
+        to: [{ email: "mailclaws@example.com" }],
+        text: "Please combine the pricing and security facts in one short reply.",
+        attachments: [
+          {
+            filename: "pricing.txt",
+            mimeType: "text/plain",
+            contentBase64: Buffer.from("Pricing: pilot starts at $12k.", "utf8").toString("base64")
+          },
+          {
+            filename: "security.txt",
+            mimeType: "text/plain",
+            contentBase64: Buffer.from(
+              "Security: requires SSO, audit logs, and review.",
+              "utf8"
+            ).toString("base64")
+          }
+        ],
+        headers: [
+          {
+            name: "Message-ID",
+            value: "<msg-embedded-attachment-1@example.com>"
+          }
+        ]
+      }
+    });
+
+    const replay = runtime.replay(ingested.ingested.roomKey);
+
+    expect(replay.attachments[0]?.summaryText).toContain("Pricing: pilot starts at $12k.");
+    expect(replay.attachments[1]?.summaryText).toContain("Security: requires SSO, audit logs, and review.");
+    expect(replay.outbox.some((item) => item.textBody.includes("Pricing: pilot starts at $12k."))).toBe(true);
+    expect(
+      replay.outbox.some((item) => item.textBody.includes("Security: requires SSO, audit logs, and review."))
+    ).toBe(true);
 
     handle.close();
   });

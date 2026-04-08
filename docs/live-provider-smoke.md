@@ -20,7 +20,9 @@ pnpm mailctl observe accounts
 
 ## T23: Live IMAP + SMTP
 
-需要这些环境变量：
+支持两种配置方式。
+
+方式 A：通用 IMAP/SMTP 环境变量
 
 - `MAILCLAW_LIVE_IMAP_HOST`
 - `MAILCLAW_LIVE_IMAP_PORT`
@@ -35,24 +37,79 @@ pnpm mailctl observe accounts
 - `MAILCLAW_LIVE_SMTP_USERNAME`
 - `MAILCLAW_LIVE_SMTP_PASSWORD`
 - `MAILCLAW_LIVE_SMTP_FROM`
-- `MAILCLAW_LIVE_SMTP_TO`
 
 可选：
 
 - `MAILCLAW_LIVE_IMAP_CHECKPOINT`
+- `MAILCLAW_LIVE_IMAP_ECHO_TEXT`
+- `MAILCLAW_LIVE_IMAP_EXPECTED_FROM`
+
+方式 B：预置邮箱最小环境变量
+
+支持这些前缀：
+
+- `MAILCLAW_LIVE_QQ_*`
+- `MAILCLAW_LIVE_163_*`
+- `MAILCLAW_LIVE_126_*`
+- `MAILCLAW_LIVE_ICLOUD_*`
+- `MAILCLAW_LIVE_YAHOO_*`
+
+每个前缀最少都需要两项：
+
+- `<PREFIX>_ADDRESS`
+- `<PREFIX>_AUTH_CODE`
+
+也兼容：
+
+- `<PREFIX>_PASSWORD`
+
+以 QQ 为例：
+
+- `MAILCLAW_LIVE_QQ_ADDRESS`
+- `MAILCLAW_LIVE_QQ_AUTH_CODE`
+
+可选：
+
+- `MAILCLAW_LIVE_QQ_PASSWORD`
+- `MAILCLAW_LIVE_QQ_IMAP_MAILBOX`
+- `MAILCLAW_LIVE_QQ_IMAP_CHECKPOINT`
+- `MAILCLAW_LIVE_QQ_ECHO_TEXT`
+- `MAILCLAW_LIVE_QQ_EXPECTED_FROM`
+- `MAILCLAW_LIVE_QQ_IMAP_HOST / PORT / SECURE / USERNAME`
+- `MAILCLAW_LIVE_QQ_SMTP_HOST / PORT / SECURE / USERNAME / PASSWORD / FROM`
+
+如果只给 `MAILCLAW_LIVE_QQ_ADDRESS` 和 `MAILCLAW_LIVE_QQ_AUTH_CODE`，测试会自动套用：
+
+- IMAP: `imap.qq.com:993`, `secure=true`, mailbox=`INBOX`
+- SMTP: `smtp.qq.com:465`, `secure=true`
+
+其它预置邮箱的默认值：
+
+| 前缀 | IMAP 默认 | SMTP 默认 | 备注 |
+| --- | --- | --- | --- |
+| `MAILCLAW_LIVE_QQ_*` | `imap.qq.com:993`, `secure=true` | `smtp.qq.com:465`, `secure=true` | 使用 QQ 授权码 |
+| `MAILCLAW_LIVE_163_*` | `imap.163.com:993`, `secure=true` | `smtp.163.com:465`, `secure=true` | 使用 163 授权码 |
+| `MAILCLAW_LIVE_126_*` | `imap.126.com:993`, `secure=true` | `smtp.126.com:465`, `secure=true` | 使用 126 授权码 |
+| `MAILCLAW_LIVE_ICLOUD_*` | `imap.mail.me.com:993`, `secure=true` | `smtp.mail.me.com:587`, `secure=false` | 使用 Apple app-specific password |
+| `MAILCLAW_LIVE_YAHOO_*` | `imap.mail.yahoo.com:993`, `secure=true` | `smtp.mail.yahoo.com:465`, `secure=true` | 使用 Yahoo app password |
 
 自动断言：
 
 - 能连上真实 IMAP 并返回合法 batch
 - 能得到 durable `uidValidity`
-- 能通过真实 SMTP 发出一封 MailClaws outbox message
+- 能找到一封真实入站邮件，正文精确等于 `hello world` 或你配置的 `*_ECHO_TEXT`
+- 能把这封真实邮件喂进 runtime，并生成 final outbox
+- final reply 的正文会回显为同样的 `hello world`
+- 能通过真实 SMTP 把 final reply 发回原始发件人
+- reply 会带上 `In-Reply-To / References`
 
 人工补充检查：
 
-- 用真实测试邮箱给 `MAILCLAW_LIVE_IMAP_ADDRESS` 发一封新邮件，确认会新建 room
-- 对同一线程回复一封 reply，确认会续原 room
-- 检查 ACK/final 在真实邮箱线程里显示正确
-- 检查不需要手工改 `Message-ID / In-Reply-To / References`
+- 先给 `MAILCLAW_LIVE_IMAP_ADDRESS` 或 `MAILCLAW_LIVE_QQ_ADDRESS` 发一封新邮件，正文只写 `hello world`
+- 最好在发信前记录或设置 `MAILCLAW_LIVE_IMAP_CHECKPOINT` / `MAILCLAW_LIVE_QQ_IMAP_CHECKPOINT`，避免测试扫到旧邮件
+- 如果同一收件箱里有多封 `hello world`，用 `*_EXPECTED_FROM` 限定发件人
+- 这里填的是 provider 发放的授权码、app password 或专用密码，不是网页登录密码
+- 发信后再执行 `pnpm test:live-providers`
 
 ## T24: Live Gmail
 

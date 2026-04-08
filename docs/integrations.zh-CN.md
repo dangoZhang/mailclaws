@@ -20,6 +20,8 @@ MailClaws 把职责拆开：
 
 MailClaws 现在主要支持三类实用接入方式。
 
+完整邮箱矩阵和用户操作，见 [邮箱接入清单](./mailbox-providers.zh-CN.md)。
+
 ### 1. OAuth 邮箱
 
 优先推荐。

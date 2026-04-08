@@ -93,6 +93,7 @@ function buildSidebar(base: string, locale: "en" | "zh-CN" | "fr") {
         { text: labels.concepts, link: withBase(base, "concepts") },
         { text: labels.multiAgentGuide, link: withBase(base, "multi-agent-workflows") },
         { text: labels.operatorConsole, link: withBase(base, "operator-console") },
+        { text: labels.mailboxProviders, link: withBase(base, "mailbox-providers") },
         { text: labels.integrations, link: withBase(base, "integrations") }
       ]
     },
@@ -128,6 +129,7 @@ function localeLabels(locale: "en" | "zh-CN" | "fr") {
         docsHome: "文档首页",
         multiAgentGuide: "多智能体协作",
         operatorConsole: "运维控制台",
+        mailboxProviders: "邮箱接入清单",
         operatorsGuide: "运维指南",
         securityBoundaries: "安全边界",
       };
@@ -146,6 +148,7 @@ function localeLabels(locale: "en" | "zh-CN" | "fr") {
         docsHome: "Accueil docs",
         multiAgentGuide: "Collaboration multi-agent",
         operatorConsole: "Console opérateur",
+        mailboxProviders: "Providers mailbox",
         operatorsGuide: "Guide opérateur",
         securityBoundaries: "Limites de sécurité",
       };
@@ -164,6 +167,7 @@ function localeLabels(locale: "en" | "zh-CN" | "fr") {
         docsHome: "Docs Home",
         multiAgentGuide: "Multi-Agent Collaboration",
         operatorConsole: "Operator Console",
+        mailboxProviders: "Mailbox Providers",
         operatorsGuide: "Operators Guide",
         securityBoundaries: "Security Boundaries",
       };

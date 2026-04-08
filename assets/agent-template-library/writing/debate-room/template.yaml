@@ -1,0 +1,21 @@
+id: debate-room
+display_name: 辩论写作室
+source_mode: adapted
+default_front_agent: proposer
+roles:
+  - agent_id: proposer
+    display_name: Proposer
+    prompt: proposer.prompt.md
+    responsibility: strongest-for case
+  - agent_id: opposer
+    display_name: Opposer
+    prompt: opposer.prompt.md
+    responsibility: strongest-against case
+  - agent_id: judge
+    display_name: Judge
+    prompt: judge.prompt.md
+    responsibility: adjudication
+  - agent_id: synthesizer
+    display_name: Synthesizer
+    prompt: synthesizer.prompt.md
+    responsibility: final synthesis

@@ -14,6 +14,13 @@ export interface ConnectProviderGuide {
   aliases: string[];
   accountProvider: "gmail" | "imap" | "forward";
   setupKind: "browser_oauth" | "app_password" | "forward_ingest";
+  credentialMode?: "oauth_redirect" | "manual_authorization_code" | "manual_password" | "raw_mime_forward";
+  secretAutomation?: "supported" | "not_supported" | "not_applicable";
+  secretAutomationReason?: string;
+  portalUrl?: string;
+  portalLabel?: string;
+  helpUrl?: string;
+  helpLabel?: string;
   authApi?: {
     startPath: string;
     callbackPath?: string;
@@ -89,6 +96,10 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     aliases: ["gmail", "google", "googlemail"],
     accountProvider: "gmail",
     setupKind: "browser_oauth",
+    credentialMode: "oauth_redirect",
+    secretAutomation: "supported",
+    portalUrl: "https://mail.google.com/",
+    portalLabel: "Open Gmail",
     authApi: {
       startPath: "/api/auth/gmail/start",
       callbackPath: "/api/auth/gmail/callback",
@@ -123,6 +134,10 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     aliases: ["outlook", "microsoft", "office365", "hotmail", "live", "msn"],
     accountProvider: "imap",
     setupKind: "browser_oauth",
+    credentialMode: "oauth_redirect",
+    secretAutomation: "supported",
+    portalUrl: "https://outlook.live.com/mail/",
+    portalLabel: "Open Outlook",
     authApi: {
       startPath: "/api/auth/outlook/start",
       callbackPath: "/api/auth/outlook/callback",
@@ -150,6 +165,14 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     aliases: ["qq"],
     accountProvider: "imap",
     setupKind: "app_password",
+    credentialMode: "manual_authorization_code",
+    secretAutomation: "not_supported",
+    secretAutomationReason:
+      "QQ Mail authorization codes stay in the provider security UI. MailClaws does not scrape or auto-read them; generate the code in QQ Mail and paste it here.",
+    portalUrl: "https://mail.qq.com/",
+    portalLabel: "Open QQ Mail",
+    helpUrl: "https://hiflow.tencent.com/docs/applications/qq-mail/",
+    helpLabel: "QQ Mail auth-code docs",
     recommendedCommand: "mailctl connect login qq [accountId] [displayName]",
     commands: ["mailctl connect login qq [accountId] [displayName]"],
     inboundModes: ["imap_watch"],
@@ -167,6 +190,14 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     aliases: ["icloud", "me", "mac"],
     accountProvider: "imap",
     setupKind: "app_password",
+    credentialMode: "manual_authorization_code",
+    secretAutomation: "not_supported",
+    secretAutomationReason:
+      "App-specific passwords are issued inside the provider account security UI. MailClaws does not scrape or auto-read them; generate one in iCloud settings and paste it here.",
+    portalUrl: "https://www.icloud.com/mail/",
+    portalLabel: "Open iCloud Mail",
+    helpUrl: "https://support.apple.com/en-us/102654",
+    helpLabel: "Apple app-specific password docs",
     recommendedCommand: "mailctl connect login icloud [accountId] [displayName]",
     commands: ["mailctl connect login icloud [accountId] [displayName]"],
     inboundModes: ["imap_watch"],
@@ -184,6 +215,12 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     aliases: ["yahoo"],
     accountProvider: "imap",
     setupKind: "app_password",
+    credentialMode: "manual_authorization_code",
+    secretAutomation: "not_supported",
+    secretAutomationReason:
+      "Yahoo app passwords are issued inside the provider account security UI. MailClaws does not scrape or auto-read them; generate one in Yahoo settings and paste it here.",
+    portalUrl: "https://mail.yahoo.com/",
+    portalLabel: "Open Yahoo Mail",
     recommendedCommand: "mailctl connect login yahoo [accountId] [displayName]",
     commands: ["mailctl connect login yahoo [accountId] [displayName]"],
     inboundModes: ["imap_watch"],
@@ -198,6 +235,12 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     aliases: ["163"],
     accountProvider: "imap",
     setupKind: "app_password",
+    credentialMode: "manual_authorization_code",
+    secretAutomation: "not_supported",
+    secretAutomationReason:
+      "163 authorization codes stay in the provider security UI. MailClaws does not scrape or auto-read them; generate the code in 163 Mail and paste it here.",
+    portalUrl: "https://mail.163.com/",
+    portalLabel: "Open 163 Mail",
     recommendedCommand: "mailctl connect login 163 [accountId] [displayName]",
     commands: ["mailctl connect login 163 [accountId] [displayName]"],
     inboundModes: ["imap_watch"],
@@ -212,6 +255,12 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     aliases: ["126"],
     accountProvider: "imap",
     setupKind: "app_password",
+    credentialMode: "manual_authorization_code",
+    secretAutomation: "not_supported",
+    secretAutomationReason:
+      "126 authorization codes stay in the provider security UI. MailClaws does not scrape or auto-read them; generate the code in 126 Mail and paste it here.",
+    portalUrl: "https://mail.126.com/",
+    portalLabel: "Open 126 Mail",
     recommendedCommand: "mailctl connect login 126 [accountId] [displayName]",
     commands: ["mailctl connect login 126 [accountId] [displayName]"],
     inboundModes: ["imap_watch"],
@@ -226,6 +275,10 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     aliases: ["imap", "password", "generic", "custom"],
     accountProvider: "imap",
     setupKind: "app_password",
+    credentialMode: "manual_password",
+    secretAutomation: "not_supported",
+    secretAutomationReason:
+      "Generic IMAP/SMTP credentials come from the mailbox provider or your own admin. MailClaws does not scrape or auto-read them.",
     recommendedCommand: "mailctl connect login [imap|password]",
     commands: ["mailctl connect login", "mailctl connect login imap", "mailctl connect login password"],
     inboundModes: ["imap_watch"],
@@ -244,6 +297,8 @@ const CONNECT_PROVIDER_GUIDES: ConnectProviderGuide[] = [
     aliases: ["forward", "raw", "mime", "rfc822"],
     accountProvider: "forward",
     setupKind: "forward_ingest",
+    credentialMode: "raw_mime_forward",
+    secretAutomation: "not_applicable",
     recommendedCommand: "POST /api/accounts { provider: \"forward\" } + POST /api/inbound/raw",
     commands: [
       "curl -X POST /api/accounts -d '{\"provider\":\"forward\",...}'",

@@ -4,9 +4,18 @@ dist/
 .DS_Store
 coverage/
 state/
-*.sqlite
-*.sqlite-shm
-*.sqlite-wal
+state/*.sqlite
+state/*.sqlite-shm
+state/*.sqlite-wal
+state/embedded-runtime/
+state/openclaw-bridge/
+state/tenants/
+state/threads/
+state/**/sessions/
+state/**/agents/
+state/**/mail*/
+state/**/thread*/
+.demo/output/
 reference/_vendor/
 plan*.md
 docs/zh-CN/
@@ -14,3 +23,5 @@ docs/fr/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 output/
+tmp/
+*.tgz

@@ -1,0 +1,85 @@
+version: 1
+library: agent-template-library
+kind: multi-agent-writing
+templates:
+  - id: three-provinces-six-departments
+    display_name: 三省六部写作院
+    path: writing/three-provinces-six-departments
+    agent_count: 10
+    reuse_mode: mixed
+    best_for:
+      - 长篇报告
+      - 复杂协作
+      - 多轮审校
+    upstream:
+      - repo: https://github.com/cft0808/edict
+        license: MIT
+        reuse: direct-plus-adapted
+  - id: one-person-company
+    display_name: 一人公司内容台
+    path: writing/one-person-company
+    agent_count: 6
+    reuse_mode: adapted
+    best_for:
+      - 创始人写作
+      - 个人品牌
+      - 小团队内容生产
+    upstream:
+      - repo: https://github.com/cyfyifanchen/one-person-company
+        license: MIT
+        reuse: concept-adapted
+  - id: newsroom
+    display_name: 新闻编辑部
+    path: writing/newsroom
+    agent_count: 6
+    reuse_mode: mixed
+    best_for:
+      - 新闻稿
+      - 快讯
+      - 专题报道
+    upstream:
+      - repo: https://github.com/ragapp/agentfiles
+        license: MIT
+        reuse: direct-plus-adapted
+      - repo: https://github.com/crewAIInc/crewAI-examples
+        license: unclear
+        reuse: concept-only
+  - id: debate-room
+    display_name: 辩论写作室
+    path: writing/debate-room
+    agent_count: 4
+    reuse_mode: adapted
+    best_for:
+      - 观点文章
+      - 对立论证
+      - 决策备忘录
+    upstream:
+      - repo: https://github.com/rajeswarandhandapani/crewai_multi_agent_debate
+        license: unclear
+        reuse: concept-only
+  - id: content-studio
+    display_name: 内容策略工作室
+    path: writing/content-studio
+    agent_count: 4
+    reuse_mode: adapted
+    best_for:
+      - campaign 文案
+      - 品牌叙事
+      - 营销内容
+    upstream:
+      - repo: https://github.com/crewAIInc/crewAI-examples
+        license: unclear
+        reuse: concept-only
+  - id: format-router
+    display_name: 格式路由工厂
+    path: writing/format-router
+    agent_count: 7
+    reuse_mode: adapted
+    best_for:
+      - 一稿多发
+      - 渠道改写
+      - 内容分发
+    upstream:
+      - repo: https://github.com/crewAIInc/crewAI-examples
+        license: unclear
+        reuse: concept-only

@@ -1,0 +1,21 @@
+id: content-studio
+display_name: 内容策略工作室
+source_mode: adapted
+default_front_agent: strategist
+roles:
+  - agent_id: market-analyst
+    display_name: Market Analyst
+    prompt: market-analyst.prompt.md
+    responsibility: audience and competitive analysis
+  - agent_id: strategist
+    display_name: Strategist
+    prompt: strategist.prompt.md
+    responsibility: message architecture
+  - agent_id: creative-writer
+    display_name: Creative Writer
+    prompt: creative-writer.prompt.md
+    responsibility: copy and narrative
+  - agent_id: creative-director
+    display_name: Creative Director
+    prompt: creative-director.prompt.md
+    responsibility: quality bar and approval

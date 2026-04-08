@@ -399,6 +399,9 @@ function readConfiguredUidValidity(settings: Record<string, unknown>) {
   }
 
   const raw = (watch as { uidValidity?: unknown }).uidValidity;
+  if (typeof raw === "bigint") {
+    return raw.toString();
+  }
   if (typeof raw === "number" && Number.isFinite(raw)) {
     return String(raw);
   }
@@ -412,6 +415,9 @@ function readMailboxUidValidity(mailbox: unknown) {
 
   const raw = (mailbox as { uidValidity?: unknown; uidvalidity?: unknown }).uidValidity ??
     (mailbox as { uidValidity?: unknown; uidvalidity?: unknown }).uidvalidity;
+  if (typeof raw === "bigint") {
+    return raw.toString();
+  }
   if (typeof raw === "number" && Number.isFinite(raw)) {
     return String(raw);
   }

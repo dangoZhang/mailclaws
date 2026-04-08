@@ -1,0 +1,45 @@
+id: three-provinces-six-departments
+display_name: 三省六部写作院
+source_mode: mixed
+default_front_agent: taizi
+roles:
+  - agent_id: taizi
+    display_name: 太子
+    prompt: taizi.prompt.md
+    responsibility: brief intake and user-facing coordination
+  - agent_id: zhongshu
+    display_name: 中书省
+    prompt: zhongshu.prompt.md
+    responsibility: planning and outline design
+  - agent_id: menxia
+    display_name: 门下省
+    prompt: menxia.prompt.md
+    responsibility: review and veto
+  - agent_id: shangshu
+    display_name: 尚书省
+    prompt: shangshu.prompt.md
+    responsibility: dispatch and assembly
+  - agent_id: libu_hr
+    display_name: 吏部
+    prompt: libu_hr.prompt.md
+    responsibility: staffing and house style stewardship
+  - agent_id: hubu
+    display_name: 户部
+    prompt: hubu.prompt.md
+    responsibility: data and evidence
+  - agent_id: libu
+    display_name: 礼部
+    prompt: libu.prompt.md
+    responsibility: tone and framing
+  - agent_id: bingbu
+    display_name: 兵部
+    prompt: bingbu.prompt.md
+    responsibility: launch cadence and distribution battle plan
+  - agent_id: xingbu
+    display_name: 刑部
+    prompt: xingbu.prompt.md
+    responsibility: risk and factual challenge
+  - agent_id: gongbu
+    display_name: 工部
+    prompt: gongbu.prompt.md
+    responsibility: structure and formatting assembly
