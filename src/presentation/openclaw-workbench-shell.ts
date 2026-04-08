@@ -999,6 +999,8 @@ select {
 .list-card,
 .timeline-entry,
 .feed-entry {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   display: grid;
   gap: 10px;
@@ -1118,6 +1120,25 @@ select {
   width: 3px;
   border-radius: 999px;
   background: var(--accent);
+}
+
+.list-card--working::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--room-progress, 42%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--ok) 18%, transparent),
+    color-mix(in srgb, var(--ok) 8%, transparent)
+  );
+  border-right: 1px solid color-mix(in srgb, var(--ok) 22%, transparent);
+  pointer-events: none;
+}
+
+.list-card--working > * {
+  position: relative;
+  z-index: 1;
 }
 
 .card-top,
@@ -2839,6 +2860,8 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         const roomMailboxes = Array.isArray(entry && entry.roomMailboxes) ? entry.roomMailboxes : [];
         const roomKey = room && room.roomKey ? room.roomKey : null;
         const accountId = room && room.accountId ? room.accountId : null;
+        const roomDetail = state.data && state.data.roomDetail ? state.data.roomDetail : null;
+        const roomMessages = Array.isArray(roomDetail && roomDetail.virtualMessages) ? roomDetail.virtualMessages : [];
         return (
           '<details class="source-mail-card">' +
           '<summary class="source-mail-card__summary">' +
@@ -2849,6 +2872,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           (entry.purpose ? '<div class="detail">' + escapeHtmlClient(entry.purpose) + '</div>' : '') +
           (roomMailboxes.length > 0
             ? '<div class="mailbox-feed">' + roomMailboxes.map(function(mailbox) {
+                const mailboxMessages = roomMessages.filter(function(message) {
+                  return (
+                    message.fromMailboxId === mailbox.mailboxId ||
+                    (Array.isArray(message.toMailboxIds) && message.toMailboxIds.includes(mailbox.mailboxId)) ||
+                    (Array.isArray(message.ccMailboxIds) && message.ccMailboxIds.includes(mailbox.mailboxId))
+                  );
+                });
                 const latestLine = mailbox.latestSubject
                   ? t("latestMessage") + ": " + mailbox.latestSubject
                   : t("noMailboxMessagesProjected");
@@ -2857,6 +2887,11 @@ export function renderOpenClawWorkbenchShellHtml(input: {
                   '<div class="meta"><span>' + escapeHtmlClient(mailbox.kind || "mailbox") + (mailbox.role ? " / " + escapeHtmlClient(mailbox.role) : "") + '</span><span>' + escapeHtmlClient(formatTime(mailbox.latestMessageAt)) + '</span></div>' +
                   '<div class="chips">' + renderMailboxChip(mailbox.mailboxId, roomKey, accountId) + '</div>' +
                   '<div class="detail">' + escapeHtmlClient(latestLine) + '</div>' +
+                  (mailboxMessages.length > 0
+                    ? '<div class="mailbox-feed">' + mailboxMessages.map(function(message) {
+                        return renderVirtualMessageEntry(message);
+                      }).join("") + '</div>'
+                    : '<div class="empty">' + escapeHtmlClient(t("noMailboxMessagesProjected")) + '</div>') +
                   '</div>'
                 );
               }).join("") + '</div>'
@@ -3294,9 +3329,48 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         );
       }
 
-      function renderRoomCard(room) {
+      function isWorkingRoom(room) {
+        if (room.state === "failed" || room.mailTaskStage === "failed" || room.mailTaskStage === "stale") {
+          return false;
+        }
         return (
-          '<button class="list-card' + (room.roomKey === state.route.roomKey ? " active" : "") + '" data-action="select-room" data-room-key="' + escapeHtmlClient(room.roomKey) + '" data-account-id="' + escapeHtmlClient(room.accountId || "") + '">' +
+          ["queued", "running", "waiting_workers", "replying", "handoff"].includes(room.state || "") ||
+          ["in_progress", "ack", "progress", "follow_up", "handoff"].includes(room.mailTaskStage || "") ||
+          Number(room.openDeliveryCount || 0) > 0
+        );
+      }
+
+      function getRoomProgressPercent(room) {
+        if (!isWorkingRoom(room)) {
+          return 0;
+        }
+        if (room.state === "queued" || room.mailTaskStage === "triaged") {
+          return 18;
+        }
+        if (room.state === "running" || room.mailTaskStage === "in_progress") {
+          return 42;
+        }
+        if (room.state === "waiting_workers" || room.mailTaskStage === "progress") {
+          return 58;
+        }
+        if (room.mailTaskStage === "ack" || room.mailTaskStage === "follow_up") {
+          return 72;
+        }
+        if (room.state === "handoff" || room.mailTaskStage === "handoff" || room.mailTaskStage === "waiting_external") {
+          return 80;
+        }
+        if (room.state === "replying" || room.openDeliveryCount > 0 || room.mailTaskStage === "final") {
+          return 92;
+        }
+        return 36;
+      }
+
+      function renderRoomCard(room) {
+        const working = isWorkingRoom(room);
+        const cardClass = "list-card" + (working ? " list-card--working" : "") + (room.roomKey === state.route.roomKey ? " active" : "");
+        const progressStyle = working ? ' style="--room-progress:' + escapeHtmlClient(String(getRoomProgressPercent(room))) + '%"' : "";
+        return (
+          '<button class="' + cardClass + '"' + progressStyle + ' data-action="select-room" data-room-key="' + escapeHtmlClient(room.roomKey) + '" data-account-id="' + escapeHtmlClient(room.accountId || "") + '">' +
           '<div class="card-top">' +
           '<div>' +
           '<div class="card-title">' + escapeHtmlClient(getRoomDisplayTitle(room)) + "</div>" +
