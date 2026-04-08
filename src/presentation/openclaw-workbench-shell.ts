@@ -860,6 +860,17 @@ select {
   color: var(--text-strong);
 }
 
+.stat--compact {
+  padding: 12px 14px;
+}
+
+.stat--compact .stat-value {
+  font-size: 16px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .mail-workbench-grid {
   display: grid;
   gap: 16px;
@@ -947,6 +958,10 @@ select {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.detail-grid--runtime {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
 .actions-inline {
@@ -1045,6 +1060,15 @@ select {
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, white 10%, transparent),
     0 10px 22px color-mix(in srgb, black 10%, transparent);
+}
+
+.timeline-entry--compact {
+  gap: 8px;
+  padding: 12px;
+}
+
+.timeline-entry--compact .timeline-entry__actions {
+  margin-top: 2px;
 }
 
 .source-mail-list {
@@ -1297,6 +1321,13 @@ select {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.5;
+}
+
+.detail--clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .detail-strong {
@@ -3072,11 +3103,14 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         return '<button class="link-chip' + (active ? " active" : "") + '" data-action="' + escapeHtmlClient(action) + '"' + attrText + ">" + escapeHtmlClient(label) + "</button>";
       }
 
-      function renderMetric(label, value) {
+      function renderMetric(label, value, options) {
+        const displayValue = value == null ? "" : String(value);
+        const statClass = "stat" + (options && options.compact ? " stat--compact" : "");
+        const valueClass = "stat-value" + (options && options.code ? " code" : "");
         return (
-          '<div class="stat">' +
+          '<div class="' + statClass + '">' +
           '<div class="stat-label">' + escapeHtmlClient(label) + "</div>" +
-          '<div class="stat-value">' + escapeHtmlClient(value) + "</div>" +
+          '<div class="' + valueClass + '" title="' + escapeHtmlClient(displayValue) + '">' + escapeHtmlClient(displayValue) + "</div>" +
           "</div>"
         );
       }
@@ -3475,7 +3509,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
       function getConnectSetupState() {
         const connect = getConnectWorkspace();
         const stored = state.connect || {};
-        const plan = stored.plan || (connect && connect.defaultPlan ? connect.defaultPlan : null);
+        const plan = stored.plan || null;
         const providerOptions = connect && Array.isArray(connect.providerOptions) ? connect.providerOptions : [];
         const provider = stored.provider || (plan && plan.recommendation ? plan.recommendation.provider : null);
         const providerId =
@@ -3809,6 +3843,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         const connect = setup.connect;
         const runtimeProfiles = getRuntimeProfiles(connect);
         const defaultProfileId = getDefaultRuntimeProfileId(connect);
+        const defaultProfile = runtimeProfiles.find(function(profile) {
+          return profile.profileId === defaultProfileId;
+        }) || null;
+        const defaultBaseModelValue =
+          (defaultProfile && (defaultProfile.label || defaultProfile.model || defaultProfile.profileId)) ||
+          defaultProfileId ||
+          "n/a";
         const startCommand =
           plan && plan.migration && plan.migration.openClawUsers
             ? plan.migration.openClawUsers.startCommand
@@ -3830,12 +3871,12 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<div class="title">' + escapeHtmlClient(title) + '</div>' +
           '<div class="detail">' + escapeHtmlClient(copy) + '</div>' +
           '</div>' +
-          '<div class="detail-grid">' +
-          renderMetric("runtime", runtime.runtimeKind || "unknown") +
-          renderMetric("label", runtime.runtimeLabel || "unknown") +
-          renderMetric("backend", runtime.backendEnforcement || "unknown") +
-          renderMetric(t("defaultBaseModelLabel"), defaultProfileId || "n/a") +
-          renderMetric("bridge sessions", String(runtimeResponse && typeof runtimeResponse.bridgeSessionCount === "number" ? runtimeResponse.bridgeSessionCount : 0)) +
+          '<div class="detail-grid detail-grid--runtime">' +
+          renderMetric("runtime", runtime.runtimeKind || "unknown", { compact: true }) +
+          renderMetric("label", runtime.runtimeLabel || "unknown", { compact: true }) +
+          renderMetric("backend", runtime.backendEnforcement || "unknown", { compact: true, code: true }) +
+          renderMetric(t("defaultBaseModelLabel"), defaultBaseModelValue, { compact: true, code: true }) +
+          renderMetric("bridge sessions", String(runtimeResponse && typeof runtimeResponse.bridgeSessionCount === "number" ? runtimeResponse.bridgeSessionCount : 0), { compact: true }) +
           '</div>' +
           '<div class="actions-inline"><a class="btn" href="#runtime-model-editor">' + escapeHtmlClient(t("addBaseModel")) + '</a></div>' +
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("availableBaseModels")) + '</h3><span class="muted">' + escapeHtmlClient(String(runtimeProfiles.length)) + '</span></div><div class="panel-body">' +
@@ -4231,20 +4272,22 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         });
         const skills = skillMatch && Array.isArray(skillMatch.skills) ? skillMatch.skills : [];
         const selected = getSelectedAgentId(connect) === entry.agentId;
+        const displayName = entry.displayName || entry.agentId || "agent";
+        const profile = entry.purpose || "";
         return (
-          '<div class="timeline-entry' + (selected ? ' active' : '') + '">' +
-          '<div class="meta"><span>' + escapeHtmlClient(entry.displayName || entry.agentId || "agent") + "</span></div>" +
-          '<div class="section-label">' + escapeHtmlClient(t("agentProfileLabel")) + '</div>' +
-          '<div class="detail">' + escapeHtmlClient(entry.purpose || "") + "</div>" +
-          '<div class="section-label">' + escapeHtmlClient(t("installedSkills")) + '</div>' +
-          (skills.length > 0
-            ? '<div class="chips">' + skills.map(function(skill) {
+          '<div class="timeline-entry timeline-entry--compact' + (selected ? ' active' : '') + '">' +
+          '<div class="meta"><span>' + escapeHtmlClient(displayName) + '</span><span>' + escapeHtmlClient(String(skills.length) + " " + t("skillCountLabel")) + '</span></div>' +
+          (profile
+            ? '<div class="detail detail--clamp-3">' + escapeHtmlClient(profile) + '</div>'
+            : '<div class="detail">' + escapeHtmlClient(t("agentProfileLabel")) + '</div>') +
+          ((skills.length > 0 || entry.soulPath)
+            ? '<div class="chips">' +
+              skills.map(function(skill) {
                 return renderPill(skill.title || skill.skillId || "skill", skill.source === "managed" ? "pill--ok" : "");
-              }).join("") + '</div>'
-            : '<div class="detail">' + escapeHtmlClient(t("noSkillsDiscovered")) + '</div>') +
-          (entry.soulPath
-            ? '<div class="section-label">' + escapeHtmlClient(t("soulReadyLabel")) + '</div><div class="detail">' + escapeHtmlClient(t("soulLabel")) + '</div>'
-            : '') +
+              }).join("") +
+              (entry.soulPath ? renderPill(t("soulLabel"), "pill--ok") : "") +
+              '</div>'
+            : "") +
           '<div class="timeline-entry__actions"><button class="btn" data-action="select-agent" data-agent-id="' + escapeHtmlClient(entry.agentId || "") + '">' + escapeHtmlClient(selected ? t("selectedAgent") : t("manageAgent")) + '</button></div>' +
           "</div>"
         );
@@ -4336,10 +4379,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
       function renderAgentSkillCard(agentId, skill, options) {
         const selectable = Boolean(options && options.selectable);
         const agentLabel = options && options.agentLabel ? options.agentLabel : agentId;
+        const showAgentLabel = Boolean(options && options.showAgentLabel);
+        const displayTitle = skill.title || skill.skillId || "skill";
+        const skillId = skill.skillId || displayTitle;
         return (
-          '<div class="timeline-entry">' +
-          '<div class="meta"><span>' + escapeHtmlClient(skill.title || skill.skillId || "skill") + '</span><span>' + escapeHtmlClient(agentLabel || t("agentPanel")) + "</span></div>" +
-          '<div class="title code">' + escapeHtmlClient(skill.skillId || "skill") + "</div>" +
+          '<div class="timeline-entry timeline-entry--compact">' +
+          '<div class="meta"><span>' + escapeHtmlClient(displayTitle) + '</span>' + (showAgentLabel ? '<span>' + escapeHtmlClient(agentLabel || t("agentPanel")) + "</span>" : "") + '</div>' +
+          (skillId !== displayTitle ? '<div class="title code">' + escapeHtmlClient(skillId) + "</div>" : "") +
           (selectable
             ? '<div class="timeline-entry__actions"><button class="btn" data-action="select-agent-skill" data-agent-id="' + escapeHtmlClient(agentId || "") + '" data-agent-label="' + escapeHtmlClient(agentLabel || "") + '" data-skill-id="' + escapeHtmlClient(skill.skillId || "") + '" data-skill-title="' + escapeHtmlClient(skill.title || skill.skillId || "skill") + '">' + escapeHtmlClient(t("editSkill")) + '</button></div>'
             : "") +
@@ -4349,10 +4395,12 @@ export function renderOpenClawWorkbenchShellHtml(input: {
 
       function renderAgentSkillGroup(entry) {
         const skills = Array.isArray(entry.skills) ? entry.skills : [];
+        const displayName = entry.displayName || entry.agentId || "agent";
+        const showAgentId = Boolean(entry.displayName && entry.agentId && entry.displayName !== entry.agentId);
         return (
-          '<div class="timeline-entry">' +
-          '<div class="meta"><span>' + escapeHtmlClient(entry.displayName || entry.agentId || "agent") + '</span><span>' + escapeHtmlClient(String(skills.length) + " " + t("skillCountLabel")) + "</span></div>" +
-          '<div class="title code">' + escapeHtmlClient(entry.agentId || "agent") + "</div>" +
+          '<div class="timeline-entry timeline-entry--compact">' +
+          '<div class="meta"><span>' + escapeHtmlClient(displayName) + '</span><span>' + escapeHtmlClient(String(skills.length) + " " + t("skillCountLabel")) + "</span></div>" +
+          (showAgentId ? '<div class="detail code">' + escapeHtmlClient(entry.agentId || "agent") + "</div>" : "") +
           (skills.length > 0
             ? '<div class="chips">' + skills.map(function(skill) {
                 return renderPill(skill.title || skill.skillId || "skill", "");
@@ -4360,7 +4408,8 @@ export function renderOpenClawWorkbenchShellHtml(input: {
               '<div class="mailbox-feed">' + skills.map(function(skill) {
                 return renderAgentSkillCard(entry.agentId || "", skill, {
                   agentLabel: entry.displayName || entry.agentId || "",
-                  selectable: true
+                  selectable: true,
+                  showAgentLabel: false
                 });
               }).join("") + "</div>"
             : '<div class="detail">' + escapeHtmlClient(t("noSkillsDiscovered")) + '</div>') +
@@ -5274,24 +5323,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           state.data = payload;
           state.runtime = runtimePayload;
           state.connect = {
-            ...(state.connect || {}),
-            ...(payload && payload.workspace && payload.workspace.connect && payload.workspace.connect.defaultPlan
-              ? {
-                  plan: state.connect && state.connect.plan ? state.connect.plan : payload.workspace.connect.defaultPlan,
-                  provider:
-                    state.connect && state.connect.provider
-                      ? state.connect.provider
-                      : payload.workspace.connect.defaultPlan.recommendation
-                        ? payload.workspace.connect.defaultPlan.recommendation.provider
-                        : null,
-                  providerId:
-                    state.connect && typeof state.connect.providerId === "string" && state.connect.providerId.trim().length > 0
-                      ? state.connect.providerId
-                      : payload.workspace.connect.defaultPlan.recommendation && payload.workspace.connect.defaultPlan.recommendation.provider
-                        ? payload.workspace.connect.defaultPlan.recommendation.provider.id
-                        : "imap"
-                }
-              : {})
+            ...(state.connect || {})
           };
           if (payload && payload.selection) {
             if (state.route.accountId) {
