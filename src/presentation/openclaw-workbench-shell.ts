@@ -781,6 +781,21 @@ select {
   text-transform: uppercase;
 }
 
+.workspace-hero__eyebrow-btn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.workspace-hero__eyebrow-btn:hover {
+  color: var(--text);
+}
+
 .workspace-hero__title {
   margin-top: 8px;
   color: var(--text-strong);
@@ -2748,6 +2763,14 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         return '<span class="pill' + (tone ? " " + tone : "") + '">' + escapeHtmlClient(label) + "</span>";
       }
 
+      function renderRouteChip(label, action, attrs, active) {
+        const pairs = attrs || {};
+        const attrText = Object.keys(pairs).map(function(key) {
+          return ' data-' + key + '="' + escapeHtmlClient(String(pairs[key] || "")) + '"';
+        }).join("");
+        return '<button class="link-chip' + (active ? " active" : "") + '" data-action="' + escapeHtmlClient(action) + '"' + attrText + ">" + escapeHtmlClient(label) + "</button>";
+      }
+
       function renderMetric(label, value) {
         return (
           '<div class="stat">' +
@@ -2991,7 +3014,11 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<section class="workspace-hero">' +
           '<div class="workspace-hero__grid">' +
           '<div>' +
-          '<div class="workspace-hero__eyebrow">' + escapeHtmlClient(input.eyebrow || "Mail workbench") + '</div>' +
+          '<div class="workspace-hero__eyebrow">' + (
+            input.eyebrowAction
+              ? '<button class="workspace-hero__eyebrow-btn" data-action="' + escapeHtmlClient(input.eyebrowAction.action || "") + '">' + escapeHtmlClient(input.eyebrow || "Mail workbench") + '</button>'
+              : escapeHtmlClient(input.eyebrow || "Mail workbench")
+          ) + '</div>' +
           '<div class="workspace-hero__title">' + escapeHtmlClient(input.title || "Mail") + '</div>' +
           (input.copy ? '<div class="workspace-hero__copy">' + escapeHtmlClient(input.copy) + '</div>' : '') +
           (input.actions ? '<div class="workspace-hero__actions">' + input.actions + '</div>' : '') +
@@ -4361,6 +4388,9 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<div class="mail-workbench-main">' +
           renderWorkspaceHero({
             eyebrow: t("roomTitleDetail"),
+            eyebrowAction: {
+              action: "open-rooms"
+            },
             title: getRoomDisplayTitle(room),
             copy: t("roomFocusCopy"),
             summaryItems: [
@@ -4528,7 +4558,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         if (pageMeta) {
           const bits = [];
           if (state.route.accountId) bits.push(renderPill("account " + state.route.accountId, ""));
-          if (state.route.roomKey) bits.push(renderPill("room " + state.route.roomKey, ""));
+          if (state.route.roomKey) bits.push(renderRouteChip("room " + state.route.roomKey, "open-rooms", {}, true));
           if (state.route.mailboxId) bits.push(renderPill("mailbox " + state.route.mailboxId, ""));
           if (state.route.inboxId) bits.push(renderPill("inbox " + state.route.inboxId, ""));
           if (workspace && workspace.hostIntegration && workspace.hostIntegration.capabilities && workspace.hostIntegration.capabilities.internalMail) {
@@ -5494,6 +5524,16 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             roomKey: null,
             mailboxId: null,
             mode: "accounts"
+          });
+        }
+        if (action === "open-rooms") {
+          event.preventDefault();
+          navigate({
+            accountId: null,
+            inboxId: null,
+            roomKey: null,
+            mailboxId: null,
+            mode: "rooms"
           });
         }
         if (action === "select-room") {
