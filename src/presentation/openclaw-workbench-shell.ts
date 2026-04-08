@@ -3683,13 +3683,24 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             : soulStatus.tone === "danger"
               ? "setup-note setup-note--danger"
               : "setup-note setup-note--ok";
+        const selectedAccountId =
+          (connect && connect.templateApplyAccountId) ||
+          state.route.accountId ||
+          (state.data && state.data.selection && state.data.selection.accountId) ||
+          "";
         return (
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(selected.displayName || selectedAgentId) + '</h3><span class="muted code">' + escapeHtmlClient(selectedAgentId) + '</span></div><div class="panel-body">' +
           '<div class="detail">' + escapeHtmlClient(selected.purpose || "") + '</div>' +
           '<div class="chips">' +
           (selected.templateId ? renderPill(selected.templateId, "") : "") +
-          ((selected.virtualMailboxes || []).map(function(mailboxId) { return renderPill(mailboxId, ""); }).join("")) +
           '</div>' +
+          ((selected.virtualMailboxes || []).length > 0
+            ? '<div class="section-label">' + escapeHtmlClient(t("virtualMailboxes")) + '</div><div class="chips">' +
+              (selected.virtualMailboxes || []).map(function(mailboxId) {
+                return renderMailboxChip(mailboxId, null, selectedAccountId);
+              }).join("") +
+              '</div>'
+            : '') +
           (soulStatus ? '<div class="' + noteClass + '">' + escapeHtmlClient(soulStatus.message) + '</div>' : '') +
           '<label><div class="section-label">' + escapeHtmlClient(t("soulLabel")) + '</div><textarea class="console-textarea" data-agent-soul-field="content" placeholder="' + escapeHtmlClient(t("soulPlaceholder")) + '">' + escapeHtmlClient(soulContent) + '</textarea></label>' +
           '<div class="actions-inline">' +
@@ -4121,7 +4132,6 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         const detail = state.data.accountDetail;
         const account = detail.account || {};
         const inboxes = detail.inboxes || [];
-        const mailboxes = detail.mailboxes || [];
         const rooms = detail.rooms || [];
         return (
           '<div class="mail-workbench-main">' +
@@ -4132,7 +4142,6 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             summaryItems: [
               { label: "rooms", value: String(account.roomCount || 0) },
               { label: "active", value: String(account.activeRoomCount || 0) },
-              { label: "mailboxes", value: String(account.mailboxCount || 0) },
               { label: "inboxes", value: String(account.inboxCount || 0) }
             ]
           }) +
@@ -4150,9 +4159,6 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           (inboxes.length > 0
             ? '<div class="list">' + inboxes.map(function(inbox) { return renderInboxCard({ inbox: inbox, items: [] }); }).join("") + '</div>'
             : '<div class="empty">' + escapeHtmlClient(t("noPublicInboxProjection")) + '</div>') +
-          '</div></div>' +
-          '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("recentMailboxes")) + '</h3><span class="muted">' + escapeHtmlClient(t("shownCount", { count: Math.min(mailboxes.length, 6) })) + '</span></div><div class="panel-body">' +
-          (mailboxes.length > 0 ? '<div class="list">' + mailboxes.slice(0, 6).map(renderMailboxCard).join("") + '</div>' : '<div class="empty">' + escapeHtmlClient(t("noVirtualMailboxesForAccount")) + '</div>') +
           '</div></div>' +
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("recentConversations")) + '</h3><span class="muted">' + escapeHtmlClient(t("shownCount", { count: Math.min(rooms.length, 6) })) + '</span></div><div class="panel-body">' +
           (rooms.length > 0 ? '<div class="list">' + rooms.slice(0, 6).map(renderRoomCard).join("") + '</div>' : '<div class="empty">' + escapeHtmlClient(t("noAccountRoomActivity")) + '</div>') +
