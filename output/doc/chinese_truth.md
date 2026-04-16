@@ -22,6 +22,8 @@
 
 MailClaws 把一段真实的外部邮件往来看成一个持续推进的工作单元。系统收到新邮件后，先判断它属于哪一条外部线程，再为这条线程创建或更新一个 room。这个 room 保存当前往来的核心状态，例如参与者、附件、共享事实、阶段摘要、版本变化和最终回复候选。后续所有处理都围绕这个 room 展开。
 
+![图 1 浅色 Room Workbench 总览：真实 workbench 页面会先把外部来信收束成 room 列表，用户从这里进入具体房间，而不是先面对冗长的 agent 对话历史。](workbench-rooms-list-light-actual.png)
+
 为了让长流程任务可以持续运行，MailClaws 在传统 ReAct 的基础上加入了 Pre 这一步。普通 ReAct 会不断积累 Think、Act、Observe 的轨迹，轮数一多，上下文就会越来越长。MailClaws 在每轮处理结束后，先把当前真正需要保留的状态压缩成 Pre，并用 mail 固定 Presentation 的格式，再把下一轮建立在“最新来信 + 最新 Pre + 必要引用”之上。这样，系统保留下来的是当前任务状态，而不是完整推理历史和工具调用观察记录。换句话说，系统延续的是已经整理好的工作状态，而不是未经筛选的全部轨迹。
 
 当一个 room 内部需要多人协作时，MailClaws 用 virtual mail 组织协作。不同角色通过虚拟邮箱接收任务、回复结果、提交审阅意见和汇总内容。上下文也以邮件化的结构传递给真正需要它的角色，因此每个 agent 获得的是与当前任务最相关的上下文，而不是一整段冗长历史。在工程上，每个 durable agent 都会被赋予统一的 `read-email` 和 `write-email` 默认技能，用相同的收发接口处理内部协作。每一次内部交接都有结构化记录，因此协作过程可以被回看、检查和重放。最终，对外发送的内容会由 owner 收束和返回，也就是由负责该 room 的前台角色给出真正面向发信人的结果。
@@ -213,7 +215,7 @@ MailClaws 最直接的定量结果来自 prompt footprint benchmark。这个 ben
 
 这些结果说明，Pre-first 的收益会随着流程变长、协作方变多而继续放大。尤其在 reducer handoff 这种需要收束多个 worker 结果的场景里，系统不再回放每个 worker 的完整轨迹，而是只保留可交接的 summary 和 draft，因此输入规模压缩最明显。
 
-![图 1 Prompt footprint benchmark：Pre-first 在三个代表场景中分别将估算输入规模降低 59.4%、71.3% 和 79.9%。](results-prompt-benchmark.png)
+![图 2 Prompt footprint benchmark：Pre-first 在三个代表场景中分别将估算输入规模降低 59.4%、71.3% 和 79.9%。](results-prompt-benchmark.png)
 
 ### 4.2 Demo 表现与可视化结果
 
@@ -221,9 +223,15 @@ MailClaws 最直接的定量结果来自 prompt footprint benchmark。这个 ben
 
 `output/benchmarks/three-provinces-room/artifacts/three-provinces-room.json` 显示，这个 demo 最终顺利收束为一个 `done` 状态的 room，由前台角色 `taizi` 负责对外收束，内部共调用了 11 个智能体，产生 21 条 virtual messages、22 条 mailbox deliveries 和 124 条 timeline 记录。通信 highlights 一共保留了 21 个关键节点，从太子立项、中书起草、门下封驳，到尚书调度六部、最终回到太子覆核，整条链路都能在 room 视图中直接回看。
 
+![图 3 浅色 Room Workbench 详情页顶部截图：真实页面直接显示该 room 的标题、thread mail 和状态统计，外部 correspondence 与当前房间状态在同一视图里对齐。](workbench-room-light-top-crop.png)
+
 这个结果有两个实际含义。第一，任务拆分是真正发生的，而不是把“多 agent”藏在一个 prompt 里。第二，最终对外结果仍然能收束成一个前台可负责的结论，用户不需要自己拼接十几个角色的原始输出。下图基于真实 demo 前端截图和 room artifact 重绘，把主责任链放在左侧，把六部通信按自上而下顺序排列在右侧，更适合在报告里直接展示“谁负责、谁回信、最后如何收束”。
 
-![图 2 三省六部 demo 的部门通信图：左侧是太子、中书省、门下省、尚书省到最终覆核的主责任链，右侧按自上而下顺序展示尚书省与六部之间的实际通信。](results-three-provinces-communication.png)
+![图 4 三省六部 demo 的浅色部门通信图：左侧是太子、中书省、门下省、尚书省到最终覆核的主责任链，右侧按自上而下顺序展示尚书省与六部之间的实际通信。](results-three-provinces-communication.png)
+
+同一个 room 的下半部分则更适合展示“可回看”的协作细节。用户可以直接看到当前参与角色、角色本地邮件以及当前收束出的内部结论，这也是 MailClaws 强调 visible collaboration 的实际界面依据。
+
+![图 5 浅色 Room Workbench 下半部分截图：Current Agents、角色本地邮箱和内部邮件卡片都在同一页面中展开，便于回看谁参与了协作、当前结论由谁收束。](workbench-room-light-lower-crop.png)
 
 ### 4.3 结果分析
 

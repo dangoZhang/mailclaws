@@ -7,7 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 ROOT = Path("/Users/zty/my-project/mailclaw")
-SCREENSHOT_PATH = ROOT / "output" / "playwright" / "three-provinces-room-real-zh.png"
+SCREENSHOT_PATH = ROOT / "output" / "doc" / "workbench-rooms-list-light-actual.png"
 ARTIFACT_PATH = ROOT / "output" / "benchmarks" / "three-provinces-room" / "artifacts" / "three-provinces-room.json"
 OUTPUT_PATH = ROOT / "output" / "doc" / "results-three-provinces-communication.png"
 
@@ -76,8 +76,8 @@ def draw_text_box(
     *,
     fill: str,
     outline: str,
-    title_fill: str = "#f5f7fa",
-    body_fill: str = "#b8c0cc",
+    title_fill: str = "#1d2733",
+    body_fill: str = "#6b7785",
     badge_fill: str | None = None,
 ) -> None:
     x1, y1, x2, y2 = box
@@ -99,12 +99,11 @@ def draw_department_box(
     body: str,
 ) -> None:
     x1, y1, x2, y2 = box
-    draw.rounded_rectangle(box, radius=22, fill="#151f2b", outline="#2f3d52", width=2)
-    draw.rounded_rectangle((x1 + 18, y1 + 14, x1 + 108, y1 + 44), radius=12, fill="#7a3e30")
+    draw.rounded_rectangle(box, radius=22, fill="#fffaf9", outline="#efd7d2", width=2)
+    draw.rounded_rectangle((x1 + 18, y1 + 14, x1 + 108, y1 + 44), radius=12, fill="#e68b73")
     draw.text((x1 + 63, y1 + 29), dept, font=load_font(17), fill="#ffffff", anchor="mm")
-    draw.text((x1 + 126, y1 + 31), title, font=load_font(20), fill="#f5f7fa", anchor="ls")
-    draw.text((x1 + 22, y1 + 66), shorten(body, 40), font=load_font(17), fill="#c6ced8", anchor="ls")
-    draw.text((x1 + 22, y2 - 18), f"尚书省 -> {dept} -> 尚书省", font=load_font(15), fill="#8f9db1", anchor="ls")
+    draw.text((x1 + 126, y1 + 31), title, font=load_font(20), fill="#1d2733", anchor="ls")
+    draw.text((x1 + 22, y1 + 66), shorten(body, 40), font=load_font(17), fill="#6b7785", anchor="ls")
 
 
 def draw_down_arrow(draw: ImageDraw.ImageDraw, x: int, y1: int, y2: int, color: str) -> None:
@@ -127,32 +126,26 @@ def main() -> None:
     room = artifact["roomView"]
     scenario = artifact["scenario"]
 
-    canvas_w, canvas_h = 1600, 1220
-    image = Image.new("RGB", (canvas_w, canvas_h), "#0b0f14")
     screenshot = Image.open(SCREENSHOT_PATH).convert("RGB")
-
-    sidebar = screenshot.crop((0, 0, 250, screenshot.height)).resize((215, canvas_h))
-    header = screenshot.crop((250, 0, screenshot.width, 92)).resize((canvas_w - 215, 92))
-    image.paste(sidebar, (0, 0))
-    image.paste(header, (215, 0))
+    canvas_w, canvas_h = screenshot.size
+    image = screenshot.copy()
 
     draw = ImageDraw.Draw(image)
 
-    draw.rounded_rectangle((245, 120, 1560, 1170), radius=28, fill="#101720", outline="#232c39", width=2)
-    draw.rounded_rectangle((275, 150, 1530, 250), radius=24, fill="#151e2a", outline="#283344", width=2)
+    draw.rounded_rectangle((205, 120, 1245, 905), radius=28, fill="#fffdfc", outline="#e5d9d4", width=2)
+    draw.rounded_rectangle((230, 145, 1218, 230), radius=22, fill="#fff8f6", outline="#eed8d3", width=2)
 
     title_font = load_font(34)
     subtitle_font = load_font(18)
     metric_label_font = load_font(16)
     metric_value_font = load_font(28)
-    small_font = load_font(15)
 
-    draw.text((305, 188), "三省六部通信链", font=title_font, fill="#f5f7fa", anchor="ls")
+    draw.text((255, 181), "三省六部通信链", font=title_font, fill="#1d2733", anchor="ls")
     draw.text(
-        (305, 221),
+        (255, 213),
         shorten(f"{scenario['title']} · 从真实 room artifact 与 demo 前端截图重绘", 54),
         font=subtitle_font,
-        fill="#93a0b2",
+        fill="#7f8b97",
         anchor="ls",
     )
 
@@ -162,54 +155,54 @@ def main() -> None:
         ("消息", str(room["virtualMessageCount"])),
         ("投递", str(room["mailboxDeliveryCount"])),
     ]
-    chip_x = 940
+    chip_x = 830
     for index, (label, value) in enumerate(chip_specs):
-        x1 = chip_x + index * 145
-        x2 = x1 + 130
-        draw.rounded_rectangle((x1, 170, x2, 232), radius=18, fill="#1b2532", outline="#314054", width=2)
-        draw.text((x1 + 18, 191), label, font=metric_label_font, fill="#92a0b1", anchor="ls")
-        draw.text((x1 + 18, 219), value, font=metric_value_font, fill="#f5f7fa", anchor="ls")
+        x1 = chip_x + index * 100
+        x2 = x1 + 92
+        draw.rounded_rectangle((x1, 164, x2, 220), radius=16, fill="#ffffff", outline="#ead8d5", width=2)
+        draw.text((x1 + 12, 183), label, font=metric_label_font, fill="#909ca8", anchor="ls")
+        draw.text((x1 + 12, 208), value, font=load_font(22), fill="#1d2733", anchor="ls")
 
     draw.text(
-        (305, 286),
+        (255, 265),
         "结构说明：左侧是主责任链，右侧是尚书省向六部派案并收束回信的实际通信。",
         font=load_font(19),
-        fill="#d4d9e1",
+        fill="#44505c",
         anchor="ls",
     )
 
-    left_x1, left_x2 = 310, 640
+    left_x1, left_x2 = 255, 500
     left_center_x = (left_x1 + left_x2) // 2
-    core_ys = [340, 470, 600, 730, 1045]
-    core_fill = "#1b2532"
-    accent_fill = "#7a3e30"
+    core_ys = [315, 420, 525, 630, 805]
+    core_fill = "#ffffff"
+    accent_fill = "#e68b73"
     for index, ((title, body), y) in enumerate(zip(CORE_SUMMARY, core_ys)):
-        box = (left_x1, y, left_x2, y + 92)
+        box = (left_x1, y, left_x2, y + 80)
         draw_text_box(
             draw,
             box,
             title,
             body,
-            fill=core_fill if index < 4 else "#18232c",
-            outline="#324156",
-            badge_fill=accent_fill if index != 4 else "#2f6a63",
+            fill=core_fill if index < 4 else "#f5fffc",
+            outline="#e8d9d5",
+            badge_fill=accent_fill if index != 4 else "#5eb5a8",
         )
         if index < len(core_ys) - 1:
-            draw_down_arrow(draw, left_center_x, y + 92, core_ys[index + 1] - 18, "#7b8898")
+            draw_down_arrow(draw, left_center_x, y + 80, core_ys[index + 1] - 16, "#c2b7b3")
 
-    dept_x1, dept_x2 = 840, 1490
-    dept_ys = [340, 460, 580, 700, 820, 940]
+    dept_x1, dept_x2 = 615, 1185
+    dept_ys = [315, 400, 485, 570, 655, 740]
     for (dept, title, body), y in zip(DEPARTMENT_ROWS, dept_ys):
-        box = (dept_x1, y, dept_x2, y + 100)
+        box = (dept_x1, y, dept_x2, y + 72)
         draw_department_box(draw, box, dept, title, body)
-        draw_connector(draw, (left_x2, 776), (dept_x1, y + 50), "#8b95a4")
+        draw_connector(draw, (left_x2, 670), (dept_x1, y + 36), "#d0b6ae")
 
-    draw.rounded_rectangle((305, 1120, 1490, 1150), radius=12, fill="#141c26")
+    draw.rounded_rectangle((255, 848, 1185, 878), radius=12, fill="#fff6f3", outline="#efd7d2")
     draw.text(
-        (326, 1139),
+        (275, 867),
         "最终回收路径：六部回信 -> 尚书省总装 -> 太子 final-ready -> 治理覆核通过。",
         font=load_font(16),
-        fill="#98a5b7",
+        fill="#7a8591",
         anchor="ls",
     )
 
