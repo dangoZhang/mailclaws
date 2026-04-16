@@ -823,6 +823,8 @@ export async function processLeasedRoomJob(
   const runRequest = {
     sessionKey: room.parentSessionKey,
     inputText,
+    tenantId: room.accountId,
+    ...(room.frontAgentId ? { ownerAgentId: room.frontAgentId } : {}),
     ...(roomAttachments.length > 0 ? { attachments: buildTurnAttachmentDescriptors(roomAttachments) } : {}),
     ...(orchestratorAgentId ? { agentId: orchestratorAgentId } : {}),
     memoryNamespaces,
@@ -2018,10 +2020,14 @@ function buildRoomDigest(input: {
 
 interface WorkerExecutionSummary {
   role: WorkerRole;
+  headline?: string;
   summary: string;
   status: "ok" | "partial" | "blocked" | "failed";
   approvalRequired?: boolean;
   blocked?: boolean;
+  keyEvidence: string[];
+  risks: string[];
+  nextStep?: string;
   facts: WorkerFact[];
   openQuestions: string[];
   recommendedAction?: string;
@@ -2038,10 +2044,14 @@ interface WorkerFact {
 }
 
 interface ParsedWorkerSummary {
+  headline?: string;
   summary: string;
   status: WorkerExecutionSummary["status"];
   approvalRequired: boolean;
   blocked: boolean;
+  keyEvidence: string[];
+  risks: string[];
+  nextStep?: string;
   facts: WorkerFact[];
   openQuestions: string[];
   recommendedAction?: string;
@@ -2064,10 +2074,14 @@ interface WorkerExecutionReceipt {
 
 interface WorkerResultLedgerPayload {
   role?: unknown;
+  headline?: unknown;
   summary?: unknown;
   status?: unknown;
   approvalRequired?: unknown;
   blocked?: unknown;
+  keyEvidence?: unknown;
+  risks?: unknown;
+  nextStep?: unknown;
   facts?: unknown;
   openQuestions?: unknown;
   recommendedAction?: unknown;
@@ -2150,7 +2164,7 @@ function ensureRoomVirtualMailboxes(
   roles: WorkerRole[],
   createdAt: string
 ) {
-  const identitySeed = encodeURIComponent(room.frontAgentAddress ?? room.accountId);
+  const identitySeed = buildRoomInternalMailboxOwner(room);
   const principalId = `principal:${identitySeed}`;
   const mailboxIds: Partial<Record<WorkerRole, string>> = {};
 
@@ -2180,6 +2194,25 @@ function buildRoleMailboxId(identitySeed: string, role: WorkerRole) {
   const suffix = role.replace(/^mail-/, "");
   const prefix = role === "mail-reviewer" || role === "mail-guard" ? "governance" : "internal";
   return `${prefix}:${identitySeed}:${suffix}`;
+}
+
+function buildRoomInternalMailboxOwner(room: NonNullable<ReturnType<typeof getThreadRoom>>) {
+  const localPart =
+    sanitizeInternalMailboxLocalPart(room.frontAgentId) ||
+    sanitizeInternalMailboxLocalPart(room.accountId) ||
+    "room";
+  return `${localPart}@internal.mailclaws`;
+}
+
+function sanitizeInternalMailboxLocalPart(value?: string | null) {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^[.-]+|[.-]+$/g, "")
+    .replace(/-{2,}/g, "-");
+
+  return normalized.length > 0 ? normalized : "";
 }
 
 function resolveWorkerMessageVisibility(role: WorkerRole): VirtualMessageVisibility {
@@ -2652,6 +2685,7 @@ async function executeWorkerTurn(input: {
       role: input.role,
       sessionKey,
       taskNodeId,
+      taskMessageId: taskMessage.message.messageId,
       inputRefs: input.inputRefs
     }
   });
@@ -2696,6 +2730,8 @@ async function executeWorkerTurn(input: {
     const execution = await input.agentExecutor.executeMailTurn({
       sessionKey,
       inputText: input.inputText,
+      tenantId: input.room.accountId,
+      ...(input.room.frontAgentId ? { ownerAgentId: input.room.frontAgentId } : {}),
       ...(input.inputRefs.length > 0
         ? {
             attachments: buildTurnAttachmentDescriptors(
@@ -2813,10 +2849,14 @@ async function executeWorkerTurn(input: {
       type: "worker.result",
       payload: {
         role: input.role,
+        headline: parsed.headline,
         summary: parsed.summary,
         status: parsed.status,
         approvalRequired: parsed.approvalRequired,
         blocked: parsed.blocked,
+        keyEvidence: parsed.keyEvidence,
+        risks: parsed.risks,
+        nextStep: parsed.nextStep,
         facts: parsed.facts,
         openQuestions: parsed.openQuestions,
         recommendedAction: parsed.recommendedAction,
@@ -3025,9 +3065,13 @@ function collectSubAgentReplySummaries(input: {
     const artifact = readSubAgentReplyArtifact(entry.message.bodyRef);
     const summary: WorkerExecutionSummary = {
       role: resolveSubAgentWorkerRole(target.resultSchema),
+      headline: artifact.normalized.headline,
       summary: artifact.normalized.summary ?? entry.message.subject,
       status: normalizeSubAgentExecutionStatus(artifact.normalized.status),
       blocked: normalizeSubAgentExecutionStatus(artifact.normalized.status) === "blocked",
+      keyEvidence: artifact.normalized.keyEvidence,
+      risks: artifact.normalized.risks,
+      nextStep: artifact.normalized.nextStep,
       facts: artifact.normalized.facts,
       openQuestions: artifact.normalized.openQuestions,
       recommendedAction: artifact.normalized.recommendedAction,
@@ -3043,9 +3087,13 @@ function collectSubAgentReplySummaries(input: {
       type: "worker.result",
       payload: {
         role: summary.role,
+        headline: summary.headline,
         summary: summary.summary,
         status: summary.status,
         blocked: summary.blocked === true,
+        keyEvidence: summary.keyEvidence,
+        risks: summary.risks,
+        nextStep: summary.nextStep,
         facts: summary.facts,
         openQuestions: summary.openQuestions,
         recommendedAction: summary.recommendedAction,
@@ -3097,7 +3145,11 @@ function readSubAgentReplyArtifact(bodyRef: string | undefined) {
   const empty = {
     normalized: {
       status: "ok" as const,
+      headline: undefined as string | undefined,
       summary: "",
+      keyEvidence: [] as string[],
+      risks: [] as string[],
+      nextStep: undefined as string | undefined,
       facts: [] as WorkerFact[],
       openQuestions: [] as string[],
       recommendedAction: undefined as string | undefined,
@@ -3112,7 +3164,11 @@ function readSubAgentReplyArtifact(bodyRef: string | undefined) {
     const parsed = JSON.parse(fs.readFileSync(bodyRef, "utf8")) as {
       normalized?: {
         status?: unknown;
+        headline?: unknown;
         summary?: unknown;
+        keyEvidence?: unknown;
+        risks?: unknown;
+        nextStep?: unknown;
         facts?: unknown;
         openQuestions?: unknown;
         recommendedAction?: unknown;
@@ -3127,7 +3183,11 @@ function readSubAgentReplyArtifact(bodyRef: string | undefined) {
           typeof normalized.status === "string" && normalized.status.trim().length > 0
             ? normalized.status.trim().toLowerCase()
             : "ok",
+        headline: normalizeOptionalString(normalized.headline),
         summary: normalizeOptionalString(normalized.summary) ?? "",
+        keyEvidence: normalizeCompactLineList(normalized.keyEvidence),
+        risks: normalizeCompactLineList(normalized.risks),
+        nextStep: normalizeOptionalString(normalized.nextStep),
         facts: normalizeWorkerFacts(normalized.facts),
         openQuestions: normalizeStringList(normalized.openQuestions),
         recommendedAction: normalizeOptionalString(normalized.recommendedAction),
@@ -3177,9 +3237,12 @@ function buildAttachmentWorkerInput(
     `Subject: ${message.rawSubject ?? message.normalizedSubject}`,
     "",
     formatRoutingContext(room),
-    "Return JSON with summary, optional facts[], optional open_questions[], and optional recommended_action.",
-    "Each fact should include claim and optional key/evidenceRef.",
-    "Summarize the most relevant attachment evidence for the current reply.",
+    "Task: read the latest attachment evidence for the current reply.",
+    formatWorkerOutputContract({
+      includeFacts: true,
+      includeRecommendedAction: true
+    }),
+    "Focus on the few facts that will change the reply. Skip boilerplate and do not restate the request.",
     ...attachments.map((attachment) =>
       `- ${attachment.filename}${attachment.summaryText ? `: ${attachment.summaryText}` : ""}`
     )
@@ -3198,9 +3261,13 @@ function buildResearchWorkerInput(
     `Subject: ${message.rawSubject ?? message.normalizedSubject}`,
     "",
     formatRoutingContext(room),
-    "Return JSON with summary, optional facts[], optional open_questions[], and optional recommended_action.",
-    "Each fact should include claim and optional key/evidenceRef.",
-    "Identify supporting evidence and missing facts for the current reply.",
+    "Task: identify the strongest support, gaps, and reply direction for the current inbound mail.",
+    formatWorkerOutputContract({
+      includeFacts: true,
+      includeRecommendedAction: true
+    }),
+    "Prefer room facts, retrieved context, and attachments over transcript retelling.",
+    "Current inbound body:",
     message.textBody ?? "",
     formatRetrievedRoomContext(message, retrievedContext),
     attachments.length > 0
@@ -3229,7 +3296,11 @@ function buildSubAgentDelegationInput(input: {
     "",
     formatRoutingContext(input.room),
     "Return internal-only analysis. Never send external email or perform side effects.",
-    "Respond with JSON when possible: { summary, status, facts[], openQuestions[], recommendedAction, draftReply }.",
+    formatWorkerOutputContract({
+      includeFacts: true,
+      includeRecommendedAction: true,
+      includeDraftReply: true
+    }),
     "Current inbound body:",
     input.message.textBody ?? "(no text body)",
     formatRetrievedRoomContext(input.message, input.retrievedContext),
@@ -3257,8 +3328,13 @@ function buildDrafterWorkerInput(
     `Subject: ${message.rawSubject ?? message.normalizedSubject}`,
     "",
     formatRoutingContext(room),
-    "Prepare a draft reply direction for the front orchestrator.",
-    "Return JSON with at least summary and optional draft_reply, facts[], open_questions[], and recommended_action.",
+    "Task: prepare a concise reply direction the front orchestrator can send or refine quickly.",
+    formatWorkerOutputContract({
+      includeFacts: true,
+      includeRecommendedAction: true,
+      includeDraftReply: true
+    }),
+    "Current inbound body:",
     message.textBody ?? "",
     formatRetrievedRoomContext(message, retrievedContext),
     attachments.length > 0
@@ -3285,7 +3361,11 @@ function buildReviewerWorkerInput(
     `Subject: ${message.rawSubject ?? message.normalizedSubject}`,
     "",
     formatRoutingContext(room),
-    "Review the draft reply for factual or policy issues. Return JSON with at least a summary field.",
+    "Task: review the draft reply for factual gaps, ambiguity, tone, and policy issues.",
+    formatWorkerOutputContract({
+      includeFacts: true,
+      includeRecommendedAction: true
+    }),
     "Draft reply:",
     responseText,
     formatWorkerContext(workerSummaries)
@@ -3306,7 +3386,12 @@ function buildGuardWorkerInput(
     `Subject: ${message.rawSubject ?? message.normalizedSubject}`,
     "",
     formatRoutingContext(room),
-    "Decide whether the draft may be sent automatically. Return JSON with summary and optional approvalRequired or blocked booleans.",
+    "Task: decide whether the draft may be sent automatically.",
+    formatWorkerOutputContract({
+      includeFacts: true,
+      includeRecommendedAction: true,
+      includeApprovalFields: true
+    }),
     "Draft reply:",
     responseText,
     formatWorkerContext(workerSummaries)
@@ -3318,9 +3403,39 @@ function buildGuardWorkerInput(
 function formatDefaultMailSkills(actorLabel: string) {
   return [
     `Default mail skills for ${actorLabel}:`,
-    "- Read Email: read the latest inbound first, then pull older room context only by reference; prefer room facts, artifacts, and evidence refs over long transcript recall; surface ambiguity and policy/trust risk explicitly.",
-    "- Read Attachments: for text-like attachments, decode and quote the concrete facts in plain language; do not leave encoded/base64 fragments in summaries or evidence.",
-    "- Write Email: preserve ACK/progress/final semantics; keep replies RFC-safe and thread-correct; answer with concrete resolved facts instead of restating the request; only write claims backed by facts/evidence/approved memory; never leak hidden recipients, governance notes, or secrets."
+    "- Read Email: read the newest inbound first; only pull older room context by reference when it changes the answer; ignore decorative transcript noise.",
+    "- Compress for humans: produce one headline, up to 3 key evidence bullets, up to 2 risks or pending checks, and one concrete next step.",
+    "- Read Attachments: decode text-like attachments into plain-language facts; never leak base64, hashes, or raw transport wrappers into the mail body.",
+    "- Write Email: spend words on decisions, evidence, risk, and next action; avoid rephrasing the whole request; keep every claim tied to facts, artifacts, or approved room memory.",
+    "- Safety: never expose hidden recipients, governance-only notes, internal routing, or secrets."
+  ].join("\n");
+}
+
+function formatWorkerOutputContract(input: {
+  includeFacts?: boolean;
+  includeRecommendedAction?: boolean;
+  includeDraftReply?: boolean;
+  includeApprovalFields?: boolean;
+}) {
+  const optionalLines = [
+    input.includeFacts ? '- "facts": [{"claim":"...", "key":"...", "evidenceRef":"..."}]' : "",
+    input.includeRecommendedAction ? '- "recommendedAction": "..."' : "",
+    input.includeDraftReply ? '- "draftReply": "..."' : "",
+    input.includeApprovalFields ? '- "approvalRequired": true|false' : "",
+    input.includeApprovalFields ? '- "blocked": true|false' : ""
+  ].filter((line) => line.length > 0);
+
+  return [
+    "Return JSON only. Keep fields compact and omit empty fields.",
+    "{",
+    '  "headline": "one-line result",',
+    '  "summary": "2-3 short sentences for the human reader",',
+    '  "status": "ok|partial|blocked|failed",',
+    '  "keyEvidence": ["up to 3 concrete evidence bullets"],',
+    '  "risks": ["up to 2 risks or pending confirmations"],',
+    '  "nextStep": "single next action"',
+    "}",
+    ...optionalLines
   ].join("\n");
 }
 
@@ -3329,10 +3444,20 @@ function formatWorkerContext(workerSummaries: WorkerExecutionSummary[]) {
     return "";
   }
 
-  const lines = [
-    "Worker summaries:",
-    ...workerSummaries.map((summary) => `- ${summary.role}: ${summary.summary}`)
-  ];
+  const lines = ["Worker summaries:"];
+
+  for (const summary of workerSummaries) {
+    lines.push(`- ${summary.role}: ${summary.headline ?? summary.summary}`);
+    if (summary.keyEvidence.length > 0) {
+      lines.push(`  evidence: ${summary.keyEvidence.join(" | ")}`);
+    }
+    if (summary.risks.length > 0) {
+      lines.push(`  risks: ${summary.risks.join(" | ")}`);
+    }
+    if (summary.nextStep) {
+      lines.push(`  next step: ${summary.nextStep}`);
+    }
+  }
 
   const draftReplies = workerSummaries.filter((summary) => summary.draftReply);
   if (draftReplies.length > 0) {
@@ -3539,10 +3664,17 @@ function persistWorkerSharedFacts(input: {
 function parseWorkerSummary(responseText: string): ParsedWorkerSummary {
   try {
     const parsed = JSON.parse(responseText) as {
+      headline?: unknown;
+      decision?: unknown;
       summary?: unknown;
       status?: unknown;
       approvalRequired?: unknown;
       blocked?: unknown;
+      key_evidence?: unknown;
+      keyEvidence?: unknown;
+      risks?: unknown;
+      next_step?: unknown;
+      nextStep?: unknown;
       facts?: unknown;
       open_questions?: unknown;
       openQuestions?: unknown;
@@ -3551,18 +3683,29 @@ function parseWorkerSummary(responseText: string): ParsedWorkerSummary {
       draft_reply?: unknown;
       draftReply?: unknown;
     };
+    const headline = normalizeOptionalString(parsed.headline ?? parsed.decision);
+    const facts = normalizeWorkerFacts(parsed.facts);
+    const openQuestions = normalizeStringList(parsed.open_questions ?? parsed.openQuestions);
+    const recommendedAction = normalizeOptionalString(parsed.recommended_action ?? parsed.recommendedAction);
+    const keyEvidence = normalizeCompactLineList(parsed.key_evidence ?? parsed.keyEvidence);
+    const risks = normalizeCompactLineList(parsed.risks);
+    const nextStep = normalizeOptionalString(parsed.next_step ?? parsed.nextStep) ?? recommendedAction;
 
     return {
+      headline,
       summary:
         typeof parsed.summary === "string" && parsed.summary.trim().length > 0
           ? parsed.summary
-          : responseText,
+          : headline ?? responseText,
       status: normalizeWorkerStatus(parsed.status, parsed.blocked),
       approvalRequired: parsed.approvalRequired === true,
       blocked: parsed.blocked === true,
-      facts: normalizeWorkerFacts(parsed.facts),
-      openQuestions: normalizeStringList(parsed.open_questions ?? parsed.openQuestions),
-      recommendedAction: normalizeOptionalString(parsed.recommended_action ?? parsed.recommendedAction),
+      keyEvidence: keyEvidence.length > 0 ? keyEvidence : facts.map((fact) => fact.claim).slice(0, 3),
+      risks: risks.length > 0 ? risks : openQuestions.slice(0, 2),
+      nextStep,
+      facts,
+      openQuestions,
+      recommendedAction,
       draftReply: normalizeOptionalString(parsed.draft_reply ?? parsed.draftReply)
     };
   } catch {
@@ -3577,10 +3720,14 @@ function parseWorkerSummary(responseText: string): ParsedWorkerSummary {
       normalized.includes("denied");
 
     return {
+      headline: summarizeHeadline(responseText),
       summary: responseText,
       status: blocked ? "blocked" : "ok",
       approvalRequired,
       blocked,
+      keyEvidence: [],
+      risks: [],
+      nextStep: undefined,
       facts: [],
       openQuestions: [],
       recommendedAction: undefined,
@@ -3623,6 +3770,7 @@ function buildWorkerExecutionSummary(
 
   return {
     role,
+    headline: normalizeOptionalString(payload.headline),
     summary:
       typeof payload.summary === "string" && payload.summary.trim().length > 0
         ? payload.summary
@@ -3630,6 +3778,17 @@ function buildWorkerExecutionSummary(
     status: normalizeWorkerExecutionStatus(payload.status),
     approvalRequired: payload.approvalRequired === true,
     blocked: payload.blocked === true,
+    keyEvidence: (() => {
+      const keyEvidence = normalizeCompactLineList(payload.keyEvidence);
+      const facts = normalizeWorkerFacts(payload.facts);
+      return keyEvidence.length > 0 ? keyEvidence : facts.map((fact) => fact.claim).slice(0, 3);
+    })(),
+    risks: (() => {
+      const risks = normalizeCompactLineList(payload.risks);
+      const openQuestions = normalizeStringList(payload.openQuestions);
+      return risks.length > 0 ? risks : openQuestions.slice(0, 2);
+    })(),
+    nextStep: normalizeOptionalString(payload.nextStep) ?? normalizeOptionalString(payload.recommendedAction),
     facts: normalizeWorkerFacts(payload.facts),
     openQuestions: normalizeStringList(payload.openQuestions),
     recommendedAction: normalizeOptionalString(payload.recommendedAction),
@@ -3888,6 +4047,36 @@ function normalizeWorkerFacts(value: unknown): WorkerFact[] {
   });
 }
 
+function normalizeCompactLineList(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const deduped = new Map<string, string>();
+  for (const entry of value) {
+    const raw =
+      typeof entry === "string"
+        ? entry
+        : typeof entry === "object" && entry
+          ? normalizeOptionalString(
+              (entry as { claim?: unknown; text?: unknown; summary?: unknown }).claim ??
+                (entry as { text?: unknown }).text ??
+                (entry as { summary?: unknown }).summary
+            )
+          : undefined;
+    if (!raw) {
+      continue;
+    }
+
+    const normalized = normalizeComparableText(raw);
+    if (normalized.length > 0) {
+      deduped.set(normalized, raw);
+    }
+  }
+
+  return Array.from(deduped.values());
+}
+
 function normalizeWorkerStatus(
   status: unknown,
   blocked: unknown
@@ -3937,6 +4126,16 @@ function normalizeOptionalString(value: unknown) {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
 }
 
+function summarizeHeadline(value: string) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) {
+    return undefined;
+  }
+
+  const firstSentence = normalized.match(/^(.+?[.!?。！？])(?:\s|$)/)?.[1]?.trim() ?? normalized;
+  return firstSentence.length <= 72 ? firstSentence : `${firstSentence.slice(0, 69).trim()}...`;
+}
+
 function normalizeComparableText(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
@@ -3978,6 +4177,10 @@ function buildOutboxReplies(input: {
   approvalGate: boolean;
 }) {
   const recipients = buildReplyRecipients(input.message, input.mailboxAddress);
+  if (recipients.to.length === 0 && recipients.cc.length === 0) {
+    return [];
+  }
+
   const thread = {
     subject: input.message.rawSubject ?? input.message.normalizedSubject,
     from: input.mailboxAddress,

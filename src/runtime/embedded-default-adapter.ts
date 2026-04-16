@@ -36,14 +36,22 @@ function renderEmbeddedResponse(input: EmbeddedRuntimeTurnRequest) {
       return JSON.stringify(buildDrafterResult(input));
     case "mail-reviewer":
       return JSON.stringify({
+        headline: "草稿可发送",
         summary: "Draft is acceptable for the local embedded runtime path.",
         status: "ok",
+        keyEvidence: ["The current draft matches the inbound request context available in the embedded runtime path."],
+        risks: [],
+        nextStep: "Send after final guard check.",
         recommendedAction: "send"
       });
     case "mail-guard":
       return JSON.stringify({
+        headline: "未触发拦截",
         summary: "No embedded-runtime policy veto was triggered.",
         status: "ok",
+        keyEvidence: ["No embedded-runtime approval or blocking rule matched the current draft."],
+        risks: [],
+        nextStep: "Allow send.",
         approvalRequired: false,
         blocked: false
       });
@@ -84,6 +92,12 @@ function buildAttachmentReaderResult(input: EmbeddedRuntimeTurnRequest) {
   }));
 
   return {
+    headline:
+      attachmentFacts.length > 0
+        ? `提取到 ${attachmentFacts.length} 条附件证据`
+        : attachments.length > 0
+          ? `已索引 ${attachments.length} 个附件`
+          : "未发现可读附件",
     summary:
       attachmentFacts.length > 0
         ? `Read ${attachments.length} attachment${attachments.length === 1 ? "" : "s"} and extracted ${attachmentFacts.length} evidence point${attachmentFacts.length === 1 ? "" : "s"}.`
@@ -91,6 +105,14 @@ function buildAttachmentReaderResult(input: EmbeddedRuntimeTurnRequest) {
           ? `Indexed ${attachments.length} attachment${attachments.length === 1 ? "" : "s"} for the room.`
         : "No attachments were present on this message.",
     status: "ok",
+    keyEvidence: attachmentFacts.map((fact) => fact.claim).slice(0, 3),
+    risks: attachments.length > 0 ? [] : ["No attachment content was available to inspect."],
+    nextStep:
+      attachmentFacts.length > 0
+        ? "Use the extracted attachment facts in the reply."
+        : attachments.length > 0
+          ? "Use the attachment summaries as supporting evidence."
+          : "Proceed without attachment evidence.",
     facts: attachmentFacts,
     openQuestions: attachments.length > 0 ? [] : ["No attachment content was available to inspect."],
     recommendedAction:
@@ -123,10 +145,17 @@ function buildResearchResult(input: EmbeddedRuntimeTurnRequest) {
   ];
 
   return {
+    headline: subject ? `已整理主题“${subject}”的上下文` : "已整理当前上下文",
     summary: subject
       ? `Captured the current request context for "${subject}".`
       : "Captured the current request context.",
     status: "ok",
+    keyEvidence: facts.map((fact) => fact.claim).slice(0, 3),
+    risks: snippet || attachmentClaims.length > 0 ? [] : ["The inbound message did not include usable evidence."],
+    nextStep:
+      attachmentClaims.length > 0
+        ? "Draft a concise reply that directly answers with the attachment facts."
+        : "Draft a concise reply anchored on the latest inbound message.",
     facts,
     openQuestions: snippet || attachmentClaims.length > 0 ? [] : ["The inbound message did not include usable evidence."],
     recommendedAction:
@@ -139,8 +168,12 @@ function buildResearchResult(input: EmbeddedRuntimeTurnRequest) {
 function buildDrafterResult(input: EmbeddedRuntimeTurnRequest) {
   const draftReply = buildOrchestratorReply(input);
   return {
+    headline: "已起草回信",
     summary: "Prepared a draft reply for the current room.",
     status: "ok",
+    keyEvidence: draftReply ? [truncateToSentence(draftReply, 180)] : [],
+    risks: [],
+    nextStep: "Send the draft after any required review.",
     draftReply,
     recommendedAction: "Send the draft after any required review."
   };
@@ -199,18 +232,23 @@ function extractPrimaryBody(inputText: string) {
   ];
   const nonBodyPrefixes = [
     "- Read Email:",
+    "- Compress for humans:",
     "- Write Email:",
     "- Mail Read:",
     "- Mail Write:",
+    "- Read Attachments:",
+    "- Safety:",
     "Return JSON",
+    "Respond with JSON",
+    "Use:",
     "Each fact should",
     "Summarize the most relevant attachment evidence",
     "Identify supporting evidence",
-    "Prepare a draft reply direction",
-    "Review the draft reply for factual or policy issues.",
-    "Decide whether the draft may be sent automatically.",
+    "Task:",
     "Return internal-only analysis.",
-    "Respond with JSON when possible:"
+    "Focus on the few facts",
+    "Prefer room facts",
+    "Keep it dense:"
   ];
 
   const lines = inputText.split("\n");

@@ -2,7 +2,11 @@ import type { SubAgentTarget } from "../core/types.js";
 
 export interface NormalizedSubAgentReply {
   status: "ok" | "partial" | "blocked" | "timeout" | "error" | "stale";
+  headline?: string;
   summary: string;
+  keyEvidence: string[];
+  risks: string[];
+  nextStep?: string;
   facts: Array<{
     key?: string;
     claim: string;
@@ -25,6 +29,8 @@ export function normalizeSubAgentReply(
     return {
       status: "timeout",
       summary: input.fallbackSummary ?? "Subagent run timed out before a stable result was collected.",
+      keyEvidence: [],
+      risks: [],
       facts: [],
       openQuestions: []
     };
@@ -34,6 +40,8 @@ export function normalizeSubAgentReply(
     return {
       status: "error",
       summary: input.fallbackSummary ?? (responseText.trim() || "Subagent run failed."),
+      keyEvidence: [],
+      risks: [],
       facts: [],
       openQuestions: []
     };
@@ -43,6 +51,8 @@ export function normalizeSubAgentReply(
     return {
       status: "stale",
       summary: input.fallbackSummary ?? "Subagent result arrived after the room moved to a newer revision.",
+      keyEvidence: [],
+      risks: [],
       facts: [],
       openQuestions: []
     };
@@ -50,12 +60,18 @@ export function normalizeSubAgentReply(
 
   try {
     const parsed = JSON.parse(responseText) as Record<string, unknown>;
+    const headline = asOptionalString(parsed.headline ?? parsed.decision);
     const draftReply = asOptionalString(parsed.draftReply ?? parsed.draft_reply);
     const recommendedAction = asOptionalString(parsed.recommendedAction ?? parsed.recommended_action);
+    const nextStep = asOptionalString(parsed.nextStep ?? parsed.next_step) ?? recommendedAction;
 
     return {
       status: normalizeStatus(parsed.status),
-      summary: asOptionalString(parsed.summary) ?? (responseText.trim() || defaultSummary(input.resultSchema)),
+      headline,
+      summary: asOptionalString(parsed.summary) ?? headline ?? (responseText.trim() || defaultSummary(input.resultSchema)),
+      keyEvidence: normalizeCompactLineList(parsed.keyEvidence ?? parsed.key_evidence),
+      risks: normalizeCompactLineList(parsed.risks),
+      nextStep,
       facts: normalizeFacts(parsed.facts),
       openQuestions: normalizeStringList(parsed.openQuestions ?? parsed.open_questions),
       draftReply,
@@ -65,6 +81,8 @@ export function normalizeSubAgentReply(
     return {
       status: "ok",
       summary: responseText.trim() || defaultSummary(input.resultSchema),
+      keyEvidence: [],
+      risks: [],
       facts: [],
       openQuestions: [],
       ...(input.resultSchema === "draft" ? { draftReply: responseText.trim() || undefined } : {})
@@ -115,6 +133,36 @@ function normalizeFacts(value: unknown) {
       }
     ];
   });
+}
+
+function normalizeCompactLineList(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const deduped = new Map<string, string>();
+  for (const entry of value) {
+    const raw =
+      typeof entry === "string"
+        ? entry
+        : typeof entry === "object" && entry
+          ? asOptionalString(
+              (entry as { claim?: unknown; text?: unknown; summary?: unknown }).claim ??
+                (entry as { text?: unknown }).text ??
+                (entry as { summary?: unknown }).summary
+            )
+          : undefined;
+    if (!raw) {
+      continue;
+    }
+
+    const normalized = raw.trim().toLowerCase().replace(/\s+/g, " ");
+    if (normalized) {
+      deduped.set(normalized, raw);
+    }
+  }
+
+  return Array.from(deduped.values());
 }
 
 function normalizeStringList(value: unknown) {

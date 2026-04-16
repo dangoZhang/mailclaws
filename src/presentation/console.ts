@@ -860,15 +860,14 @@ function readConsoleVirtualMessageBody(
   snapshot: ReturnType<typeof replayRoom>,
   message: ReturnType<typeof replayRoom>["virtualMessages"][number]
 ) {
-  if (message.bodyRef && !message.bodyRef.startsWith("virtual-body://") && fs.existsSync(message.bodyRef)) {
-    try {
-      const text = fs.readFileSync(message.bodyRef, "utf8").trim();
-      if (text.length > 0) {
-        return text;
-      }
-    } catch {
-      // Fall back to room state below.
-    }
+  const artifactBody = readConsoleArtifactBody(message.bodyRef, message.subject);
+  if (artifactBody) {
+    return artifactBody;
+  }
+
+  const synthesizedBody = synthesizeConsoleVirtualMessageBody(snapshot, message);
+  if (synthesizedBody) {
+    return synthesizedBody;
   }
 
   const latestSnapshot = snapshot.preSnapshots.find((entry) => entry.roomRevision === message.roomRevision);
@@ -880,6 +879,214 @@ function readConsoleVirtualMessageBody(
   }
 
   return message.subject.trim();
+}
+
+function readConsoleArtifactBody(bodyRef: string | undefined, subject: string) {
+  if (!bodyRef || bodyRef.startsWith("virtual-body://") || !fs.existsSync(bodyRef)) {
+    return "";
+  }
+
+  try {
+    const text = fs.readFileSync(bodyRef, "utf8").trim();
+    if (!text) {
+      return "";
+    }
+
+    const structured = tryRenderConsoleStructuredArtifact(text, subject);
+    return structured || text;
+  } catch {
+    return "";
+  }
+}
+
+function tryRenderConsoleStructuredArtifact(text: string, subject: string) {
+  try {
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    const normalized = parsed.normalized;
+    if (normalized && typeof normalized === "object") {
+      return formatConsoleWorkerBody(normalized as Record<string, unknown>, subject);
+    }
+
+    if (typeof parsed.taskInputText === "string") {
+      return formatConsoleTaskArtifactBody(parsed);
+    }
+  } catch {
+    return "";
+  }
+
+  return "";
+}
+
+function synthesizeConsoleVirtualMessageBody(
+  snapshot: ReturnType<typeof replayRoom>,
+  message: ReturnType<typeof replayRoom>["virtualMessages"][number]
+) {
+  const workerResult = snapshot.ledger.find((event) => {
+    if (event.type !== "worker.result" || !event.payload || typeof event.payload !== "object") {
+      return false;
+    }
+    const payload = event.payload as { resultMessageId?: unknown };
+    return payload.resultMessageId === message.messageId;
+  });
+  if (workerResult?.payload && typeof workerResult.payload === "object") {
+    return formatConsoleWorkerBody(workerResult.payload as Record<string, unknown>, message.subject);
+  }
+
+  const taskAssigned = snapshot.ledger.find((event) => {
+    if (event.type !== "worker.task_assigned" || !event.payload || typeof event.payload !== "object") {
+      return false;
+    }
+    const payload = event.payload as { taskMessageId?: unknown };
+    return payload.taskMessageId === message.messageId;
+  });
+  if (taskAssigned?.payload && typeof taskAssigned.payload === "object") {
+    return formatConsoleTaskBody(taskAssigned.payload as Record<string, unknown>);
+  }
+
+  const reducerCompleted = snapshot.ledger.find((event) => {
+    if (event.type !== "virtual_mail.reducer_completed" || !event.payload || typeof event.payload !== "object") {
+      return false;
+    }
+    const payload = event.payload as { messageId?: unknown };
+    return payload.messageId === message.messageId;
+  });
+  if (reducerCompleted) {
+    const latestSnapshot = snapshot.preSnapshots.find((entry) => entry.roomRevision === message.roomRevision);
+    if (latestSnapshot) {
+      return formatConsoleReducerBody(latestSnapshot);
+    }
+  }
+
+  return "";
+}
+
+function formatConsoleWorkerBody(payload: Record<string, unknown>, subject: string) {
+  const headline = asConsoleText(payload.headline ?? payload.decision);
+  const summary = asConsoleText(payload.summary) ?? subject;
+  const evidence = normalizeConsoleLineList(payload.keyEvidence ?? payload.key_evidence);
+  const facts = normalizeConsoleFactList(payload.facts);
+  const evidenceLines = evidence.length > 0 ? evidence : facts;
+  const risks = normalizeConsoleLineList(payload.risks);
+  const questions = normalizeConsoleLineList(payload.openQuestions ?? payload.open_questions);
+  const pendingLines = risks.length > 0 ? risks : questions;
+  const nextStep = asConsoleText(payload.nextStep ?? payload.next_step ?? payload.recommendedAction ?? payload.recommended_action);
+  const draftReply = asConsoleText(payload.draftReply ?? payload.draft_reply);
+
+  const sections = ["关心结果", headline ?? summary];
+  if (summary && summary !== headline) {
+    sections.push(summary);
+  }
+  if (evidenceLines.length > 0) {
+    sections.push("", "关键依据", ...evidenceLines.map((line) => `- ${line}`));
+  }
+  if (pendingLines.length > 0) {
+    sections.push("", "待确认", ...pendingLines.map((line) => `- ${line}`));
+  }
+  if (nextStep) {
+    sections.push("", "下一步", nextStep);
+  }
+  if (draftReply) {
+    sections.push("", "回信草稿", draftReply);
+  }
+
+  return sections.join("\n").trim();
+}
+
+function formatConsoleTaskBody(payload: Record<string, unknown>) {
+  const role = asConsoleText(payload.role) ?? "worker";
+  const inputRefs = Array.isArray(payload.inputRefs)
+    ? payload.inputRefs.map((entry) => String(entry).trim()).filter(Boolean)
+    : [];
+  const sections = ["关心结果", `已派发给 ${role}，等待回信。`];
+  if (inputRefs.length > 0) {
+    sections.push("", "关键依据", ...inputRefs.slice(0, 4).map((line) => `- 输入引用：${line}`));
+  }
+  sections.push("", "下一步", "等待该智能体返回结果。");
+  return sections.join("\n");
+}
+
+function formatConsoleTaskArtifactBody(payload: Record<string, unknown>) {
+  const targetId = asConsoleText(payload.targetId) ?? asConsoleText(payload.mailboxId) ?? "subagent";
+  const sections = ["关心结果", `已向 ${targetId} 派发协作任务。`];
+  const taskInputText = asConsoleText(payload.taskInputText);
+  if (taskInputText) {
+    const lines = taskInputText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .slice(0, 6);
+    if (lines.length > 0) {
+      sections.push("", "关键依据", ...lines.map((line) => `- ${line}`));
+    }
+  }
+  sections.push("", "下一步", "等待协作智能体返回分析。");
+  return sections.join("\n");
+}
+
+function formatConsoleReducerBody(
+  snapshot: ReturnType<typeof replayRoom>["preSnapshots"][number]
+) {
+  const sections = ["关心结果", snapshot.summary];
+  if (snapshot.facts.length > 0) {
+    sections.push("", "关键依据", ...snapshot.facts.slice(0, 4).map((fact) => `- ${fact.claim}`));
+  }
+  if (snapshot.openQuestions.length > 0) {
+    sections.push("", "待确认", ...snapshot.openQuestions.slice(0, 3).map((question) => `- ${question}`));
+  }
+  if (snapshot.draftBody?.trim()) {
+    sections.push("", "回信草稿", snapshot.draftBody.trim());
+  }
+  return sections.join("\n").trim();
+}
+
+function normalizeConsoleFactList(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .flatMap((entry) => {
+      if (!entry || typeof entry !== "object") {
+        return [];
+      }
+      const claim = asConsoleText((entry as { claim?: unknown }).claim);
+      return claim ? [claim] : [];
+    })
+    .slice(0, 4);
+}
+
+function normalizeConsoleLineList(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const deduped = new Map<string, string>();
+  for (const entry of value) {
+    const line =
+      typeof entry === "string"
+        ? entry.trim()
+        : entry && typeof entry === "object"
+          ? asConsoleText(
+              (entry as { claim?: unknown; text?: unknown; summary?: unknown }).claim ??
+                (entry as { text?: unknown }).text ??
+                (entry as { summary?: unknown }).summary
+            ) ?? ""
+          : "";
+    if (!line) {
+      continue;
+    }
+
+    const key = line.toLowerCase().replace(/\s+/g, " ");
+    if (!deduped.has(key)) {
+      deduped.set(key, line);
+    }
+  }
+
+  return Array.from(deduped.values()).slice(0, 4);
+}
+
+function asConsoleText(value: unknown) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
 }
 
 function buildConsoleVirtualMessageAttachments(

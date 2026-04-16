@@ -746,6 +746,10 @@ select {
   box-shadow: var(--shadow-md);
 }
 
+.workspace-hero--compact {
+  padding: 18px 20px;
+}
+
 .workspace-hero::after {
   content: "";
   position: absolute;
@@ -765,6 +769,12 @@ select {
   gap: 18px;
   grid-template-columns: minmax(0, 1.5fr) minmax(240px, 0.9fr);
   align-items: end;
+}
+
+.workspace-hero--compact .workspace-hero__grid {
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
 }
 
 .workspace-hero__eyebrow {
@@ -794,6 +804,14 @@ select {
   letter-spacing: -0.04em;
   font-weight: 700;
   text-wrap: balance;
+}
+
+.workspace-hero--compact .workspace-hero__title {
+  font-size: 24px;
+}
+
+.workspace-hero--compact .summary-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .workspace-hero__copy {
@@ -1257,11 +1275,214 @@ select {
   font: 400 13px/1.6 var(--font-body);
 }
 
+.mail-reader-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.mail-reader-shell__tabs,
+.mail-reader-shell__switches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mail-reader {
+  min-height: 460px;
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: 16px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg) 10%, transparent);
+}
+
+.mail-reader__sidebar,
+.mail-reader__preview {
+  min-width: 0;
+  min-height: 0;
+}
+
+.mail-reader__sidebar {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border-right: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+}
+
+.mail-reader__sidebar-head {
+  display: grid;
+  gap: 6px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+}
+
+.mail-reader__sidebar-head .title {
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--text-strong);
+}
+
+.mail-reader__list {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  gap: 4px;
+  padding: 8px 6px;
+}
+
+.mail-reader__item {
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+
+.mail-reader__item:hover {
+  background: color-mix(in srgb, var(--bg-hover) 74%, transparent);
+  border-color: color-mix(in srgb, var(--border) 82%, transparent);
+}
+
+.mail-reader__item--active {
+  background: color-mix(in srgb, var(--accent-subtle) 78%, var(--bg-hover) 22%);
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.mail-reader__item-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mail-reader__item-subject {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mail-reader__item-sender {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mail-reader__item-subject {
+  color: var(--text-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mail-reader__item-participants {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted-strong);
+  font-size: 12px;
+}
+
+.mail-reader__item-time {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mail-reader__item-snippet {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.mail-reader__preview {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background: color-mix(in srgb, var(--card) 96%, transparent);
+}
+
+.mail-reader__preview-head {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+}
+
+.mail-reader__preview-title {
+  color: var(--text-strong);
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  word-break: break-word;
+}
+
+.mail-reader__preview-meta {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.mail-reader__preview-body {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px 20px;
+}
+
+.mail-body.mail-reader__body-copy {
+  min-height: 100%;
+  padding: 18px;
+  background: color-mix(in srgb, var(--bg) 28%, transparent);
+}
+
+.mail-reader__preview-empty {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  color: var(--muted);
+  text-align: center;
+}
+
 @media (max-width: 820px) {
   .agent-message-card,
   .source-mail-card__summary,
   .source-mail-card__body {
     grid-template-columns: 1fr;
+  }
+
+  .mail-reader {
+    min-height: 0;
+    grid-template-columns: 1fr;
+  }
+
+  .mail-reader__sidebar {
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  }
+
+  .mail-reader__list {
+    max-height: 280px;
   }
 }
 
@@ -1684,6 +1905,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         data: null,
         runtime: null,
         connect: null,
+        roomReaders: Object.create(null),
         locale: "en",
         themeMode: "dark",
         navCollapsed: false,
@@ -1857,9 +2079,9 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           approvalGate: "Approval gate",
           mailTasks: "Mail Tasks",
           noMailTasks: "No mail task classification has been recorded for this room yet.",
-          virtualMailCopy: "This is the internal collaboration chain for the room: single-parent replies, mailbox routing, and origin kinds stay visible here without reopening raw transcripts.",
+          virtualMailCopy: "This keeps the full collaboration chain for replay. For reading, use the mailbox-style view above.",
           noVirtualMail: "No virtual mail has been recorded for this room yet.",
-          mailboxDeliveriesCopy: "Delivery rows show where each internal message was queued, leased, consumed, or marked stale inside the virtual mail plane.",
+          mailboxDeliveriesCopy: "These rows are delivery traces for debugging routing and worker flow.",
           noMailboxDeliveries: "No mailbox delivery rows have been recorded for this room yet.",
           governedOutbox: "Governed Outbox",
           governedOutboxCopy: "Only this governed outbox path can produce real external email. Review it alongside approvals when checking what may leave the room.",
@@ -1867,13 +2089,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           timeline: "Timeline",
           entriesCount: "{count} entries",
           noTimelineEntries: "No room timeline entries have been recorded yet.",
-          roomFocusCopy: "Focus this room on the mail thread, the current agents, and the latest runtime only.",
+          roomFocusCopy: "Use this room view to read the original thread mail and each agent mailbox.",
           threadMailPanel: "Thread Mail",
           threadMailCopy: "The room-creating mail and later public replies are shown together in one thread.",
           noThreadMail: "No thread mail has been recorded for this room.",
           taskMailBadge: "Created room",
           currentAgentsPanel: "Current Agents",
-          currentAgentsCopy: "See each agent's room mailbox, profile, and internal mail directly here.",
+          currentAgentsCopy: "Read each agent's mailbox in a familiar mail layout.",
           noAgentsVisible: "No visible agent has been recorded for this room yet.",
           latestRuntimePanel: "Latest Runtime",
           latestRuntimeCopy: "The latest room execution attempt and how long it ran.",
@@ -1907,6 +2129,8 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           inlineOnlyLabel: "inline only",
           replyLabel: "reply",
           rootLabel: "root",
+          replyingToLabel: "In reply to",
+          repliesLabel: "Replies",
           bodyLabel: "Body",
           fromLabel: "From",
           toLabel: "To",
@@ -1960,6 +2184,10 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           installerLabel: "installer",
           builtInSkillsNote: "Default durable agents start with read-email and write-email. Add markdown skills when you want reusable reading, writing, routing, or review behavior.",
           targetAgentLabel: "Target Agent",
+          agentMailboxLabel: "Agent mailbox",
+          agentUseLabel: "Agent use",
+          agentUseCopy: "Receives special requests to join a room or store long-term memory.",
+          roomMailboxLabel: "Room mailbox",
           skillIdLabel: "Skill ID",
           titleLabel: "Title",
           sourceLabel: "Source",
@@ -1979,6 +2207,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           sameSetupPaths: "If you prefer the terminal, these are the same setup paths the workbench is using.",
           providersLabel: "providers",
           approvalsLabel: "approvals",
+          activeLabel: "active",
+          resourcesLabel: "resources",
+          inboxesLabel: "inboxes",
+          messagesLabel: "messages",
+          activeLimitLabel: "active limit",
+          ackSlaLabel: "ack sla",
+          burstLabel: "burst",
           templatesLabel: "templates",
           withSoulLabel: "with soul",
           recommendedLabel: "recommended",
@@ -2001,7 +2236,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           saveSoul: "Save Soul",
           deleteAgent: "Delete Agent",
           useAsSource: "Use As Source",
+          viewContent: "View Content",
+          editAsSharedSkill: "Edit As Shared Skill",
+          reusablePreviewPanel: "Reusable Skill Preview",
+          selectReusableSkillToView: "Select a reusable skill to inspect its markdown before installing or editing.",
+          reusableSkillImportedMessage: "Copied reusable skill content into the shared skill draft.",
           reusableSkills: "Reusable Skills",
+          reusableSkillsCopy: "Reuse local OpenClaw or Codex markdown skills directly for local task routing, drafting, review, and execution.",
           installedSkills: "Installed Skills",
           editSkill: "Edit",
           editSkillPanel: "Skill Editor",
@@ -2023,6 +2264,11 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           sharedSkillsPanel: "Shared Skills",
           reusableSkillSources: "One-Click Reuse",
           reusableSkillSourcesCopy: "Pick an existing local skill source on the right and install it into a MailClaws agent in one step.",
+          localSourceLabel: "local",
+          openclawSourceLabel: "OpenClaw",
+          localTasksLabel: "local tasks",
+          reusableBridgeReady: "OpenClaw bridge is active. Skills can reuse the OpenClaw execution path now.",
+          reusableBridgeInactive: "Current runtime is local only. Skills can still be installed onto durable agents, but OpenClaw execution reuse needs bridge mode.",
           noSharedSkillsYet: "No shared MailClaws skills yet.",
           providerHelp: "Provider Help",
           providerMail: "Open Provider Mail",
@@ -2257,9 +2503,9 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           approvalGate: "审批闸门",
           mailTasks: "邮件任务",
           noMailTasks: "这个房间还没有记录邮件任务分类。",
-          virtualMailCopy: "这里展示房间内的内部协作链：单父回复、邮箱路由和来源类型都可见，无需重新打开原始转录。",
+          virtualMailCopy: "这里保留完整协作链，方便回放；真正阅读建议看上面的邮箱视图。",
           noVirtualMail: "这个房间还没有记录虚拟邮件。",
-          mailboxDeliveriesCopy: "投递行展示每条内部消息在虚拟邮件平面里被排队、租约、消费或标记陈旧的过程。",
+          mailboxDeliveriesCopy: "这里是系统投递轨迹，主要用于排查路由和执行流。",
           noMailboxDeliveries: "这个房间还没有记录邮箱投递行。",
           governedOutbox: "受控发件箱",
           governedOutboxCopy: "只有这条受控发件链路能产生真实外部邮件。检查将离开房间的内容时，应与审批一起查看。",
@@ -2267,13 +2513,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           timeline: "时间线",
           entriesCount: "共 {count} 条",
           noTimelineEntries: "这个房间还没有记录时间线条目。",
-          roomFocusCopy: "这个房间只聚焦线程邮件、当前智能体和最近一次运行时间。",
+          roomFocusCopy: "这个房间页只保留阅读需要的内容：原始来信和各智能体邮箱。",
           threadMailPanel: "线程邮件",
           threadMailCopy: "创建房间的邮件和后续公开回复合并在同一条线程里展示。",
           noThreadMail: "这个房间还没有记录线程邮件。",
           taskMailBadge: "创建房间",
           currentAgentsPanel: "当前智能体",
-          currentAgentsCopy: "这里直接展示每个智能体在当前房间的虚拟邮箱、简介和内部邮件。",
+          currentAgentsCopy: "这里按邮件客户端的方式查看每个智能体的来往邮件与结果。",
           noAgentsVisible: "这个房间还没有记录可见智能体。",
           latestRuntimePanel: "最近运行",
           latestRuntimeCopy: "展示最近一次房间执行及其运行时长。",
@@ -2307,6 +2553,8 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           inlineOnlyLabel: "仅内联",
           replyLabel: "回复",
           rootLabel: "首条",
+          replyingToLabel: "回复对象",
+          repliesLabel: "回信",
           bodyLabel: "正文",
           fromLabel: "发件人",
           toLabel: "收件人",
@@ -2360,6 +2608,10 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           installerLabel: "安装器",
           builtInSkillsNote: "默认常驻智能体自带 read-email 和 write-email。需要可复用的阅读、写作、路由或审阅能力时，再添加 markdown 技能。",
           targetAgentLabel: "目标智能体",
+          agentMailboxLabel: "智能体邮箱",
+          agentUseLabel: "当前用途",
+          agentUseCopy: "接收两类特殊请求：加入某个房间，或写入长期记忆。",
+          roomMailboxLabel: "房间邮箱",
           skillIdLabel: "技能 ID",
           titleLabel: "标题",
           sourceLabel: "来源",
@@ -2379,6 +2631,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           sameSetupPaths: "如果你更偏好终端，这里展示的就是工作台正在使用的同一套接入路径。",
           providersLabel: "提供方",
           approvalsLabel: "审批",
+          activeLabel: "进行中",
+          resourcesLabel: "资源",
+          inboxesLabel: "收件箱",
+          messagesLabel: "邮件",
+          activeLimitLabel: "并行上限",
+          ackSlaLabel: "确认时限",
+          burstLabel: "突发",
           templatesLabel: "模板",
           withSoulLabel: "有 soul",
           recommendedLabel: "推荐",
@@ -2401,7 +2660,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           saveSoul: "保存 Soul",
           deleteAgent: "删除智能体",
           useAsSource: "作为来源",
+          viewContent: "查看内容",
+          editAsSharedSkill: "作为共享技能编辑",
+          reusablePreviewPanel: "可复用技能预览",
+          selectReusableSkillToView: "选择一个可复用技能后，可先查看它的 Markdown，再决定安装或转成共享技能编辑。",
+          reusableSkillImportedMessage: "已把可复用技能内容复制到共享技能草稿。",
           reusableSkills: "可复用技能",
+          reusableSkillsCopy: "直接复用本地 OpenClaw 或 Codex 的 markdown skill，用于本地任务的路由、起草、审阅和执行。",
           installedSkills: "已安装技能",
           editSkill: "编辑",
           editSkillPanel: "技能编辑",
@@ -2423,6 +2688,11 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           sharedSkillsPanel: "共享技能",
           reusableSkillSources: "一键复用",
           reusableSkillSourcesCopy: "右侧选择已有本地技能来源，一步安装到 MailClaws 智能体。",
+          localSourceLabel: "本地",
+          openclawSourceLabel: "OpenClaw",
+          localTasksLabel: "本地任务",
+          reusableBridgeReady: "OpenClaw bridge 已启用，现在可以直接复用 OpenClaw 执行链路。",
+          reusableBridgeInactive: "当前仍是本地运行时。skill 仍可安装到常驻智能体，但若要复用 OpenClaw 执行链路，需要 bridge 模式。",
           noSharedSkillsYet: "当前还没有共享的 MailClaws 技能。",
           providerHelp: "提供方帮助",
           providerMail: "打开提供方邮箱",
@@ -2667,7 +2937,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           timeline: "Timeline",
           entriesCount: "{count} entrées",
           noTimelineEntries: "Aucune entrée de timeline n’a encore été enregistrée pour cette room.",
-          roomFocusCopy: "Cette room se concentre uniquement sur le fil d’emails, les agents visibles et le dernier temps d’exécution.",
+          roomFocusCopy: "Cette vue de room ne garde que l’essentiel pour la lecture : emails du fil et mailbox de chaque agent.",
           threadMailPanel: "Fil d’emails",
           threadMailCopy: "Le mail qui a créé la room et les réponses publiques suivantes sont affichés ensemble dans un seul fil.",
           noThreadMail: "Aucun email du fil n’a été enregistré pour cette room.",
@@ -2707,6 +2977,8 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           inlineOnlyLabel: "inline seulement",
           replyLabel: "réponse",
           rootLabel: "racine",
+          replyingToLabel: "En réponse à",
+          repliesLabel: "Réponses",
           bodyLabel: "Corps",
           fromLabel: "De",
           toLabel: "À",
@@ -2760,6 +3032,10 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           installerLabel: "installateur",
           builtInSkillsNote: "Les agents durables démarrent avec read-email et write-email. Ajoutez des compétences markdown pour des comportements réutilisables de lecture, rédaction, routage ou revue.",
           targetAgentLabel: "Agent cible",
+          agentMailboxLabel: "Boîte agent",
+          agentUseLabel: "Usage de l’agent",
+          agentUseCopy: "Reçoit deux demandes spéciales : rejoindre une room ou stocker une mémoire long terme.",
+          roomMailboxLabel: "Boîte room",
           skillIdLabel: "ID compétence",
           titleLabel: "Titre",
           sourceLabel: "Source",
@@ -2779,6 +3055,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           sameSetupPaths: "Si vous préférez le terminal, voici exactement les mêmes chemins de configuration que ceux utilisés par le workbench.",
           providersLabel: "providers",
           approvalsLabel: "approbations",
+          activeLabel: "actifs",
+          resourcesLabel: "ressources",
+          inboxesLabel: "boîtes",
+          messagesLabel: "messages",
+          activeLimitLabel: "limite active",
+          ackSlaLabel: "SLA ack",
+          burstLabel: "burst",
           templatesLabel: "templates",
           withSoulLabel: "avec soul",
           recommendedLabel: "recommandé",
@@ -2801,7 +3084,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           saveSoul: "Enregistrer Soul",
           deleteAgent: "Supprimer l’agent",
           useAsSource: "Utiliser comme source",
+          viewContent: "Voir le contenu",
+          editAsSharedSkill: "Éditer comme compétence partagée",
+          reusablePreviewPanel: "Aperçu de la compétence réutilisable",
+          selectReusableSkillToView: "Sélectionnez une compétence réutilisable pour inspecter son markdown avant installation ou édition.",
+          reusableSkillImportedMessage: "Le contenu de la compétence réutilisable a été copié dans le brouillon de compétence partagée.",
           reusableSkills: "Compétences réutilisables",
+          reusableSkillsCopy: "Réutilisez directement des skills markdown locaux OpenClaw ou Codex pour le routage, la rédaction, la revue et l’exécution des tâches locales.",
           installedSkills: "Compétences installées",
           editSkill: "Modifier",
           editSkillPanel: "Éditeur de compétence",
@@ -2823,6 +3112,11 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           sharedSkillsPanel: "Compétences partagées",
           reusableSkillSources: "Réutilisation en un clic",
           reusableSkillSourcesCopy: "Choisissez à droite une source locale existante et installez-la en une étape dans un agent MailClaws.",
+          localSourceLabel: "local",
+          openclawSourceLabel: "OpenClaw",
+          localTasksLabel: "tâches locales",
+          reusableBridgeReady: "Le bridge OpenClaw est actif. Les skills peuvent maintenant réutiliser le chemin d’exécution OpenClaw.",
+          reusableBridgeInactive: "Le runtime actuel est seulement local. Les skills peuvent toujours être installés sur des agents durables, mais la réutilisation d’exécution OpenClaw demande le mode bridge.",
           noSharedSkillsYet: "Aucune compétence MailClaws partagée pour le moment.",
           providerHelp: "Aide provider",
           providerMail: "Ouvrir la mailbox provider",
@@ -2934,7 +3228,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
       }
 
       function interpolate(template, values) {
-        return String(template || "").replace(/\{(\w+)\}/g, function(_, key) {
+        return String(template || "").replace(/{([A-Za-z0-9_]+)}/g, function(_, key) {
           return values && values[key] != null ? String(values[key]) : "";
         });
       }
@@ -3176,6 +3470,93 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         return rooms.find(function(room) { return room.roomKey === roomKey; }) || null;
       }
 
+      function getKnownAgentShortLabel(agentId) {
+        const normalized = String(agentId || "").trim().toLowerCase();
+        switch (normalized) {
+          case "taizi":
+            return "太子";
+          case "zhongshu":
+            return "中书省";
+          case "menxia":
+            return "门下省";
+          case "shangshu":
+            return "尚书省";
+          case "libu-personnel":
+            return "吏部";
+          case "hubu":
+            return "户部";
+          case "libu-rites":
+            return "礼部";
+          case "bingbu":
+            return "兵部";
+          case "xingbu":
+            return "刑部";
+          case "gongbu":
+            return "工部";
+          default:
+            return "";
+        }
+      }
+
+      function getPreferredAgentLabel(agentId, fallback) {
+        const shortLabel = getKnownAgentShortLabel(agentId);
+        if (shortLabel) {
+          return shortLabel;
+        }
+        const normalizedFallback = String(fallback || "").trim();
+        if (normalizedFallback) {
+          return normalizedFallback;
+        }
+        return String(agentId || "").trim() || "agent";
+      }
+
+      function getConnectAgentDirectory() {
+        const connect = getConnectWorkspace();
+        return connect && Array.isArray(connect.agentDirectory) ? connect.agentDirectory : [];
+      }
+
+      function normalizeMailboxOwnerToken(value) {
+        const normalized = String(value || "").trim();
+        if (!normalized) {
+          return "";
+        }
+        try {
+          return decodeURIComponent(normalized).trim().toLowerCase();
+        } catch {
+          return normalized.trim().toLowerCase();
+        }
+      }
+
+      function getAgentDirectoryMaps() {
+        const directory = getConnectAgentDirectory();
+        const byAgentId = new Map();
+        const byMailboxId = new Map();
+        const byPublicMailboxId = new Map();
+        directory.forEach(function(entry) {
+          const agentId = String(entry && entry.agentId ? entry.agentId : "").trim();
+          if (agentId) {
+            byAgentId.set(agentId, entry);
+          }
+          const publicMailboxId = String(entry && entry.publicMailboxId ? entry.publicMailboxId : "").trim();
+          if (publicMailboxId) {
+            byPublicMailboxId.set(publicMailboxId, entry);
+          }
+          const mailboxIds = Array.isArray(entry && entry.virtualMailboxes) ? entry.virtualMailboxes : [];
+          mailboxIds.forEach(function(mailboxId) {
+            const normalized = String(mailboxId || "").trim();
+            if (normalized) {
+              byMailboxId.set(normalized, entry);
+            }
+          });
+        });
+        return {
+          directory: directory,
+          byAgentId: byAgentId,
+          byMailboxId: byMailboxId,
+          byPublicMailboxId: byPublicMailboxId
+        };
+      }
+
       function getRoomVisibleAgents(room) {
         if (!room) {
           return [];
@@ -3196,6 +3577,122 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         return agents;
       }
 
+      function getAgentMailboxAddress(agentId) {
+        const normalized = String(agentId || "").trim();
+        if (!normalized || normalized.startsWith("room-role:")) {
+          return "";
+        }
+        return normalized + "@room.mail";
+      }
+
+      function parseMailboxIdentity(mailboxId) {
+        const normalized = String(mailboxId || "").trim();
+        if (!normalized) {
+          return { kind: "", owner: "", role: "", label: "" };
+        }
+        if (normalized.startsWith("internal:")) {
+          const parts = normalized.split(":");
+          const owner = parts[1] || "";
+          const role = parts.slice(2).join(":") || "";
+          return {
+            kind: "internal",
+            owner: owner,
+            role: role,
+            label: role || owner || normalized
+          };
+        }
+        if (normalized.startsWith("public:")) {
+          const owner = normalized.slice("public:".length);
+          return {
+            kind: "public",
+            owner: owner,
+            role: "",
+            label: owner || normalized
+          };
+        }
+        if (normalized.includes("@")) {
+          const owner = normalized.split("@")[0] || normalized;
+          return {
+            kind: "agent",
+            owner: owner,
+            role: "",
+            label: owner || normalized
+          };
+        }
+        return {
+          kind: "raw",
+          owner: normalized,
+          role: "",
+          label: normalized
+        };
+      }
+
+      function getRoomMailboxName(entry, mailbox) {
+        const mailboxId = String(mailbox && mailbox.mailboxId ? mailbox.mailboxId : "").trim();
+        const identity = parseMailboxIdentity(mailboxId);
+        const agentId = inferAgentIdFromMailboxId(mailboxId);
+        const directoryEntry = agentId ? getAgentDirectoryMaps().byAgentId.get(agentId) : null;
+        if (agentId) {
+          return getPreferredAgentLabel(agentId, directoryEntry && directoryEntry.displayName);
+        }
+        if (identity.owner) {
+          return identity.owner;
+        }
+        if (identity.label) {
+          return identity.label;
+        }
+        const role = String(mailbox && mailbox.role ? mailbox.role : "").trim();
+        if (role) {
+          return role;
+        }
+        const entryAgentId = String(entry && entry.agentId ? entry.agentId : "").trim();
+        if (entryAgentId.startsWith("room-role:")) {
+          return entryAgentId.slice("room-role:".length) || entryAgentId;
+        }
+        return entryAgentId || String((entry && entry.displayName) || "mailbox").trim() || "mailbox";
+      }
+
+      function getMailboxLocalPart(mailboxId, fallback) {
+        const agentId = inferAgentIdFromMailboxId(mailboxId);
+        if (agentId) {
+          return agentId;
+        }
+        const identity = parseMailboxIdentity(mailboxId);
+        const owner = String(identity.owner || "").trim();
+        if (owner && !owner.startsWith("room-role:")) {
+          return owner;
+        }
+        return String(fallback || identity.label || "mailbox").trim() || "mailbox";
+      }
+
+      function getRoomMailboxDomain(mailboxId, roomKey) {
+        return "room.mail";
+      }
+
+      function getRoomMailboxAddress(entry, roomKey, mailbox) {
+        const entryToken = getMailboxLocalPart(
+          mailbox && mailbox.mailboxId,
+          getRoomMailboxName(entry, mailbox)
+        );
+        const domain = getRoomMailboxDomain(mailbox && mailbox.mailboxId, roomKey);
+        return domain ? entryToken + "@" + domain : entryToken;
+      }
+
+      function formatMailboxForRoomView(mailboxId, roomKey) {
+        const normalized = String(mailboxId || "").trim();
+        if (!normalized) {
+          return "n/a";
+        }
+        const mailboxName = getMailboxLocalPart(normalized, "mailbox");
+        const domain = getRoomMailboxDomain(normalized, roomKey);
+        const address = domain ? mailboxName + "@" + domain : mailboxName;
+        const displayName = getRoomMailboxName(null, { mailboxId: normalized });
+        if (!displayName || displayName === mailboxName) {
+          return address;
+        }
+        return displayName + " <" + address + ">";
+      }
+
       function isAgentVirtualMailbox(mailbox) {
         const mailboxId = String(mailbox && mailbox.mailboxId ? mailbox.mailboxId : "").trim();
         const kind = String(mailbox && mailbox.kind ? mailbox.kind : "").trim();
@@ -3213,54 +3710,14 @@ export function renderOpenClawWorkbenchShellHtml(input: {
 
       function getRoomAgentMailboxEntries(roomDetail) {
         const room = roomDetail && roomDetail.room ? roomDetail.room : null;
-        const connect = getConnectWorkspace();
-        const directory = connect && Array.isArray(connect.agentDirectory) ? connect.agentDirectory : [];
+        const directoryMaps = getAgentDirectoryMaps();
+        const directory = directoryMaps.directory;
         const visibleTokenSet = new Set(getRoomVisibleAgents(room).map(function(value) {
           return String(value || "").trim();
         }).filter(Boolean));
         const roomMailboxes = Array.isArray(roomDetail && roomDetail.mailboxes)
           ? roomDetail.mailboxes.filter(isAgentVirtualMailbox)
           : [];
-        const directoryByAgentId = new Map(directory.map(function(entry) {
-          return [String(entry.agentId || "").trim(), entry];
-        }).filter(function(pair) {
-          return pair[0];
-        }));
-        const directoryByPublicMailboxId = new Map(directory.map(function(entry) {
-          return [String(entry.publicMailboxId || "").trim(), entry];
-        }).filter(function(pair) {
-          return pair[0];
-        }));
-        function normalizeMailboxOwnerToken(value) {
-          const normalized = String(value || "").trim();
-          if (!normalized) {
-            return "";
-          }
-          try {
-            return decodeURIComponent(normalized).trim().toLowerCase();
-          } catch {
-            return normalized.trim().toLowerCase();
-          }
-        }
-
-        function inferAgentIdFromOwnerToken(value) {
-          const normalized = normalizeMailboxOwnerToken(value);
-          if (!normalized) {
-            return "";
-          }
-          if (directoryByAgentId.has(normalized)) {
-            return normalized;
-          }
-          const internalDomainSuffix = "@internal.mailclaws";
-          if (normalized.endsWith(internalDomainSuffix)) {
-            const candidate = normalized.slice(0, -internalDomainSuffix.length);
-            if (directoryByAgentId.has(candidate)) {
-              return candidate;
-            }
-          }
-          return "";
-        }
-
         function formatMailboxRoleLabel(role) {
           const normalized = String(role || "").trim();
           if (!normalized) {
@@ -3274,41 +3731,6 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             })
             .join(" ");
         }
-        const directoryByMailboxId = new Map();
-        directory.forEach(function(entry) {
-          const mailboxIds = Array.isArray(entry && entry.virtualMailboxes) ? entry.virtualMailboxes : [];
-          mailboxIds.forEach(function(mailboxId) {
-            const normalized = String(mailboxId || "").trim();
-            if (normalized) {
-              directoryByMailboxId.set(normalized, entry);
-            }
-          });
-        });
-
-        function inferAgentIdFromMailboxId(mailboxId) {
-          const normalized = String(mailboxId || "").trim();
-          if (!normalized) {
-            return "";
-          }
-          const byMailboxId = directoryByMailboxId.get(normalized);
-          if (byMailboxId && byMailboxId.agentId) {
-            return byMailboxId.agentId;
-          }
-          const byPublicMailbox = directoryByPublicMailboxId.get(normalized);
-          if (byPublicMailbox && byPublicMailbox.agentId) {
-            return byPublicMailbox.agentId;
-          }
-          if (normalized.startsWith("internal:")) {
-            const parts = normalized.split(":");
-            const owner = parts[1] || "";
-            return inferAgentIdFromOwnerToken(owner);
-          }
-          if (normalized.startsWith("public:")) {
-            const agentId = normalized.slice("public:".length);
-            return directoryByAgentId.has(agentId) ? agentId : "";
-          }
-          return "";
-        }
 
         const grouped = new Map();
         function ensureEntry(agentId) {
@@ -3320,10 +3742,10 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           if (existing) {
             return existing;
           }
-          const directoryEntry = directoryByAgentId.get(normalized) || null;
+          const directoryEntry = directoryMaps.byAgentId.get(normalized) || null;
           const created = {
             agentId: normalized,
-            displayName: directoryEntry && directoryEntry.displayName ? directoryEntry.displayName : normalized,
+            displayName: getPreferredAgentLabel(normalized, directoryEntry && directoryEntry.displayName ? directoryEntry.displayName : normalized),
             publicMailboxId: directoryEntry && directoryEntry.publicMailboxId ? directoryEntry.publicMailboxId : "",
             purpose: directoryEntry && directoryEntry.purpose ? directoryEntry.purpose : "",
             roomMailboxes: []
@@ -3357,45 +3779,58 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           entry.roomMailboxes.push(mailbox);
         });
 
-        directory.forEach(function(entry) {
-          const entryMailboxIds = Array.isArray(entry && entry.virtualMailboxes) ? entry.virtualMailboxes : [];
-          const visible = [
-            entry && entry.agentId,
-            entry && entry.publicMailboxId,
-            entry && entry.displayName
-          ].concat(entryMailboxIds).some(function(value) {
-            const normalized = String(value || "").trim();
-            return normalized.length > 0 && visibleTokenSet.has(normalized);
-          });
-          if (!visible && !grouped.has(entry.agentId || "")) {
-            return;
-          }
-          const ensured = ensureEntry(entry.agentId);
-          if (!ensured) {
-            return;
-          }
-          ensured.displayName = entry.displayName || ensured.displayName;
-          ensured.publicMailboxId = entry.publicMailboxId || ensured.publicMailboxId;
-          ensured.purpose = entry.purpose || ensured.purpose;
-        });
-
         return Array.from(grouped.values()).filter(function(entry) {
-          return entry.roomMailboxes.length > 0 || visibleTokenSet.has(entry.agentId);
+          return entry.roomMailboxes.length > 0;
         });
       }
 
-      function renderRoomAgentMailboxCard(entry, _room) {
+      function inferAgentIdFromMailboxId(mailboxId) {
+        const normalized = String(mailboxId || "").trim();
+        if (!normalized) {
+          return "";
+        }
+        const directoryMaps = getAgentDirectoryMaps();
+        const byMailboxId = directoryMaps.byMailboxId.get(normalized);
+        if (byMailboxId && byMailboxId.agentId) {
+          return byMailboxId.agentId;
+        }
+        const byPublicMailbox = directoryMaps.byPublicMailboxId.get(normalized);
+        if (byPublicMailbox && byPublicMailbox.agentId) {
+          return byPublicMailbox.agentId;
+        }
+        if (normalized.startsWith("internal:")) {
+          const parts = normalized.split(":");
+          const owner = parts[1] || "";
+          const normalizedOwner = normalizeMailboxOwnerToken(owner);
+          return directoryMaps.byAgentId.has(normalizedOwner) ? normalizedOwner : owner;
+        }
+        if (normalized.startsWith("public:")) {
+          const agentId = normalized.slice("public:".length);
+          const normalizedAgentId = normalizeMailboxOwnerToken(agentId);
+          return directoryMaps.byAgentId.has(normalizedAgentId) ? normalizedAgentId : agentId;
+        }
+        if (normalized.includes("@")) {
+          const owner = normalized.split("@")[0] || "";
+          const normalizedOwner = normalizeMailboxOwnerToken(owner);
+          return directoryMaps.byAgentId.has(normalizedOwner) ? normalizedOwner : owner;
+        }
+        return "";
+      }
+
+      function renderRoomAgentMailboxCard(entry, room) {
         const roomMailboxes = Array.isArray(entry && entry.roomMailboxes) ? entry.roomMailboxes : [];
         const roomDetail = state.data && state.data.roomDetail ? state.data.roomDetail : null;
         const roomMessages = Array.isArray(roomDetail && roomDetail.virtualMessages) ? roomDetail.virtualMessages : [];
+        const agentMailboxAddress = getAgentMailboxAddress(entry.agentId);
         return (
           '<section class="agent-room-card">' +
           '<div class="agent-room-card__header">' +
           '<div class="title">' + escapeHtmlClient(entry.displayName || entry.agentId || "agent") + '</div>' +
           (entry.purpose ? '<div class="detail">' + escapeHtmlClient(entry.purpose) + '</div>' : '') +
+          (agentMailboxAddress ? '<div class="detail code">' + escapeHtmlClient(t("agentMailboxLabel")) + ": " + escapeHtmlClient(agentMailboxAddress) + '</div>' : '') +
           (roomMailboxes.length > 0
-            ? '<div class="agent-room-card__mailboxes">' + roomMailboxes.map(function(mailbox) {
-                return '<span class="agent-room-card__mailbox code">' + escapeHtmlClient(mailbox.mailboxId) + '</span>';
+            ? '<div class="section-label">' + escapeHtmlClient(t("roomMailboxLabel")) + '</div><div class="agent-room-card__mailboxes">' + roomMailboxes.map(function(mailbox) {
+                return '<span class="agent-room-card__mailbox code">' + escapeHtmlClient(getRoomMailboxAddress(entry, room && room.roomKey, mailbox)) + '</span>';
               }).join("") + '</div>'
             : '<div class="detail">' + escapeHtmlClient(t("noMailboxParticipation")) + '</div>') +
           '</div>' +
@@ -3412,7 +3847,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
                 return (
                   '<section class="agent-mailbox-block">' +
                   '<div class="agent-mailbox-block__header">' +
-                  '<div class="title code">' + escapeHtmlClient(mailbox.mailboxId) + '</div>' +
+                  '<div class="title code">' + escapeHtmlClient(getRoomMailboxAddress(entry, room && room.roomKey, mailbox)) + '</div>' +
                   '<span class="muted">' + escapeHtmlClient(formatTime(mailbox.latestMessageAt)) + '</span>' +
                   '</div>' +
                   (mailboxMessages.length > 0
@@ -3429,12 +3864,420 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         );
       }
 
-      function renderAgentVirtualMessageCard(message) {
+      function getRoomReaderState(roomKey) {
+        const normalized = String(roomKey || "").trim();
+        if (!normalized) {
+          return {};
+        }
+        if (!state.roomReaders[normalized]) {
+          state.roomReaders[normalized] = {};
+        }
+        return state.roomReaders[normalized];
+      }
+
+      function getSourceMailSelectionKey(mail) {
+        return String(
+          (mail && (mail.dedupeKey || mail.internetMessageId || mail.providerMessageId || mail.createdAt || mail.subject)) || ""
+        );
+      }
+
+      function summarizeMailText(value) {
+        const normalized = String(value || "").replace(/\s+/g, " ").trim();
+        if (!normalized) {
+          return "";
+        }
+        return normalized.length > 160 ? normalized.slice(0, 157) + "..." : normalized;
+      }
+
+      function sortMessagesNewestFirst(messages) {
+        return messages.slice().sort(function(left, right) {
+          return new Date(right && right.createdAt ? right.createdAt : 0).getTime() - new Date(left && left.createdAt ? left.createdAt : 0).getTime();
+        });
+      }
+
+      function summarizeVirtualMessageText(value) {
+        const raw = String(value || "");
+        if (!raw.trim()) {
+          return "";
+        }
+        const carriageReturn = String.fromCharCode(13);
+        const lineFeed = String.fromCharCode(10);
+        const lines = raw.replaceAll(carriageReturn, "").split(lineFeed).map(function(line) {
+          return String(line || "").trim();
+        }).filter(Boolean);
+        const startIndex = lines.indexOf("关心结果");
+        const endIndex = lines.findIndex(function(line, index) {
+          return index > startIndex && (line === "为什么要发这封" || line === "下一步");
+        });
+        const focusLines =
+          startIndex >= 0
+            ? lines.slice(startIndex + 1, endIndex >= 0 ? endIndex : undefined)
+            : lines.filter(function(line) {
+                return !/^#/.test(line) && !/^(发件人|收件人|抄送|消息类型|回复对象)：/.test(line);
+              });
+        return summarizeMailText(focusLines.join(" "));
+      }
+
+      function listAgentEntryMessages(roomMessages, roomMailboxes) {
+        const mailboxIdSet = new Set((roomMailboxes || []).map(function(mailbox) {
+          return String(mailbox && mailbox.mailboxId ? mailbox.mailboxId : "").trim();
+        }).filter(Boolean));
+        return sortMessagesNewestFirst(
+          (roomMessages || []).filter(function(message) {
+            if (mailboxIdSet.size === 0) {
+              return false;
+            }
+            if (mailboxIdSet.has(String(message && message.fromMailboxId ? message.fromMailboxId : "").trim())) {
+              return true;
+            }
+            if (Array.isArray(message && message.toMailboxIds) && message.toMailboxIds.some(function(mailboxId) { return mailboxIdSet.has(mailboxId); })) {
+              return true;
+            }
+            return Array.isArray(message && message.ccMailboxIds) && message.ccMailboxIds.some(function(mailboxId) { return mailboxIdSet.has(mailboxId); });
+          })
+        );
+      }
+
+      function findRoomMailboxForMessage(roomMailboxes, message) {
+        const mailboxes = Array.isArray(roomMailboxes) ? roomMailboxes : [];
+        if (!message) {
+          return mailboxes[0] || null;
+        }
+        const mailboxIds = [message.fromMailboxId]
+          .concat(Array.isArray(message.toMailboxIds) ? message.toMailboxIds : [])
+          .concat(Array.isArray(message.ccMailboxIds) ? message.ccMailboxIds : []);
+        for (var index = 0; index < mailboxIds.length; index += 1) {
+          const mailboxId = String(mailboxIds[index] || "").trim();
+          const match = mailboxes.find(function(mailbox) {
+            return String(mailbox && mailbox.mailboxId ? mailbox.mailboxId : "").trim() === mailboxId;
+          });
+          if (match) {
+            return match;
+          }
+        }
+        return mailboxes[0] || null;
+      }
+
+      function getMessageCounterpartyLabel(message, roomMailboxes) {
+        const mailboxIdSet = new Set((roomMailboxes || []).map(function(mailbox) {
+          return String(mailbox && mailbox.mailboxId ? mailbox.mailboxId : "").trim();
+        }).filter(Boolean));
+        const uniqueLabels = [];
+        function pushLabel(mailboxId) {
+          const label = getRoomMailboxName(null, { mailboxId: mailboxId });
+          if (label && !uniqueLabels.includes(label)) {
+            uniqueLabels.push(label);
+          }
+        }
+        const fromMailboxId = String(message && message.fromMailboxId ? message.fromMailboxId : "").trim();
+        if (fromMailboxId && !mailboxIdSet.has(fromMailboxId)) {
+          pushLabel(fromMailboxId);
+        }
+        (Array.isArray(message && message.toMailboxIds) ? message.toMailboxIds : []).forEach(function(mailboxId) {
+          if (!mailboxIdSet.has(mailboxId)) {
+            pushLabel(mailboxId);
+          }
+        });
+        (Array.isArray(message && message.ccMailboxIds) ? message.ccMailboxIds : []).forEach(function(mailboxId) {
+          if (!mailboxIdSet.has(mailboxId)) {
+            pushLabel(mailboxId);
+          }
+        });
+        if (mailboxIdSet.has(fromMailboxId)) {
+          return uniqueLabels.length > 0 ? "发给 " + uniqueLabels.join("、") : "本箱内流转";
+        }
+        return uniqueLabels.length > 0 ? "来自 " + uniqueLabels.join("、") : "房间来往";
+      }
+
+      function getMessageKindLabel(kind) {
+        switch (String(kind || "").trim()) {
+          case "task":
+            return "任务";
+          case "draft":
+            return "草案";
+          case "review":
+            return "覆核";
+          case "claim":
+            return "结论";
+          case "progress":
+            return "进展";
+          case "final_ready":
+            return "可交付";
+          default:
+            return String(kind || "message") || "message";
+        }
+      }
+
+      function getMessageVisibilityLabel(value) {
+        switch (String(value || "").trim()) {
+          case "governance":
+            return "治理";
+          case "internal":
+            return "协作";
+          default:
+            return String(value || "room") || "room";
+        }
+      }
+
+      function getMessageOriginLabel(value) {
+        switch (String(value || "").trim()) {
+          case "virtual_internal":
+            return "房间邮件";
+          case "virtual_governance":
+            return "治理邮件";
+          default:
+            return String(value || "origin") || "origin";
+        }
+      }
+
+      function listRoomMailboxMessages(roomMessages, mailboxId) {
+        return sortMessagesNewestFirst(
+          (roomMessages || []).filter(function(message) {
+            return (
+              message.fromMailboxId === mailboxId ||
+              (Array.isArray(message.toMailboxIds) && message.toMailboxIds.includes(mailboxId)) ||
+              (Array.isArray(message.ccMailboxIds) && message.ccMailboxIds.includes(mailboxId))
+            );
+          })
+        );
+      }
+
+      function renderReaderField(label, value, code) {
+        return (
+          '<div class="source-mail-card__field">' +
+          '<div class="section-label">' + escapeHtmlClient(label) + '</div>' +
+          '<div class="detail' + (code ? " code" : "") + '">' + escapeHtmlClient(value || "n/a") + '</div>' +
+          '</div>'
+        );
+      }
+
+      function renderThreadMailReader(roomKey, threadMails, taskMail) {
+        const readerState = getRoomReaderState(roomKey);
+        const selectedMail =
+          threadMails.find(function(mail) {
+            return getSourceMailSelectionKey(mail) === readerState.selectedThreadMailKey;
+          }) ||
+          threadMails[0] ||
+          null;
+        const taskMailKey = taskMail ? getSourceMailSelectionKey(taskMail) : "";
+        const selectedKey = selectedMail ? getSourceMailSelectionKey(selectedMail) : "";
+        if (selectedMail) {
+          readerState.selectedThreadMailKey = selectedKey;
+        }
+        return (
+          '<div class="mail-reader">' +
+          '<aside class="mail-reader__sidebar">' +
+          '<div class="mail-reader__list">' +
+          threadMails.map(function(mail) {
+            const mailKey = getSourceMailSelectionKey(mail);
+            const active = mailKey === selectedKey;
+            const from = (mail && mail.from) || "n/a";
+            const snippet = mail && mail.excerpt ? mail.excerpt : summarizeMailText(mail && mail.textBody);
+            return (
+              '<button class="mail-reader__item' + (active ? ' mail-reader__item--active' : '') + '" data-action="select-room-thread-mail" data-room-key="' + escapeHtmlClient(roomKey) + '" data-mail-key="' + escapeHtmlClient(mailKey) + '">' +
+              '<div class="mail-reader__item-top">' +
+              '<div class="mail-reader__item-sender">' + escapeHtmlClient(from) + '</div>' +
+              '<div class="mail-reader__item-time">' + escapeHtmlClient(formatTime(mail && mail.receivedAt)) + '</div>' +
+              '</div>' +
+              '<div class="mail-reader__item-subject">' + escapeHtmlClient((mail && mail.subject) || "Mail") + '</div>' +
+              '<div class="mail-reader__item-snippet">' + escapeHtmlClient(snippet || t("openOriginalDetails")) + '</div>' +
+              '<div class="chips">' + (mailKey === taskMailKey ? renderPill(t("taskMailBadge"), "pill--ok") : "") + '</div>' +
+              '</button>'
+            );
+          }).join("") +
+          '</div>' +
+          '</aside>' +
+          '<section class="mail-reader__preview">' +
+          (selectedMail
+            ? '<div class="mail-reader__preview-head">' +
+              '<div class="mail-reader__preview-title">' + escapeHtmlClient((selectedMail && selectedMail.subject) || "Mail") + '</div>' +
+              '<div class="chips">' + (selectedKey === taskMailKey ? renderPill(t("taskMailBadge"), "pill--ok") : "") + '</div>' +
+              '<div class="mail-reader__preview-meta">' +
+              renderReaderField(t("fromLabel"), (selectedMail && selectedMail.from) || "n/a", false) +
+              renderReaderField(t("toLabel"), Array.isArray(selectedMail && selectedMail.to) && selectedMail.to.length > 0 ? selectedMail.to.join(", ") : "n/a", false) +
+              (Array.isArray(selectedMail && selectedMail.cc) && selectedMail.cc.length > 0 ? renderReaderField(t("ccLabel"), selectedMail.cc.join(", "), false) : "") +
+              renderReaderField(t("receivedAtLabel"), formatTime(selectedMail && selectedMail.receivedAt), false) +
+              '</div>' +
+              '</div>' +
+              '<div class="mail-reader__preview-body">' +
+              '<pre class="mail-body mail-reader__body-copy">' + escapeHtmlClient((selectedMail && (selectedMail.textBody || selectedMail.excerpt)) || "") + '</pre>' +
+              '</div>'
+            : '<div class="mail-reader__preview-empty">' + escapeHtmlClient(t("noThreadMail")) + '</div>') +
+          '</section>' +
+          '</div>'
+        );
+      }
+
+      function resolveRoomAgentReader(room, roomAgentEntries, roomMessages) {
+        const readerState = getRoomReaderState(room && room.roomKey);
+        const selectedEntry =
+          roomAgentEntries.find(function(entry) {
+            return String(entry && entry.agentId) === String(readerState.selectedAgentId || "");
+          }) ||
+          roomAgentEntries[0] ||
+          null;
+        if (!selectedEntry) {
+          return {
+            selectedEntry: null,
+            selectedMailbox: null,
+            selectedMessage: null,
+            mailboxMessages: []
+          };
+        }
+        readerState.selectedAgentId = selectedEntry.agentId;
+        const mailboxMessages = listAgentEntryMessages(roomMessages, selectedEntry.roomMailboxes);
+        const selectedMessage =
+          mailboxMessages.find(function(message) {
+            return message.messageId === readerState.selectedAgentMessageId;
+          }) ||
+          mailboxMessages[0] ||
+          null;
+        const selectedMailbox =
+          findRoomMailboxForMessage(selectedEntry.roomMailboxes, selectedMessage) ||
+          selectedEntry.roomMailboxes[0] ||
+          null;
+        if (selectedMailbox) {
+          readerState.selectedAgentMailboxId = selectedMailbox.mailboxId;
+        }
+        if (selectedMessage) {
+          readerState.selectedAgentMessageId = selectedMessage.messageId;
+        }
+        return {
+          selectedEntry: selectedEntry,
+          selectedMailbox: selectedMailbox,
+          selectedMessage: selectedMessage,
+          mailboxMessages: mailboxMessages
+        };
+      }
+
+      function renderVirtualMessagePreview(message, roomKey, mailboxMessages, selectionContext) {
         const recipients = Array.isArray(message && message.toMailboxIds) && message.toMailboxIds.length > 0
-          ? message.toMailboxIds.join(", ")
+          ? message.toMailboxIds.map(function(mailboxId) { return formatMailboxForRoomView(mailboxId, roomKey); }).join(", ")
           : "n/a";
         const ccList = Array.isArray(message && message.ccMailboxIds) && message.ccMailboxIds.length > 0
-          ? message.ccMailboxIds.join(", ")
+          ? message.ccMailboxIds.map(function(mailboxId) { return formatMailboxForRoomView(mailboxId, roomKey); }).join(", ")
+          : "";
+        const attachments = Array.isArray(message && message.attachments) ? message.attachments : [];
+        const parentMessage = message && message.parentMessageId
+          ? (Array.isArray(mailboxMessages) ? mailboxMessages.find(function(entry) { return entry.messageId === message.parentMessageId; }) : null)
+          : null;
+        const replyMessages = Array.isArray(mailboxMessages)
+          ? mailboxMessages
+            .filter(function(entry) { return entry.parentMessageId === (message && message.messageId); })
+            .sort(function(left, right) { return String(left && left.createdAt || "").localeCompare(String(right && right.createdAt || "")); })
+          : [];
+        const replyContext = (
+          parentMessage || replyMessages.length > 0
+            ? '<div class="mail-reader__thread-context">' +
+              (parentMessage
+                ? '<div class="source-mail-card__field">' +
+                  '<div class="section-label">' + escapeHtmlClient(t("replyingToLabel")) + '</div>' +
+                  '<button class="link-chip" data-action="select-room-agent-message" data-room-key="' + escapeHtmlClient(roomKey) + '" data-agent-id="' + escapeHtmlClient((selectionContext && selectionContext.agentId) || "") + '" data-mailbox-id="' + escapeHtmlClient((selectionContext && selectionContext.mailboxId) || "") + '" data-message-id="' + escapeHtmlClient(parentMessage.messageId || "") + '">' + escapeHtmlClient(parentMessage.subject || "Message") + '</button>' +
+                  '<div class="detail">' + escapeHtmlClient(formatMailboxForRoomView(parentMessage.fromMailboxId, roomKey) + " · " + formatTime(parentMessage.createdAt)) + '</div>' +
+                  '<div class="detail">' + escapeHtmlClient(summarizeMailText(parentMessage.bodyText) || " ") + '</div>' +
+                  '</div>'
+                : "") +
+              (replyMessages.length > 0
+                ? '<div class="source-mail-card__field">' +
+                  '<div class="section-label">' + escapeHtmlClient(t("repliesLabel")) + '</div>' +
+                  '<div class="mail-reader-shell__switches">' + replyMessages.map(function(entry) {
+                    return '<button class="link-chip" data-action="select-room-agent-message" data-room-key="' + escapeHtmlClient(roomKey) + '" data-agent-id="' + escapeHtmlClient((selectionContext && selectionContext.agentId) || "") + '" data-mailbox-id="' + escapeHtmlClient((selectionContext && selectionContext.mailboxId) || "") + '" data-message-id="' + escapeHtmlClient(entry.messageId || "") + '">' + escapeHtmlClient((entry.subject || "Message") + " · " + formatTime(entry.createdAt)) + '</button>';
+                  }).join("") + '</div>' +
+                  '</div>'
+                : "") +
+              '</div>'
+            : ""
+        );
+        return (
+          '<div class="mail-reader__preview-head">' +
+          '<div class="mail-reader__preview-title">' + escapeHtmlClient((message && message.subject) || "Message") + '</div>' +
+          '<div class="chips">' +
+          renderPill(getMessageVisibilityLabel(message && message.visibility), "") +
+          renderPill(getMessageOriginLabel(message && message.originKind), "") +
+          renderPill(message && message.parentMessageId ? "回信" : "首封", "") +
+          '</div>' +
+          '<div class="mail-reader__preview-meta">' +
+          renderReaderField(t("fromLabel"), formatMailboxForRoomView(message && message.fromMailboxId, roomKey), false) +
+          renderReaderField(t("toLabel"), recipients, false) +
+          (ccList ? renderReaderField(t("ccLabel"), ccList, false) : "") +
+          renderReaderField(t("createdAtLabel"), formatTime(message && message.createdAt), false) +
+          '</div>' +
+          '</div>' +
+          '<div class="mail-reader__preview-body">' +
+          replyContext +
+          '<pre class="mail-body mail-reader__body-copy">' + escapeHtmlClient((message && message.bodyText) || "") + '</pre>' +
+          (attachments.length > 0
+            ? '<div class="attachment-links">' + attachments.map(function(attachment) {
+                return '<a class="attachment-link" href="' + escapeHtmlClient(attachment.downloadPath || "#") + '" target="_blank" rel="noreferrer" download>' + escapeHtmlClient(attachment.filename || attachment.attachmentId || "attachment") + '</a>';
+              }).join("") + '</div>'
+            : '') +
+          '</div>'
+        );
+      }
+
+      function renderRoomAgentMailboxReader(room, roomAgentEntries, roomMessages) {
+        const selection = resolveRoomAgentReader(room, roomAgentEntries, roomMessages);
+        const selectedEntry = selection.selectedEntry;
+        const selectedMailbox = selection.selectedMailbox;
+        const selectedMessage = selection.selectedMessage;
+        const mailboxMessages = selection.mailboxMessages;
+        return (
+          '<div class="mail-reader-shell">' +
+          '<div class="mail-reader-shell__tabs">' + roomAgentEntries.map(function(entry) {
+            const active = selectedEntry && entry.agentId === selectedEntry.agentId;
+            return '<button class="link-chip' + (active ? ' active' : '') + '" data-action="select-room-agent" data-room-key="' + escapeHtmlClient(room.roomKey) + '" data-agent-id="' + escapeHtmlClient(entry.agentId || "") + '">' + escapeHtmlClient(entry.displayName || entry.agentId || "agent") + '</button>';
+          }).join("") + '</div>' +
+          (selectedEntry
+            ? '<div class="mail-reader">' +
+              '<aside class="mail-reader__sidebar">' +
+              '<div class="mail-reader__sidebar-head">' +
+              '<div class="title">' + escapeHtmlClient(selectedEntry.displayName || selectedEntry.agentId || "agent") + '</div>' +
+              '<div class="detail">房间收件箱</div>' +
+              (getAgentMailboxAddress(selectedEntry.agentId) ? '<div class="detail code">' + escapeHtmlClient(getAgentMailboxAddress(selectedEntry.agentId)) + '</div>' : '') +
+              '</div>' +
+              '<div class="mail-reader__list">' +
+              (mailboxMessages.length > 0
+                ? mailboxMessages.map(function(message) {
+                    const active = selectedMessage && message.messageId === selectedMessage.messageId;
+                    const matchedMailbox = findRoomMailboxForMessage(selectedEntry.roomMailboxes, message);
+                    const counterparty = getMessageCounterpartyLabel(message, selectedEntry.roomMailboxes);
+                    const snippet = summarizeVirtualMessageText(message.bodyText);
+                    return (
+                      '<button class="mail-reader__item' + (active ? ' mail-reader__item--active' : '') + '" data-action="select-room-agent-message" data-room-key="' + escapeHtmlClient(room.roomKey) + '" data-agent-id="' + escapeHtmlClient(selectedEntry.agentId || "") + '" data-mailbox-id="' + escapeHtmlClient((matchedMailbox && matchedMailbox.mailboxId) || "") + '" data-message-id="' + escapeHtmlClient(message.messageId || "") + '">' +
+                      '<div class="mail-reader__item-top">' +
+                      '<div class="mail-reader__item-subject">' + escapeHtmlClient(message.subject || "Message") + '</div>' +
+                      '<div class="mail-reader__item-time">' + escapeHtmlClient(formatTime(message.createdAt)) + '</div>' +
+                      '</div>' +
+                      '<div class="mail-reader__item-participants">' + escapeHtmlClient(counterparty || getMessageKindLabel(message.kind)) + '</div>' +
+                      '<div class="mail-reader__item-snippet">' + escapeHtmlClient(snippet || " ") + '</div>' +
+                      '</button>'
+                    );
+                  }).join("")
+                : '<div class="mail-reader__preview-empty">' + escapeHtmlClient(t("noMailboxMessagesProjected")) + '</div>') +
+              '</div>' +
+              '</aside>' +
+              '<section class="mail-reader__preview">' +
+              (selectedMessage
+                ? renderVirtualMessagePreview(selectedMessage, room.roomKey, mailboxMessages, {
+                    agentId: selectedEntry && selectedEntry.agentId,
+                    mailboxId: selectedMailbox && selectedMailbox.mailboxId
+                  })
+                : '<div class="mail-reader__preview-empty">' + escapeHtmlClient(t("noMailboxMessagesProjected")) + '</div>') +
+              '</section>' +
+              '</div>'
+            : '<div class="empty">' + escapeHtmlClient(t("noAgentsVisible")) + '</div>') +
+          '</div>'
+        );
+      }
+
+      function renderAgentVirtualMessageCard(message) {
+        const roomDetail = state.data && state.data.roomDetail ? state.data.roomDetail : null;
+        const roomKey = roomDetail && roomDetail.room ? roomDetail.room.roomKey : "";
+        const recipients = Array.isArray(message && message.toMailboxIds) && message.toMailboxIds.length > 0
+          ? message.toMailboxIds.map(function(mailboxId) { return formatMailboxForRoomView(mailboxId, roomKey); }).join(", ")
+          : "n/a";
+        const ccList = Array.isArray(message && message.ccMailboxIds) && message.ccMailboxIds.length > 0
+          ? message.ccMailboxIds.map(function(mailboxId) { return formatMailboxForRoomView(mailboxId, roomKey); }).join(", ")
           : "";
         const attachments = Array.isArray(message && message.attachments) ? message.attachments : [];
 
@@ -3446,7 +4289,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<div class="muted">' + escapeHtmlClient(formatTime(message && message.createdAt)) + '</div>' +
           '</div>' +
           '<div class="agent-message-card__people">' +
-          '<div class="source-mail-card__field"><div class="section-label">' + escapeHtmlClient(t("fromLabel")) + '</div><div class="detail">' + escapeHtmlClient((message && message.fromMailboxId) || "n/a") + '</div></div>' +
+          '<div class="source-mail-card__field"><div class="section-label">' + escapeHtmlClient(t("fromLabel")) + '</div><div class="detail">' + escapeHtmlClient(formatMailboxForRoomView(message && message.fromMailboxId, roomKey)) + '</div></div>' +
           '<div class="source-mail-card__field"><div class="section-label">' + escapeHtmlClient(t("toLabel")) + '</div><div class="detail">' + escapeHtmlClient(recipients) + '</div></div>' +
           (ccList ? '<div class="source-mail-card__field"><div class="section-label">' + escapeHtmlClient(t("ccLabel")) + '</div><div class="detail">' + escapeHtmlClient(ccList) + '</div></div>' : '') +
           '</div>' +
@@ -3464,21 +4307,20 @@ export function renderOpenClawWorkbenchShellHtml(input: {
       }
 
       function renderSourceMailCard(mail, options) {
-        const expanded = options && options.expanded;
         const badge = options && options.badge ? String(options.badge) : "";
         const summaryLine = mail && mail.excerpt ? mail.excerpt : t("openOriginalDetails");
         const recipients = Array.isArray(mail && mail.to) && mail.to.length > 0 ? mail.to.join(", ") : "n/a";
         const ccList = Array.isArray(mail && mail.cc) && mail.cc.length > 0 ? mail.cc.join(", ") : "";
         const body = mail && mail.textBody ? mail.textBody : summaryLine;
         return (
-          '<details class="source-mail-card"' + (expanded ? " open" : "") + '>' +
-          '<summary class="source-mail-card__summary">' +
+          '<article class="source-mail-card" open>' +
+          '<div class="source-mail-card__summary">' +
           '<div class="source-mail-card__meta">' +
           '<div><div class="title">' + escapeHtmlClient((mail && mail.subject) || "Mail") + '</div><div class="card-subtitle">' + escapeHtmlClient((mail && mail.from) || "n/a") + '</div></div>' +
           '<div class="chips">' + (badge ? renderPill(badge, "pill--ok") : "") + '<span class="muted">' + escapeHtmlClient(formatTime(mail && mail.receivedAt)) + '</span></div>' +
           '</div>' +
           '<div class="source-mail-card__excerpt">' + escapeHtmlClient(summaryLine) + '</div>' +
-          '</summary>' +
+          '</div>' +
           '<div class="source-mail-card__body">' +
           '<div class="source-mail-card__rail">' +
           '<div class="source-mail-card__field"><div class="section-label">' + escapeHtmlClient(t("fromLabel")) + '</div><div class="detail">' + escapeHtmlClient((mail && mail.from) || "n/a") + '</div></div>' +
@@ -3491,13 +4333,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<pre class="mail-body">' + escapeHtmlClient(body || "") + '</pre>' +
           '</div>' +
           '</div>' +
-          '</details>'
+          '</article>'
         );
       }
 
       function renderWorkspaceHero(input) {
         return (
-          '<section class="workspace-hero">' +
+          '<section class="workspace-hero' + (input.compact ? ' workspace-hero--compact' : '') + '">' +
           '<div class="workspace-hero__grid">' +
           '<div>' +
           '<div class="workspace-hero__eyebrow">' + (
@@ -4165,7 +5007,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           statusMarkup +
           "</div>" +
           '<div class="chips">' +
-          renderPill(String(room.visibleAgentCount || 0) + " " + t("agentCountLabel"), "") +
+          renderPill(String(room.mailboxCount || 0) + " " + t("roomMailboxLabel"), "") +
           renderPill(String(room.messageCount || 0) + " " + t("messageCountLabel"), "") +
           (Number(room.pendingApprovalCount || 0) > 0
             ? renderPill(String(room.pendingApprovalCount || 0) + " approvals", "pill--warn")
@@ -4246,16 +5088,23 @@ export function renderOpenClawWorkbenchShellHtml(input: {
       }
 
       function renderVirtualMessageEntry(message) {
+        const recipients = Array.isArray(message && message.toMailboxIds) && message.toMailboxIds.length > 0
+          ? message.toMailboxIds.map(function(mailboxId) { return formatMailboxForRoomView(mailboxId, ""); }).join(", ")
+          : "n/a";
         return (
           '<div class="timeline-entry">' +
-          '<div class="meta"><span>' + escapeHtmlClient(message.kind || "message") + " / " + escapeHtmlClient(message.originKind || "origin") + '</span><span>' + escapeHtmlClient(formatTime(message.createdAt)) + "</span></div>" +
+          '<div class="meta"><span>' + escapeHtmlClient(getMessageKindLabel(message.kind)) + " / " + escapeHtmlClient(getMessageOriginLabel(message.originKind)) + '</span><span>' + escapeHtmlClient(formatTime(message.createdAt)) + "</span></div>" +
           '<div class="title">' + escapeHtmlClient(message.subject || message.messageId || "Message") + "</div>" +
-          '<div class="detail code">' + escapeHtmlClient((message.fromMailboxId || "?") + " -> " + (((message.toMailboxIds || []).join(", ")) || "n/a")) + "</div>" +
+          '<div class="detail">' + escapeHtmlClient(formatMailboxForRoomView(message.fromMailboxId, "") + " -> " + recipients) + "</div>" +
+          (message.bodyText
+            ? '<div class="detail detail--clamp-3">' + escapeHtmlClient(summarizeVirtualMessageText(message.bodyText) || message.bodyText) + "</div>"
+            : "") +
           '<div class="chips">' +
-          renderPill(message.visibility || "room", "") +
+          renderPill(getMessageVisibilityLabel(message.visibility), "") +
           renderPill("rev " + escapeHtmlClient(message.roomRevision || 0), "") +
-          (message.parentMessageId ? renderPill("reply", "") : renderPill("root", "")) +
+          (message.parentMessageId ? renderPill("回信", "") : renderPill("首封", "")) +
           (message.ccMailboxIds && message.ccMailboxIds.length > 0 ? renderPill("cc " + message.ccMailboxIds.length, "") : "") +
+          (message.attachments && message.attachments.length > 0 ? renderPill(String(message.attachments.length) + " files", "") : "") +
           "</div>" +
           "</div>"
         );
@@ -4264,7 +5113,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
       function renderDeliveryEntry(entry) {
         return (
           '<div class="timeline-entry">' +
-          '<div class="meta"><span>' + escapeHtmlClient(entry.mailboxId || "mailbox") + '</span><span>' + escapeHtmlClient(formatTime(entry.updatedAt)) + "</span></div>" +
+          '<div class="meta"><span>' + escapeHtmlClient(formatMailboxForRoomView(entry.mailboxId || "", "")) + '</span><span>' + escapeHtmlClient(formatTime(entry.updatedAt)) + "</span></div>" +
           '<div class="title code">' + escapeHtmlClient(entry.messageId || entry.deliveryId || "delivery") + "</div>" +
           '<div class="chips">' +
           renderPill(entry.status || "queued", entry.status === "consumed" ? "pill--ok" : entry.status === "stale" || entry.status === "vetoed" || entry.status === "superseded" ? "pill--warn" : "") +
@@ -4392,23 +5241,28 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         const selected = getSelectedAgentId(connect) === entry.agentId;
         const displayName = entry.displayName || entry.agentId || "agent";
         const profile = entry.purpose || "";
+        const agentMailboxAddress = getAgentMailboxAddress(entry.agentId);
         return (
           '<div class="timeline-entry timeline-entry--compact' + (selected ? ' active' : '') + '">' +
           '<div class="meta"><span>' + escapeHtmlClient(displayName) + '</span><span>' + escapeHtmlClient(String(skills.length) + " " + t("skillCountLabel")) + '</span></div>' +
           (profile
             ? '<div class="detail detail--clamp-3">' + escapeHtmlClient(profile) + '</div>'
             : '<div class="detail">' + escapeHtmlClient(t("agentProfileLabel")) + '</div>') +
+          (agentMailboxAddress ? '<div class="detail code">' + escapeHtmlClient(t("agentMailboxLabel")) + ": " + escapeHtmlClient(agentMailboxAddress) + '</div>' : '') +
           ((skills.length > 0 || entry.soulPath)
             ? '<div class="chips">' +
               skills.map(function(skill) {
-                return renderPill(skill.title || skill.skillId || "skill", skill.source === "managed" ? "pill--ok" : "");
+                return renderPill(getCompactSkillTitle(skill), skill.source === "managed" ? "pill--ok" : "");
               }).join("") +
               (entry.soulPath ? renderPill(t("soulLabel"), "pill--ok") : "") +
               '</div>'
             : "") +
+          '<div class="timeline-entry__actions">' +
           (!selected
-            ? '<div class="timeline-entry__actions"><button class="btn" data-action="select-agent" data-agent-id="' + escapeHtmlClient(entry.agentId || "") + '">' + escapeHtmlClient(t("manageAgent")) + '</button></div>'
-            : "") +
+            ? '<button class="btn" data-action="select-agent" data-agent-id="' + escapeHtmlClient(entry.agentId || "") + '">' + escapeHtmlClient(t("manageAgent")) + '</button>'
+            : '') +
+          '<button class="btn danger" data-action="delete-agent" data-agent-id="' + escapeHtmlClient(entry.agentId || "") + '">' + escapeHtmlClient(t("deleteAgent")) + '</button>' +
+          '</div>' +
           "</div>"
         );
       }
@@ -4469,7 +5323,11 @@ export function renderOpenClawWorkbenchShellHtml(input: {
               : "setup-note setup-note--ok";
         const selectedSkillsCount = selectedSkills.length;
         return (
-          '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(selected.displayName || selectedAgentId) + '</h3></div><div class="panel-body">' +
+          '<div class="panel agent-editor-panel" id="agent-editor-panel"><div class="panel-header"><h3>' + escapeHtmlClient(selected.displayName || selectedAgentId) + '</h3></div><div class="panel-body">' +
+          '<div class="detail-grid">' +
+          '<div><div class="section-label">' + escapeHtmlClient(t("agentMailboxLabel")) + '</div><div class="detail code">' + escapeHtmlClient(getAgentMailboxAddress(selectedAgentId)) + '</div></div>' +
+          '<div><div class="section-label">' + escapeHtmlClient(t("agentUseLabel")) + '</div><div class="detail">' + escapeHtmlClient(t("agentUseCopy")) + '</div></div>' +
+          '</div>' +
           '<details class="advanced-settings" open><summary>' + escapeHtmlClient(t("agentProfileLabel")) + '</summary>' +
           '<div class="detail-grid">' +
           '<label><div class="section-label">' + escapeHtmlClient(t("displayNameLabel")) + '</div><input class="console-input" data-agent-profile-field="displayName" value="' + escapeHtmlClient(profileDisplayName) + '" /></label>' +
@@ -4502,12 +5360,18 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         return (skill && (skill.sourceRef || skill.path)) ? String(skill.sourceRef || skill.path) : "";
       }
 
+      function getCompactSkillTitle(skill) {
+        const rawTitle = String((skill && (skill.title || skill.skillId)) || "skill").trim();
+        const trimmed = rawTitle.replace(/^default skill:[ \t]*/i, "").trim();
+        return trimmed || rawTitle || "skill";
+      }
+
       function renderAgentSkillCard(agentId, skill, options) {
         const selectable = Boolean(options && options.selectable);
         const agentLabel = options && options.agentLabel ? options.agentLabel : agentId;
         const showAgentLabel = Boolean(options && options.showAgentLabel);
-        const displayTitle = skill.title || skill.skillId || "skill";
-        const skillId = skill.skillId || displayTitle;
+        const displayTitle = getCompactSkillTitle(skill);
+        const skillId = skill.skillId || skill.title || displayTitle;
         return (
           '<div class="timeline-entry timeline-entry--compact">' +
           '<div class="meta"><span>' + escapeHtmlClient(displayTitle) + '</span>' + (showAgentLabel ? '<span>' + escapeHtmlClient(agentLabel || t("agentPanel")) + "</span>" : "") + '</div>' +
@@ -4528,10 +5392,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<div class="meta"><span>' + escapeHtmlClient(displayName) + '</span><span>' + escapeHtmlClient(String(skills.length) + " " + t("skillCountLabel")) + "</span></div>" +
           (showAgentId ? '<div class="detail code">' + escapeHtmlClient(entry.agentId || "agent") + "</div>" : "") +
           (skills.length > 0
-            ? '<div class="chips">' + skills.map(function(skill) {
-                return renderPill(skill.title || skill.skillId || "skill", "");
-              }).join("") + "</div>" +
-              '<div class="mailbox-feed">' + skills.map(function(skill) {
+            ? '<div class="mailbox-feed">' + skills.map(function(skill) {
                 return renderAgentSkillCard(entry.agentId || "", skill, {
                   agentLabel: entry.displayName || entry.agentId || "",
                   selectable: true,
@@ -4586,25 +5447,116 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         );
       }
 
+      function getReusableSkillPresentation(skill) {
+        const skillPath = String((skill && skill.path) || "");
+        if (skill && skill.origin === "shared") {
+          return {
+            originLabel: t("sharedLabel"),
+            taskLabel: t("localTasksLabel")
+          };
+        }
+        if (skillPath.includes("/.codex/skills/") || skillPath.includes("/.codex/plugins/")) {
+          return {
+            originLabel: t("localSourceLabel"),
+            taskLabel: t("localTasksLabel")
+          };
+        }
+        return {
+          originLabel: t("openclawSourceLabel"),
+          taskLabel: t("localTasksLabel")
+        };
+      }
+
       function renderReusableSkillCard(skill, connect) {
+        const accountId = connect && connect.templateApplyAccountId ? connect.templateApplyAccountId : "";
+        const tenantId = connect && connect.templateApplyTenantId ? connect.templateApplyTenantId : (accountId || "");
         const targetAgentId =
           state.connect && typeof state.connect.skillTargetAgentId === "string" && state.connect.skillTargetAgentId.trim().length > 0
             ? state.connect.skillTargetAgentId
             : (connect && connect.agentDirectory && connect.agentDirectory[0] ? connect.agentDirectory[0].agentId : "");
+        const presentation = getReusableSkillPresentation(skill);
+        const displayTitle = skill.title || skill.skillId || "skill";
+        const skillId = skill.skillId || displayTitle;
         return (
           '<div class="timeline-entry">' +
-          '<div class="meta"><span>' + escapeHtmlClient(skill.title || skill.skillId || "skill") + '</span><span>' + escapeHtmlClient(skill.origin || "openclaw") + "</span></div>" +
-          '<div class="title code">' + escapeHtmlClient(skill.skillId || "skill") + "</div>" +
-          '<div class="detail code">' + escapeHtmlClient(skill.path || "") + "</div>" +
-          '<div class="chips">' +
-          renderPill(skill.origin || "openclaw", skill.origin === "shared" ? "pill--ok" : "") +
-          (targetAgentId ? renderPill(t("targetLabel") + " " + targetAgentId, "") : "") +
-          '</div>' +
+          '<div class="meta"><span>' + escapeHtmlClient(displayTitle) + '</span><span>' + escapeHtmlClient(presentation.originLabel) + "</span></div>" +
+          (skillId !== displayTitle ? '<div class="title code">' + escapeHtmlClient(skillId) + "</div>" : "") +
           '<div class="timeline-entry__actions">' +
-          '<button class="btn" data-action="prefill-skill-install" data-agent-id="' + escapeHtmlClient(targetAgentId || "") + '" data-skill-source="' + escapeHtmlClient(skill.path || "") + '" data-skill-id="' + escapeHtmlClient(skill.skillId || "") + '" data-skill-title="' + escapeHtmlClient(skill.title || skill.skillId || "skill") + '">' + escapeHtmlClient(t("useAsSource")) + '</button>' +
-          '<button class="btn primary" data-action="quick-install-reusable-skill" data-agent-id="' + escapeHtmlClient(targetAgentId || "") + '" data-skill-source="' + escapeHtmlClient(skill.path || "") + '" data-skill-id="' + escapeHtmlClient(skill.skillId || "") + '" data-skill-title="' + escapeHtmlClient(skill.title || skill.skillId || "skill") + '"' + (connect && connect.templateApplyAccountId ? ' data-account-id="' + escapeHtmlClient(connect.templateApplyAccountId || "") + '" data-tenant-id="' + escapeHtmlClient((connect && connect.templateApplyTenantId) || connect.templateApplyAccountId || "") + '"' : "") + '>' + escapeHtmlClient(t("installLabel")) + '</button>' +
+          '<button class="btn" data-action="select-reusable-skill" data-skill-source="' + escapeHtmlClient(skill.path || "") + '" data-skill-id="' + escapeHtmlClient(skillId) + '" data-skill-title="' + escapeHtmlClient(displayTitle) + '">' + escapeHtmlClient(t("viewContent")) + '</button>' +
+          (accountId
+            ? '<button class="btn primary" data-action="quick-install-reusable-skill" data-agent-id="' + escapeHtmlClient(targetAgentId || "") + '" data-skill-source="' + escapeHtmlClient(skill.path || "") + '" data-skill-id="' + escapeHtmlClient(skillId) + '" data-skill-title="' + escapeHtmlClient(displayTitle) + '" data-account-id="' + escapeHtmlClient(accountId) + '" data-tenant-id="' + escapeHtmlClient(tenantId) + '">' + escapeHtmlClient(t("installLabel")) + '</button>'
+            : "") +
           '</div>' +
+          (!accountId ? '<div class="detail">' + escapeHtmlClient(t("connectMailboxFirstThenInstall")) + '</div>' : '') +
           '</div>'
+        );
+      }
+
+      function readReusablePreviewPayload(target) {
+        const root = target.closest(".panel") || document;
+        const element = root.querySelector('[data-reusable-preview-field="content"]');
+        return {
+          content: element && "value" in element ? String(element.value || "") : ""
+        };
+      }
+
+      function renderReusableSkillPreviewPanel() {
+        const stored = state.connect || {};
+        const skillId = typeof stored.reusableSkillPreviewSkillId === "string" ? stored.reusableSkillPreviewSkillId : "";
+        const title = typeof stored.reusableSkillPreviewTitle === "string" ? stored.reusableSkillPreviewTitle : skillId;
+        const source = typeof stored.reusableSkillPreviewSource === "string" ? stored.reusableSkillPreviewSource : "";
+        const origin = typeof stored.reusableSkillPreviewOriginLabel === "string" ? stored.reusableSkillPreviewOriginLabel : "";
+        const content = typeof stored.reusableSkillPreviewContent === "string" ? stored.reusableSkillPreviewContent : "";
+        const status = stored.reusableSkillPreviewStatus || null;
+        const noteClass =
+          !status
+            ? "setup-note"
+            : status.tone === "danger"
+              ? "setup-note setup-note--danger"
+              : "setup-note setup-note--ok";
+
+        if (!skillId || !source) {
+          return (
+            '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("reusablePreviewPanel")) + '</h3></div><div class="panel-body">' +
+            '<div class="empty">' + escapeHtmlClient(t("selectReusableSkillToView")) + '</div>' +
+            '</div></div>'
+          );
+        }
+
+        return (
+          '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(title || skillId) + '</h3><span class="muted">' + escapeHtmlClient(origin || t("reusableSkills")) + '</span></div><div class="panel-body">' +
+          (status ? '<div class="' + noteClass + '">' + escapeHtmlClient(status.message || "") + '</div>' : '') +
+          '<div class="detail code detail--clamp-3">' + escapeHtmlClient(source) + '</div>' +
+          '<label><div class="section-label">' + escapeHtmlClient(t("markdownLabel")) + '</div><textarea class="console-textarea" data-reusable-preview-field="content">' + escapeHtmlClient(content) + '</textarea></label>' +
+          '<div class="actions-inline">' +
+          '<button class="btn" data-action="prefill-skill-install" data-agent-id="' + escapeHtmlClient((state.connect && state.connect.skillTargetAgentId) || "") + '" data-skill-source="' + escapeHtmlClient(source) + '" data-skill-id="' + escapeHtmlClient(skillId) + '" data-skill-title="' + escapeHtmlClient(title || skillId) + '">' + escapeHtmlClient(t("useAsSource")) + '</button>' +
+          '<button class="btn primary" data-action="import-reusable-skill-draft" data-skill-id="' + escapeHtmlClient(skillId) + '" data-skill-title="' + escapeHtmlClient(title || skillId) + '">' + escapeHtmlClient(t("editAsSharedSkill")) + '</button>' +
+          '</div>' +
+          '</div></div>'
+        );
+      }
+
+      function renderReusableSkillsPanel(connect) {
+        const reusableSkills = connect && Array.isArray(connect.reusableSkills) ? connect.reusableSkills : [];
+        const accountId = connect && connect.templateApplyAccountId ? connect.templateApplyAccountId : "";
+        const tenantId = connect && connect.templateApplyTenantId ? connect.templateApplyTenantId : (accountId || "");
+        const targetAgentId =
+          state.connect && typeof state.connect.skillTargetAgentId === "string" && state.connect.skillTargetAgentId.trim().length > 0
+            ? state.connect.skillTargetAgentId
+            : (connect && connect.agentDirectory && connect.agentDirectory[0] ? connect.agentDirectory[0].agentId : "");
+        const runtimeResponse = state.runtime;
+        const runtime = runtimeResponse && runtimeResponse.runtime ? runtimeResponse.runtime : runtimeResponse;
+        const bridgeReady = runtime && runtime.runtimeKind === "bridge";
+        const statusClass = bridgeReady ? "setup-note setup-note--ok" : "setup-note";
+
+        return (
+          '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("reusableSkills")) + '</h3><span class="muted">' + escapeHtmlClient(String(reusableSkills.length)) + '</span></div><div class="panel-body">' +
+          '<div class="' + statusClass + '">' + escapeHtmlClient(bridgeReady ? t("reusableBridgeReady") : t("reusableBridgeInactive")) + '</div>' +
+          (accountId && targetAgentId && reusableSkills.length > 0
+            ? '<div class="actions-inline"><button class="btn" data-action="quick-install-all-reusable-skills" data-account-id="' + escapeHtmlClient(accountId) + '" data-tenant-id="' + escapeHtmlClient(tenantId) + '" data-agent-id="' + escapeHtmlClient(targetAgentId) + '">' + escapeHtmlClient(t("installAllSkills")) + '</button></div>'
+            : '') +
+          '<div class="detail">' + escapeHtmlClient(reusableSkills.length > 0 ? t("installAllSkillsHelp") : t("noReusableSkillSources")) + '</div>' +
+          '</div></div>'
         );
       }
 
@@ -4680,7 +5632,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         }
 
         return (
-          '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(title || skillId) + '</h3><span class="muted">' + escapeHtmlClient(kind === "shared" ? t("sharedLabel") : (agentLabel || t("agentPanel"))) + '</span></div><div class="panel-body">' +
+          '<div class="panel" id="skill-editor-panel"><div class="panel-header"><h3>' + escapeHtmlClient(title || skillId) + '</h3><span class="muted">' + escapeHtmlClient(kind === "shared" ? t("sharedLabel") : (agentLabel || t("agentPanel"))) + '</span></div><div class="panel-body">' +
           (status ? '<div class="' + noteClass + '">' + escapeHtmlClient(status.message || "") + '</div>' : '') +
           '<div class="detail-grid">' +
           '<label><div class="section-label">' + escapeHtmlClient(t("skillIdLabel")) + '</div><input class="console-input" value="' + escapeHtmlClient(skillId) + '" readonly /></label>' +
@@ -4736,7 +5688,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<div class="detail-grid">' +
           '<label><div class="section-label">' + escapeHtmlClient(t("agentIdLabel")) + '</div><input class="console-input" data-custom-agent-field="agentId" placeholder="assistant-ops" /></label>' +
           '<label><div class="section-label">' + escapeHtmlClient(t("displayNameLabel")) + '</div><input class="console-input" data-custom-agent-field="displayName" placeholder="Assistant Ops" /></label>' +
-          '<label><div class="section-label">' + escapeHtmlClient(t("publicMailboxLabel")) + '</div><input class="console-input" data-custom-agent-field="publicMailboxId" placeholder="public:assistant-ops" /></label>' +
+          '<label><div class="section-label">' + escapeHtmlClient(t("publicMailboxLabel")) + '</div><input class="console-input" data-custom-agent-field="publicMailboxId" placeholder="assistant-ops@agent" /></label>' +
           '<label><div class="section-label">' + escapeHtmlClient(t("collaboratorsLabel")) + '</div><input class="console-input" data-custom-agent-field="collaboratorAgentIds" placeholder="assistant,research" /></label>' +
           '</div>' +
           '<label><div class="section-label">' + escapeHtmlClient(t("purposeLabel")) + '</div><textarea class="console-textarea" data-custom-agent-field="purpose" placeholder="Own escalations, coordinate approvals, and feed final-ready packets back to the front desk."></textarea></label>' +
@@ -4857,8 +5809,8 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<div class="mail-workbench-main">' +
           renderWorkspaceHero({
             eyebrow: t("agents"),
-            title: t("agentsTitle"),
-            copy: t("agentsCopy"),
+            title: t("agentDirectory"),
+            compact: true,
             summaryItems: [
               { label: t("templatesLabel"), value: String(templates.length) },
               { label: t("agents"), value: String(directory.length) },
@@ -4875,18 +5827,18 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           "</div></div>" +
           '</div>' +
           '<div class="workspace-split__side">' +
+          selectedAgentPanel +
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("agentTemplates")) + '</h3><span class="muted">' + escapeHtmlClient(t("presetsCount", { count: String(templates.length) })) + '</span></div><div class="panel-body">' +
           (templates.length > 0
             ? '<div class="mailbox-feed">' + templates.map(function(template) { return renderAgentTemplateCard(template, connect); }).join("") + "</div>"
             : '<div class="empty">' + escapeHtmlClient(t("noAgentTemplatesAvailable")) + '</div>') +
           "</div></div>" +
-          selectedAgentPanel +
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("customAgent")) + '</h3><span class="muted">' + escapeHtmlClient(t("durableSoulMailbox")) + '</span></div><div class="panel-body">' +
           '<div class="detail">' + escapeHtmlClient(t("createDurableAgentCopy")) + '</div>' +
           '<div class="detail-grid">' +
           '<label><div class="section-label">' + escapeHtmlClient(t("agentIdLabel")) + '</div><input class="console-input" data-custom-agent-field="agentId" placeholder="assistant-ops" /></label>' +
           '<label><div class="section-label">' + escapeHtmlClient(t("displayNameLabel")) + '</div><input class="console-input" data-custom-agent-field="displayName" placeholder="Assistant Ops" /></label>' +
-          '<label><div class="section-label">' + escapeHtmlClient(t("publicMailboxLabel")) + '</div><input class="console-input" data-custom-agent-field="publicMailboxId" placeholder="public:assistant-ops" /></label>' +
+          '<label><div class="section-label">' + escapeHtmlClient(t("publicMailboxLabel")) + '</div><input class="console-input" data-custom-agent-field="publicMailboxId" placeholder="assistant-ops@agent" /></label>' +
           '<label><div class="section-label">' + escapeHtmlClient(t("collaboratorsLabel")) + '</div><input class="console-input" data-custom-agent-field="collaboratorAgentIds" placeholder="assistant,research" /></label>' +
           '</div>' +
           '<label><div class="section-label">' + escapeHtmlClient(t("purposeLabel")) + '</div><textarea class="console-textarea" data-custom-agent-field="purpose" placeholder="Own escalations, coordinate approvals, and feed final-ready packets back to the front desk."></textarea></label>' +
@@ -4921,16 +5873,17 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         const connect = getConnectSetupState().connect;
         const skills = connect && Array.isArray(connect.skills) ? connect.skills : [];
         const sharedSkills = connect && Array.isArray(connect.sharedSkills) ? connect.sharedSkills : [];
+        const reusableSkills = connect && Array.isArray(connect.reusableSkills) ? connect.reusableSkills : [];
         return (
           '<div class="mail-workbench-main">' +
           renderWorkspaceHero({
             eyebrow: t("skills"),
-            title: t("skillsTitle"),
-            copy: t("skillsCopy"),
+            title: t("pageSkills"),
+            compact: true,
             summaryItems: [
               { label: t("agents"), value: String(skills.length) },
               { label: t("skills"), value: String(skills.reduce(function(total, entry) { return total + ((entry.skills || []).length || 0); }, 0)) },
-              { label: t("builtInLabel"), value: "2" },
+              { label: t("reusableSkills"), value: String(reusableSkills.length) },
               { label: t("sharedLabel"), value: String(sharedSkills.length) }
             ]
           }) +
@@ -4949,6 +5902,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '</div>' +
           '<div class="workspace-split__side">' +
           renderSkillEditorPanel(connect) +
+          renderReusableSkillsPanel(connect) +
           renderSharedSkillCreatePanel(connect) +
           '</div>' +
           '</div>' +
@@ -4992,9 +5946,9 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             title: account.displayName || account.emailAddress || account.accountId || t("mailboxAccount"),
             copy: t("statusAccount"),
             summaryItems: [
-              { label: "rooms", value: String(account.roomCount || 0) },
-              { label: "active", value: String(account.activeRoomCount || 0) },
-              { label: "inboxes", value: String(account.inboxCount || 0) }
+              { label: t("rooms"), value: String(account.roomCount || 0) },
+              { label: t("activeLabel"), value: String(account.activeRoomCount || 0) },
+              { label: t("inboxesLabel"), value: String(account.inboxCount || 0) }
             ]
           }) +
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("mailboxAccount")) + '</h3><span class="muted code">' + escapeHtmlClient(account.accountId || state.route.accountId || "") + '</span></div><div class="panel-body">' +
@@ -5040,9 +5994,9 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             copy: t("inboxCopy"),
             summaryItems: [
               { label: t("rooms"), value: String(items.length) },
-              { label: "ack sla", value: String(inbox.ackSlaSeconds || 0) + "s" },
-              { label: "active limit", value: String(inbox.activeRoomLimit || 0) },
-              { label: "burst", value: String(inbox.burstCoalesceSeconds || 0) + "s" }
+              { label: t("ackSlaLabel"), value: String(inbox.ackSlaSeconds || 0) + "s" },
+              { label: t("activeLimitLabel"), value: String(inbox.activeRoomLimit || 0) },
+              { label: t("burstLabel"), value: String(inbox.burstCoalesceSeconds || 0) + "s" }
             ]
           }) +
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("inboxSummary")) + '</h3><span class="muted code">' + escapeHtmlClient(inbox.inboxId || state.route.inboxId) + '</span></div><div class="panel-body">' +
@@ -5090,8 +6044,8 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             copy: t("mailboxWorkspaceCopy"),
             summaryItems: [
               { label: t("mailboxCountLabel"), value: String(mailboxes.length) },
-              { label: "inboxes", value: String(inboxes.length) },
-              { label: "active", value: String(mailboxes.filter(function(entry) { return entry.active; }).length) },
+              { label: t("inboxesLabel"), value: String(inboxes.length) },
+              { label: t("activeLabel"), value: String(mailboxes.filter(function(entry) { return entry.active; }).length) },
               { label: t("rooms"), value: String((state.data && state.data.rooms ? state.data.rooms.length : 0)) }
             ]
           }) +
@@ -5125,13 +6079,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           '<div class="mail-workbench-main">' +
           renderWorkspaceHero({
             eyebrow: t("rooms"),
-            title: t("roomsTitle"),
-            copy: t("roomsCopy"),
+            title: t("roomsPanel"),
+            compact: true,
             summaryItems: [
               { label: t("rooms"), value: String(rooms.length) },
-              { label: "active", value: String(rooms.filter(function(room) { return !["done", "failed"].includes(room.state || ""); }).length) },
-              { label: "approvals", value: String(rooms.reduce(function(total, room) { return total + Number(room.pendingApprovalCount || 0); }, 0)) },
-              { label: "resources", value: String(rooms.reduce(function(total, room) { return total + Number(room.resourceCount || 0); }, 0)) }
+              { label: t("activeLabel"), value: String(rooms.filter(function(room) { return !["done", "failed"].includes(room.state || ""); }).length) },
+              { label: t("approvalsLabel"), value: String(rooms.reduce(function(total, room) { return total + Number(room.pendingApprovalCount || 0); }, 0)) },
+              { label: t("resourcesLabel"), value: String(rooms.reduce(function(total, room) { return total + Number(room.resourceCount || 0); }, 0)) }
             ]
           }) +
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("roomsPanel")) + '</h3><span class="muted">' + escapeHtmlClient(t("visibleCount", { count: rooms.length })) + '</span></div><div class="panel-body">' +
@@ -5188,9 +6142,9 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             title: mailbox.mailboxId,
             copy: t("virtualMailboxCopy"),
             summaryItems: [
-              { label: "messages", value: String(mailbox.messageCount || 0) },
-              { label: "rooms", value: String(mailbox.roomCount || 0) },
-              { label: "inboxes", value: String(linkedInboxes.length) },
+              { label: t("messagesLabel"), value: String(mailbox.messageCount || 0) },
+              { label: t("rooms"), value: String(mailbox.roomCount || 0) },
+              { label: t("inboxesLabel"), value: String(linkedInboxes.length) },
               { label: t("latestRoom"), value: String(mailbox.latestRoomKey || "n/a") }
             ]
           }) +
@@ -5240,9 +6194,9 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         const threadMails = (taskMail ? [taskMail] : []).concat(publicMails);
         const latestRun = roomDetail.latestRun || null;
         const statusLabel = getRuntimeStatusLabel(latestRun, room);
-        const visibleAgents = getRoomVisibleAgents(room);
         const roomAgentEntries = getRoomAgentMailboxEntries(roomDetail);
-        const currentAgentCount = roomAgentEntries.length > 0 ? roomAgentEntries.length : visibleAgents.length;
+        const currentAgentCount = roomAgentEntries.length;
+        const virtualMessages = Array.isArray(roomDetail.virtualMessages) ? roomDetail.virtualMessages : [];
         return (
           '<div class="mail-workbench-main">' +
           renderWorkspaceHero({
@@ -5260,32 +6214,13 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           }) +
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("threadMailPanel")) + '</h3><span class="muted">' + escapeHtmlClient(String(threadMails.length)) + '</span></div><div class="panel-body">' +
           (threadMails.length > 0
-            ? '<div class="source-mail-list">' + threadMails.map(function(mail, index) {
-                return renderSourceMailCard(mail, {
-                  expanded: index === 0,
-                  badge: index === 0 && taskMail ? t("taskMailBadge") : ""
-                });
-              }).join("") + '</div>'
+            ? renderThreadMailReader(room.roomKey, threadMails, taskMail)
             : '<div class="empty">' + escapeHtmlClient(t("noThreadMail")) + '</div>') +
           '</div></div>' +
           '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("currentAgentsPanel")) + '</h3></div><div class="panel-body">' +
           (roomAgentEntries.length > 0
-            ? '<div class="source-mail-list">' + roomAgentEntries.map(function(entry) {
-                return renderRoomAgentMailboxCard(entry, room);
-              }).join("") + '</div>'
-            : visibleAgents.length > 0
-              ? '<div class="chips">' + visibleAgents.map(function(agent) { return renderPill(agent, ""); }).join("") + '</div>'
+            ? renderRoomAgentMailboxReader(room, roomAgentEntries, virtualMessages)
             : '<div class="empty">' + escapeHtmlClient(t("noAgentsVisible")) + '</div>') +
-          '</div></div>' +
-          '<div class="panel"><div class="panel-header"><h3>' + escapeHtmlClient(t("latestRuntimePanel")) + '</h3></div><div class="panel-body">' +
-          (latestRun
-            ? '<div class="detail-grid">' +
-              renderMetric(t("runtimeStatusLabel"), t(latestRun.status === "running" ? "runtimeRunning" : latestRun.status === "failed" ? "runtimeFailed" : "runtimeCompleted")) +
-              renderMetric(t("runtimeDurationLabel"), formatDurationMs(latestRun.durationMs)) +
-              renderMetric(t("runtimeStartedAtLabel"), formatTime(latestRun.startedAt)) +
-              renderMetric(t("runtimeCompletedAtLabel"), latestRun.completedAt ? formatTime(latestRun.completedAt) : t("durationNotAvailable")) +
-              '</div>'
-            : '<div class="empty">' + escapeHtmlClient(t("noRuntimeYet")) + '</div>') +
           '</div></div>' +
           '</div>'
         );
@@ -5302,13 +6237,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           return '<div class="empty">' + escapeHtmlClient(t("noWorkbenchPayload")) + '</div>';
         }
         let primary = renderHomeOverview();
-        if (state.route.mailboxId) {
-          primary = renderMailboxDetail();
-        } else if (state.route.inboxId) {
-          primary = renderInboxDetail();
-        } else if (state.route.mode === "mailboxes") {
-          primary = renderMailboxWorkspaceHome();
-        } else if (state.route.mode === "accounts" && state.route.accountId && !state.route.roomKey) {
+        if (state.route.mode === "accounts" && state.route.accountId && !state.route.roomKey) {
           primary = renderAccountDetail();
         } else if (state.route.roomKey) {
           primary = renderRoomDetail();
@@ -5316,14 +6245,16 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           primary = renderAccountsHome();
         } else if (state.route.mode === "rooms") {
           primary = renderRoomsHome();
-        } else if (state.route.mode === "agents") {
-          primary = renderAgentsHome();
-        } else if (state.route.mode === "skills") {
-          primary = renderSkillsHome();
         } else if (state.route.accountId) {
           primary = renderAccountDetail();
+        } else {
+          primary = renderRoomsHome();
         }
         return '<div class="mail-workbench-grid">' + primary + '</div>';
+      }
+
+      function isUserVisibleWorkbenchTab(tabId) {
+        return tabId === "rooms" || tabId === "accounts";
       }
 
       function updateShellClasses() {
@@ -5339,7 +6270,9 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         const navRoot = document.getElementById("nav-items");
         if (!navRoot) return;
         const workspace = state.data && state.data.workspace ? state.data.workspace : null;
-        const tabs = workspace && Array.isArray(workspace.tabs) ? workspace.tabs : [];
+        const tabs = workspace && Array.isArray(workspace.tabs)
+          ? workspace.tabs.filter(function(tab) { return isUserVisibleWorkbenchTab(tab && tab.id); })
+          : [];
         navRoot.innerHTML = tabs.map(function(tab) {
           const icon = ICONS[tab.id] || ICONS.home;
           const label = tab.id === "home"
@@ -5364,7 +6297,9 @@ export function renderOpenClawWorkbenchShellHtml(input: {
 
       function renderHeader() {
         const workspace = state.data && state.data.workspace ? state.data.workspace : null;
-        const activeTab = workspace && workspace.activeTab ? workspace.activeTab : "home";
+        const activeTab = workspace && workspace.activeTab && isUserVisibleWorkbenchTab(workspace.activeTab)
+          ? workspace.activeTab
+          : "rooms";
         const pageTitle = document.getElementById("page-title");
         const pageSub = document.getElementById("page-sub");
         const breadcrumb = document.getElementById("breadcrumb-current");
@@ -5373,10 +6308,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           pageTitle.textContent =
             activeTab === "rooms" ? t("pageRooms") :
             activeTab === "accounts" ? t("pageAccounts") :
-            activeTab === "agents" ? t("pageAgents") :
-            activeTab === "skills" ? t("pageSkills") :
-            activeTab === "mailboxes" ? t("pageMailboxes") :
-            t("pageHome");
+            t("pageRooms");
         }
         if (pageSub) {
           pageSub.textContent = "";
@@ -5387,10 +6319,8 @@ export function renderOpenClawWorkbenchShellHtml(input: {
           breadcrumb.textContent =
             roomLabel ||
             state.route.roomKey ||
-            state.route.mailboxId ||
-            state.route.inboxId ||
             state.route.accountId ||
-            (activeTab === "agents" ? t("agents") : activeTab === "skills" ? t("skills") : activeTab === "accounts" ? t("accounts") : activeTab === "rooms" ? t("rooms") : t("home"));
+            (activeTab === "accounts" ? t("accounts") : t("rooms"));
         }
         if (pageMeta) {
           pageMeta.innerHTML = "";
@@ -5627,6 +6557,12 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         };
         state.loading = true;
         render();
+        window.setTimeout(function() {
+          const panel = document.getElementById("skill-editor-panel");
+          if (panel) {
+            panel.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }, 0);
         const path =
           kind === "shared"
             ? "/skills/library/" + encodeURIComponent(skillId)
@@ -5656,6 +6592,61 @@ export function renderOpenClawWorkbenchShellHtml(input: {
               skillEditorSkillId: skillId,
               skillEditorTitle: title,
               skillEditorStatus: {
+                tone: "danger",
+                message: error instanceof Error ? error.message : String(error)
+              }
+            };
+          })
+          .finally(function() {
+            state.loading = false;
+            render();
+          });
+      }
+
+      function loadReusableSkillPreview(input) {
+        const accountId = (state.data && state.data.selection && state.data.selection.accountId) || (state.route && state.route.accountId) || "";
+        const tenantId = (state.data && state.data.workspace && state.data.workspace.connect && state.data.workspace.connect.templateApplyTenantId) || accountId || "default";
+        const source = input && typeof input.source === "string" ? input.source : "";
+        const skillId = input && typeof input.skillId === "string" ? input.skillId : "";
+        const title = input && typeof input.title === "string" ? input.title : skillId;
+        const originLabel = input && typeof input.originLabel === "string" ? input.originLabel : "";
+        if (!source || !skillId) {
+          return;
+        }
+
+        state.connect = {
+          ...(state.connect || {}),
+          reusableSkillPreviewSource: source,
+          reusableSkillPreviewSkillId: skillId,
+          reusableSkillPreviewTitle: title,
+          reusableSkillPreviewOriginLabel: originLabel,
+          reusableSkillPreviewStatus: null
+        };
+        state.loading = true;
+        render();
+        void requestJson((config.apiBasePath || "/api") + "/skills/reusable?tenantId=" + encodeURIComponent(tenantId) + (accountId ? "&accountId=" + encodeURIComponent(accountId) : "") + "&source=" + encodeURIComponent(source))
+          .then(function(result) {
+            state.connect = {
+              ...(state.connect || {}),
+              reusableSkillPreviewSource: source,
+              reusableSkillPreviewSkillId: skillId,
+              reusableSkillPreviewTitle: result && result.skill && result.skill.title ? result.skill.title : title,
+              reusableSkillPreviewOriginLabel: originLabel,
+              reusableSkillPreviewContent: result && typeof result.content === "string" ? result.content : "",
+              reusableSkillPreviewStatus: {
+                tone: "ok",
+                message: t("skillLoadedMessage")
+              }
+            };
+          })
+          .catch(function(error) {
+            state.connect = {
+              ...(state.connect || {}),
+              reusableSkillPreviewSource: source,
+              reusableSkillPreviewSkillId: skillId,
+              reusableSkillPreviewTitle: title,
+              reusableSkillPreviewOriginLabel: originLabel,
+              reusableSkillPreviewStatus: {
                 tone: "danger",
                 message: error instanceof Error ? error.message : String(error)
               }
@@ -6276,7 +7267,7 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         if (action === "select-agent") {
           event.preventDefault();
           const currentSelectedAgentId =
-            state.connect && typeof state.connect.agentSoulAgentId === "string" ? state.connect.agentSoulAgentId : "";
+            state.connect && typeof state.connect.selectedAgentId === "string" ? state.connect.selectedAgentId : "";
           const agentId = target.getAttribute("data-agent-id") || "";
           state.connect = {
             ...(state.connect || {}),
@@ -6284,6 +7275,12 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             agentSoulStatus: null
           };
           render();
+          window.setTimeout(function() {
+            const panel = document.getElementById("agent-editor-panel");
+            if (panel) {
+              panel.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }, 0);
           if (currentSelectedAgentId === agentId) {
             return;
           }
@@ -6313,6 +7310,23 @@ export function renderOpenClawWorkbenchShellHtml(input: {
             kind: "shared",
             skillId: target.getAttribute("data-skill-id") || "",
             title: target.getAttribute("data-skill-title") || ""
+          });
+          return;
+        }
+        if (action === "select-reusable-skill") {
+          event.preventDefault();
+          const source = target.getAttribute("data-skill-source") || "";
+          const connect = getConnectWorkspace();
+          const reusableSkills = connect && Array.isArray(connect.reusableSkills) ? connect.reusableSkills : [];
+          const match = reusableSkills.find(function(skill) {
+            return skill.path === source;
+          });
+          const presentation = getReusableSkillPresentation(match || { path: source, origin: "openclaw" });
+          loadReusableSkillPreview({
+            source: source,
+            skillId: target.getAttribute("data-skill-id") || "",
+            title: target.getAttribute("data-skill-title") || "",
+            originLabel: presentation.originLabel
           });
           return;
         }
@@ -6379,6 +7393,24 @@ export function renderOpenClawWorkbenchShellHtml(input: {
               state.loading = false;
               render();
             });
+          return;
+        }
+        if (action === "import-reusable-skill-draft") {
+          event.preventDefault();
+          const payload = readReusablePreviewPayload(target);
+          const skillId = target.getAttribute("data-skill-id") || "";
+          const title = target.getAttribute("data-skill-title") || skillId;
+          state.connect = {
+            ...(state.connect || {}),
+            sharedSkillId: skillId,
+            sharedSkillTitle: title,
+            sharedSkillContent: payload.content,
+            sharedSkillStatus: {
+              tone: "ok",
+              message: t("reusableSkillImportedMessage")
+            }
+          };
+          render();
           return;
         }
         if (action === "save-agent-profile") {
@@ -6481,8 +7513,16 @@ export function renderOpenClawWorkbenchShellHtml(input: {
         if (action === "delete-agent") {
           event.preventDefault();
           const agentId = target.getAttribute("data-agent-id") || "";
-          const accountId = (state.data && state.data.selection && state.data.selection.accountId) || (state.route && state.route.accountId) || "";
-          const tenantId = (state.data && state.data.workspace && state.data.workspace.connect && state.data.workspace.connect.templateApplyTenantId) || accountId || "default";
+          const connect = getConnectWorkspace();
+          const accountId =
+            (connect && connect.templateApplyAccountId) ||
+            (state.data && state.data.selection && state.data.selection.accountId) ||
+            (state.route && state.route.accountId) ||
+            "";
+          const tenantId =
+            (connect && connect.templateApplyTenantId) ||
+            accountId ||
+            "default";
           if (!agentId || !accountId) {
             return;
           }
@@ -6854,6 +7894,44 @@ export function renderOpenClawWorkbenchShellHtml(input: {
               state.loading = false;
               render();
             });
+          return;
+        }
+        if (action === "select-room-thread-mail") {
+          event.preventDefault();
+          const roomKey = target.getAttribute("data-room-key") || "";
+          const readerState = getRoomReaderState(roomKey);
+          readerState.selectedThreadMailKey = target.getAttribute("data-mail-key") || "";
+          render();
+          return;
+        }
+        if (action === "select-room-agent") {
+          event.preventDefault();
+          const roomKey = target.getAttribute("data-room-key") || "";
+          const readerState = getRoomReaderState(roomKey);
+          readerState.selectedAgentId = target.getAttribute("data-agent-id") || "";
+          readerState.selectedAgentMailboxId = "";
+          readerState.selectedAgentMessageId = "";
+          render();
+          return;
+        }
+        if (action === "select-room-agent-mailbox") {
+          event.preventDefault();
+          const roomKey = target.getAttribute("data-room-key") || "";
+          const readerState = getRoomReaderState(roomKey);
+          readerState.selectedAgentId = target.getAttribute("data-agent-id") || "";
+          readerState.selectedAgentMailboxId = target.getAttribute("data-mailbox-id") || "";
+          readerState.selectedAgentMessageId = "";
+          render();
+          return;
+        }
+        if (action === "select-room-agent-message") {
+          event.preventDefault();
+          const roomKey = target.getAttribute("data-room-key") || "";
+          const readerState = getRoomReaderState(roomKey);
+          readerState.selectedAgentId = target.getAttribute("data-agent-id") || "";
+          readerState.selectedAgentMailboxId = target.getAttribute("data-mailbox-id") || "";
+          readerState.selectedAgentMessageId = target.getAttribute("data-message-id") || "";
+          render();
           return;
         }
         if (action === "select-account") {
