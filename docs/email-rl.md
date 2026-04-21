@@ -145,16 +145,73 @@ mailctl benchmark email-rl-sweep
 
 Artifacts are written to `output/benchmarks/email-rl-sweep/artifacts/`.
 
+The benchmark scripts now also accept imported trajectory files:
+
+```bash
+pnpm tsx scripts/benchmark-email-rl.mts --episodes output/email-trajectories/radar.jsonl --append-seeds --json
+pnpm tsx scripts/benchmark-email-rl-sweep.mts --episodes output/email-trajectories/radar.jsonl --append-seeds --output-dir output/benchmarks/email-rl-radar
+```
+
+## Trajectory import
+
+The repo now includes a corpus importer that turns external JSON or JSONL records into MailClaws trajectory episodes.
+
+Supported profiles:
+
+- `generic`
+- `emailsum`
+- `bc3`
+- `radar-action-items`
+- `mailex`
+- `enronsr-reply-alignment`
+
+Example generic record:
+
+```json
+{
+  "episodeId": "pricing-reply-001",
+  "mode": "write",
+  "from": "buyer@example.com",
+  "to": ["frontdesk@mailclaws.test"],
+  "subject": "Need pricing reply by Friday",
+  "body": "Please send the pricing reply by Friday and use the attached quote.",
+  "attachments": [
+    {
+      "filename": "quote.pdf",
+      "summaryText": "Draft quote for the pilot package."
+    }
+  ],
+  "annotations": {
+    "actions": {
+      "ask": ["Send the pricing reply"],
+      "deadline": ["Friday"],
+      "artifact": ["quote.pdf"]
+    }
+  }
+}
+```
+
+Import it:
+
+```bash
+pnpm tsx scripts/import-email-trajectories.mts \
+  --input data/email-records.jsonl \
+  --output output/email-trajectories/imported.jsonl \
+  --profile generic
+```
+
+The importer writes `EmailTrajectoryEpisode` JSONL that can be fed back into the benchmark and sweep scripts.
+
 ## Current limits
 
-- The built-in policy still trains on seed trajectories, not imported Enron/Avocado traces yet.
+- The built-in policy still defaults to seed trajectories unless you pass imported episodes explicitly.
 - Event-extraction style cases are now stable, but not yet clearly above baseline.
-- We still need a JSONL importer that converts external corpora into MailClaws trajectory format.
+- The importer is profile-based and heuristic. Full Enron or Avocado normalization still needs dataset-specific adapters.
 
 ## Next step
 
-The next practical step is to add a corpus importer:
+The next practical step is to replace the profile heuristics with dataset-native adapters:
 
-- normalize external threads into MailClaws state/action/reward trajectories
-- train the same offline policy on real work-email traces
-- re-run the benchmark and replace the seed policy
+- normalize full Enron or Avocado thread exports into the importer schema
+- add richer reward shaping from summary, action-item, and reply-quality labels
+- compare imported-only training against `seed + imported` training before changing runtime defaults

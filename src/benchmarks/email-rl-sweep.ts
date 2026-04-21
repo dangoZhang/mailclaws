@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { runEmailRlBenchmark, type EmailRlBenchmarkResult, renderEmailRlBenchmarkMarkdown } from "./email-rl.js";
+import type { EmailTrajectoryEpisode } from "../email/offline-rl.js";
 
 export interface EmailRlSweepCandidateConfig {
   gamma: number;
@@ -29,6 +30,8 @@ export interface EmailRlSweepCandidateResult {
 export interface RunEmailRlSweepInput {
   generatedAt?: string;
   benchmarkIds?: string[];
+  trainingEpisodes?: EmailTrajectoryEpisode[];
+  appendSeedEpisodes?: boolean;
   maxCandidates?: number;
   gammaValues?: number[];
   supportPenaltyValues?: number[];
@@ -77,7 +80,9 @@ export async function runEmailRlSweep(input: RunEmailRlSweepInput = {}): Promise
       },
       maxWriteFields: config.maxWriteFields,
       maxReadFields: config.maxReadFields,
-      maxExplainFields: config.maxExplainFields
+      maxExplainFields: config.maxExplainFields,
+      trainingEpisodes: input.trainingEpisodes,
+      appendSeedEpisodes: input.appendSeedEpisodes
     });
 
     results.push({
@@ -128,6 +133,8 @@ export async function buildEmailRlSweepArtifacts(
   const bestBenchmark = await runEmailRlBenchmark({
     generatedAt,
     benchmarkIds: input.benchmarkIds,
+    trainingEpisodes: input.trainingEpisodes,
+    appendSeedEpisodes: input.appendSeedEpisodes,
     policyConfig: {
       gamma: result.bestCandidate.config.gamma,
       supportPenalty: result.bestCandidate.config.supportPenalty,

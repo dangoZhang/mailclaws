@@ -146,16 +146,73 @@ mailctl benchmark email-rl-sweep
 
 artifact 会写到 `output/benchmarks/email-rl-sweep/artifacts/`。
 
+benchmark 脚本现在也可以直接吃导入后的 trajectory 文件：
+
+```bash
+pnpm tsx scripts/benchmark-email-rl.mts --episodes output/email-trajectories/radar.jsonl --append-seeds --json
+pnpm tsx scripts/benchmark-email-rl-sweep.mts --episodes output/email-trajectories/radar.jsonl --append-seeds --output-dir output/benchmarks/email-rl-radar
+```
+
+## Trajectory 导入
+
+仓库现在带了一个 corpus importer，可以把外部 JSON 或 JSONL 记录转成 MailClaws 的 trajectory episode。
+
+支持的 profile：
+
+- `generic`
+- `emailsum`
+- `bc3`
+- `radar-action-items`
+- `mailex`
+- `enronsr-reply-alignment`
+
+一个 `generic` 记录示例：
+
+```json
+{
+  "episodeId": "pricing-reply-001",
+  "mode": "write",
+  "from": "buyer@example.com",
+  "to": ["frontdesk@mailclaws.test"],
+  "subject": "Need pricing reply by Friday",
+  "body": "Please send the pricing reply by Friday and use the attached quote.",
+  "attachments": [
+    {
+      "filename": "quote.pdf",
+      "summaryText": "Draft quote for the pilot package."
+    }
+  ],
+  "annotations": {
+    "actions": {
+      "ask": ["Send the pricing reply"],
+      "deadline": ["Friday"],
+      "artifact": ["quote.pdf"]
+    }
+  }
+}
+```
+
+导入命令：
+
+```bash
+pnpm tsx scripts/import-email-trajectories.mts \
+  --input data/email-records.jsonl \
+  --output output/email-trajectories/imported.jsonl \
+  --profile generic
+```
+
+导入器会输出 `EmailTrajectoryEpisode` JSONL，后续可以直接喂给 benchmark 和 sweep 脚本。
+
 ## 当前边界
 
-- 现在内置策略还是 seed trajectories，不是从 Enron / Avocado 真实轨迹直接训练出来的。
+- 内置策略默认还是 seed trajectories，除非你显式传入导入后的 episodes。
 - event extraction 这类场景已经稳定，但还没有显著超过基线。
-- 下一步最缺的是 importer，把外部 email corpus 转成 MailClaws 的 state/action/reward JSONL。
+- 现在的 importer 还是 profile + heuristic 方案，完整的 Enron / Avocado 适配器还没做完。
 
 ## 下一步
 
 下一步最实用的方向是：
 
-- 加一个 corpus importer，把 Enron / Avocado / BC3 / EmailSum 统一转成离线轨迹
-- 复用现有 trainer，换成真实 work-email 轨迹训练
-- 重新跑 benchmark，把 seed policy 替换掉
+- 把完整的 Enron / Avocado thread export 归一化成 importer schema
+- 补更强的 summary、action-item、reply-quality reward shaping
+- 对比 `仅导入轨迹` 和 `seed + 导入轨迹` 两种训练方式，再决定是否改 runtime 默认值

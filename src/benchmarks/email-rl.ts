@@ -9,6 +9,7 @@ import {
   trainOfflineEmailPolicy,
   emailActionKeys,
   type EmailActionKey,
+  type EmailTrajectoryEpisode,
   type OfflineEmailPolicyConfig
 } from "../email/offline-rl.js";
 import {
@@ -20,6 +21,8 @@ export interface RunEmailRlBenchmarkInput {
   generatedAt?: string;
   benchmarkIds?: string[];
   policyConfig?: OfflineEmailPolicyConfig;
+  trainingEpisodes?: EmailTrajectoryEpisode[];
+  appendSeedEpisodes?: boolean;
   maxWriteFields?: number;
   maxReadFields?: number;
   maxExplainFields?: number;
@@ -56,6 +59,8 @@ export interface EmailRlBenchmarkSummary {
 export interface EmailRlBenchmarkResult {
   generatedAt: string;
   benchmarkIds: string[];
+  trainingEpisodeCount: number;
+  trainingDatasetIds: string[];
   selectedConfig: {
     gamma?: number;
     supportPenalty?: number;
@@ -112,13 +117,14 @@ const baselinePriority: EmailActionKey[] = [
 
 export async function runEmailRlBenchmark(input: RunEmailRlBenchmarkInput = {}): Promise<EmailRlBenchmarkResult> {
   const scenarios = filterScenarios(buildScenarios(), input.benchmarkIds);
+  const trainingEpisodes = resolveTrainingEpisodes(input);
   const selectedConfig = {
     ...input.policyConfig,
     maxWriteFields: input.maxWriteFields ?? defaultFieldBudgets.maxWriteFields,
     maxReadFields: input.maxReadFields ?? defaultFieldBudgets.maxReadFields,
     maxExplainFields: input.maxExplainFields ?? defaultFieldBudgets.maxExplainFields
   };
-  const policy = trainOfflineEmailPolicy(seedEmailTrajectoryEpisodes, input.policyConfig);
+  const policy = trainOfflineEmailPolicy(trainingEpisodes, input.policyConfig);
   const results = scenarios.map((scenario) =>
     runScenario(scenario, {
       policy,
@@ -138,6 +144,8 @@ export async function runEmailRlBenchmark(input: RunEmailRlBenchmarkInput = {}):
   return {
     generatedAt: input.generatedAt ?? generatedAt,
     benchmarkIds: uniqueBenchmarkIds(scenarios),
+    trainingEpisodeCount: trainingEpisodes.length,
+    trainingDatasetIds: uniqueStrings(trainingEpisodes.map((episode) => episode.datasetId ?? "unknown")),
     selectedConfig,
     baseline: {
       averageReward: roundTo(baselineAverageReward),
@@ -539,12 +547,25 @@ function percentageLift(baseline: number, improved: number) {
   return roundTo(((improved - baseline) / baseline) * 100);
 }
 
+function resolveTrainingEpisodes(input: RunEmailRlBenchmarkInput) {
+  if (!input.trainingEpisodes || input.trainingEpisodes.length === 0) {
+    return seedEmailTrajectoryEpisodes;
+  }
+
+  return input.appendSeedEpisodes ? [...seedEmailTrajectoryEpisodes, ...input.trainingEpisodes] : input.trainingEpisodes;
+}
+
+function uniqueStrings(values: string[]) {
+  return [...new Set(values)].sort((left, right) => left.localeCompare(right));
+}
+
 export function renderEmailRlBenchmarkMarkdown(result: EmailRlBenchmarkResult) {
   const lines = [
     "# Email Offline RL Benchmark",
     "",
     `Generated at: ${result.generatedAt}`,
     `Benchmarks: ${result.benchmarkIds.join(", ")}`,
+    `Training episodes: ${result.trainingEpisodeCount} (${result.trainingDatasetIds.join(", ")})`,
     `Config: gamma ${result.selectedConfig.gamma ?? "default"} | supportPenalty ${result.selectedConfig.supportPenalty ?? "default"} | behaviorPenalty ${result.selectedConfig.behaviorPenalty ?? "default"} | similarityFloor ${result.selectedConfig.similarityFloor ?? "default"} | fields write/read/explain ${result.selectedConfig.maxWriteFields}/${result.selectedConfig.maxReadFields}/${result.selectedConfig.maxExplainFields}`,
     "",
     `- Baseline reward: ${result.baseline.averageReward}`,

@@ -345,7 +345,7 @@ const nextActionPattern =
 
 export function buildEmailSemanticPacket(input: EmailSemanticPacketInput): EmailSemanticPacket {
   const candidates = extractEmailSchemaCandidates(input);
-  const state = buildEmailPolicyState(input, candidates);
+  const state = deriveEmailPolicyState(input, candidates);
   const availableActions = emailActionKeys.filter((action) => candidates[action].length > 0);
   const ranked = rankEmailActions(input.policy ?? builtInOfflineEmailPolicy, state, availableActions);
   const maxFields = input.maxFields ?? (input.mode === "write" ? 5 : 4);
@@ -515,7 +515,7 @@ function normalizeWhitespace(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
-function buildEmailPolicyState(
+export function deriveEmailPolicyState(
   input: EmailSemanticPacketInput,
   candidates: EmailSchemaCandidateMap
 ): EmailPolicyState {
