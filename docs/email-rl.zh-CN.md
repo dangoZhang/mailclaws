@@ -153,6 +153,23 @@ pnpm tsx scripts/benchmark-email-rl.mts --episodes output/email-trajectories/rad
 pnpm tsx scripts/benchmark-email-rl-sweep.mts --episodes output/email-trajectories/radar.jsonl --append-seeds --output-dir output/benchmarks/email-rl-radar
 ```
 
+如果要横向比较不同训练集 / 参数组合，可以直接跑：
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --episodes output/email-trajectories/radar.jsonl --benchmark-ids radar-action-items,enronsr-reply-alignment --json
+```
+
+这个 comparison report 会自动比较：
+
+- `seed-default`
+- `seed-tuned`
+- `imported-default`
+- `seed-plus-imported-default`
+- `imported-tuned`
+- `seed-plus-imported-tuned`
+
+并把横向对比 artifact 写到 `output/benchmarks/email-rl-compare/artifacts/`。
+
 ## Trajectory 导入
 
 仓库现在带了一个 corpus importer，可以把外部 JSON 或 JSONL 记录转成 MailClaws 的 trajectory episode。

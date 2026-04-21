@@ -152,6 +152,23 @@ pnpm tsx scripts/benchmark-email-rl.mts --episodes output/email-trajectories/rad
 pnpm tsx scripts/benchmark-email-rl-sweep.mts --episodes output/email-trajectories/radar.jsonl --append-seeds --output-dir output/benchmarks/email-rl-radar
 ```
 
+For repeated experiment comparison across training variants:
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --episodes output/email-trajectories/radar.jsonl --benchmark-ids radar-action-items,enronsr-reply-alignment --json
+```
+
+That comparison report ranks:
+
+- `seed-default`
+- `seed-tuned`
+- `imported-default`
+- `seed-plus-imported-default`
+- `imported-tuned`
+- `seed-plus-imported-tuned`
+
+and writes side-by-side artifacts under `output/benchmarks/email-rl-compare/artifacts/`.
+
 ## Trajectory import
 
 The repo now includes a corpus importer that turns external JSON or JSONL records into MailClaws trajectory episodes.
