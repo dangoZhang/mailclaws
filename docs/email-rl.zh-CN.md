@@ -251,6 +251,97 @@ pnpm tsx scripts/import-email-trajectories.mts \
 
 导入器会输出 `EmailTrajectoryEpisode` JSONL，后续可以直接喂给 benchmark 和 sweep 脚本。
 
+## 现成 experiment manifest
+
+仓库现在已经带了几份可复用的 comparison manifest，放在 `experiments/email-rl/`：
+
+- `full-suite-default-vs-tuned.json`
+- `reply-and-summary.json`
+- `actionability-and-events.json`
+- `full-suite-presets.json`
+- `reply-and-summary-presets.json`
+- `actionability-and-events-presets.json`
+
+示例：
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --config experiments/email-rl/full-suite-default-vs-tuned.json
+pnpm tsx scripts/benchmark-email-rl-compare.mts --config experiments/email-rl/reply-and-summary.json --json
+pnpm tsx scripts/benchmark-email-rl-compare.mts --config experiments/email-rl/full-suite-presets.json --json
+```
+
+这几份 manifest 适合做固定 benchmark slice 上的重复优化，不需要每次手工重写参数。
+
+## 基于 preset 的重复实验
+
+compare 脚本现在支持可复用的 policy preset 和 preset pack：
+
+- `conservative`
+- `tuned`
+- `coverage-heavy`
+- `reply-heavy`
+- `summary-heavy`
+
+本地可直接列出来：
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --list-presets
+pnpm tsx scripts/benchmark-email-rl-compare.mts --list-preset-packs
+```
+
+不写 manifest 也能直接跑一组 preset 对比：
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --benchmark-ids radar-action-items,mailex-event-extraction,enronsr-reply-alignment --preset-pack read-write --json
+pnpm tsx scripts/benchmark-email-rl-compare.mts --benchmark-ids emailsum-thread-summarization,bc3-thread-summary --presets tuned,coverage-heavy,summary-heavy --json
+```
+
+comparison report 现在会同时给两种视角：
+
+- lift-aware 的 `objective`
+- 绝对策略分数 `rlReward + rlCoverage`
+
+这点很重要，因为 field budget 变大以后，绝对保留能力可能更强，但相对各自 baseline 的 lift 会变小。
+
+## 当前 preset 结论
+
+基于内置 seed trajectories 的最新对比：
+
+- full suite：`reply-heavy` 和 `tuned` 的 lift-aware objective 并列最高，都是 `8.628`；`coverage-heavy` 的绝对 reward / coverage 最高，是 `3.825 / 0.825`
+- reply + summary：`default`、`tuned`、`reply-heavy` 的 objective 并列 `9.467`；`coverage-heavy` 的绝对 reward / coverage 最高，是 `3.655 / 0.75`
+- actionability + events：`reply-heavy` 和 `tuned` 的 objective 并列 `7.805`；`coverage-heavy` 的绝对 reward / coverage 最高，是 `4.015 / 0.867`
+
+实际用法建议：
+
+- 要找一组稳的默认 preset 做重复优化，优先看 `tuned` 或 `reply-heavy`
+- 如果问题是 `read` / `explain` 丢字段，尤其是 action-item handoff，重点看 `coverage-heavy`
+- 如果导入数据很稀疏，或者语料噪声更大，保守一些时再用 `conservative`
+
+## Benchmark 目录
+
+仓库里现在有两份代码目录：
+
+- dataset 目录：`src/email/datasets.ts`
+- benchmark 候选和操作映射目录：`src/email/benchmark-candidates.ts`
+
+## 下一批 benchmark 候选
+
+从官方论文 / 数据源看，下一批最值得补的 benchmark：
+
+- [AESLC](https://aclanthology.org/P19-1043.pdf)：email subject line generation，适合测 `write` 侧的压缩上下文有没有保住真正的回复意图。
+- [CEREC](https://aclanthology.org/2020.coling-main.30/)：email conversation 里的实体消解，适合测 stakeholder disambiguation、代词回指、长线程引用承接。
+- [W3C / TREC Enterprise](https://trec.nist.gov/pubs/trec14/papers/ENTERPRISE.OVERVIEW.pdf)：公开 W3C 邮件列表上的 known-item search / email retrieval，适合测长线程检索、记忆查找、定位关键邮件。
+- [Avocado Research Email Collection](https://catalog.ldc.upenn.edu/docs/LDC2015T03/README.txt)：279 个处理后的企业邮箱账户，更适合后续导入成 behavior trajectory。
+
+建议映射：
+
+- `write`：EnronSR + AESLC
+- `read`：RADAR + MailEx + CEREC
+- `explain`：EmailSum + BC3 + W3C
+- imported behavior policy data：Avocado
+
+同一份映射也已经进代码了，可以直接用 `recommendEmailBenchmarkPlan()`。
+
 ## 当前边界
 
 - 内置策略默认还是 seed trajectories，除非你显式传入导入后的 episodes。

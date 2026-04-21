@@ -250,6 +250,97 @@ pnpm tsx scripts/import-email-trajectories.mts \
 
 The importer writes `EmailTrajectoryEpisode` JSONL that can be fed back into the benchmark and sweep scripts.
 
+## Ready-made experiment manifests
+
+The repo now includes reusable comparison manifests under `experiments/email-rl/`:
+
+- `full-suite-default-vs-tuned.json`
+- `reply-and-summary.json`
+- `actionability-and-events.json`
+- `full-suite-presets.json`
+- `reply-and-summary-presets.json`
+- `actionability-and-events-presets.json`
+
+Examples:
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --config experiments/email-rl/full-suite-default-vs-tuned.json
+pnpm tsx scripts/benchmark-email-rl-compare.mts --config experiments/email-rl/reply-and-summary.json --json
+pnpm tsx scripts/benchmark-email-rl-compare.mts --config experiments/email-rl/full-suite-presets.json --json
+```
+
+These are useful when you want a stable benchmark slice for repeated optimization without rewriting CLI flags.
+
+## Preset-driven repeated experiments
+
+The compare script now supports reusable policy presets and preset packs:
+
+- `conservative`
+- `tuned`
+- `coverage-heavy`
+- `reply-heavy`
+- `summary-heavy`
+
+List them locally:
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --list-presets
+pnpm tsx scripts/benchmark-email-rl-compare.mts --list-preset-packs
+```
+
+Run a preset comparison directly without writing a manifest:
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --benchmark-ids radar-action-items,mailex-event-extraction,enronsr-reply-alignment --preset-pack read-write --json
+pnpm tsx scripts/benchmark-email-rl-compare.mts --benchmark-ids emailsum-thread-summarization,bc3-thread-summary --presets tuned,coverage-heavy,summary-heavy --json
+```
+
+The comparison report now exposes two views:
+
+- lift-aware `objective`
+- absolute policy score `rlReward + rlCoverage`
+
+That matters because larger field budgets can improve absolute retention while reducing lift against their own baseline.
+
+## Current preset findings
+
+Latest preset comparisons on the built-in seed trajectories:
+
+- full suite: `reply-heavy` and `tuned` tie for best lift-aware objective at `8.628`; `coverage-heavy` has the best absolute reward / coverage at `3.825 / 0.825`
+- reply + summary slice: `default`, `tuned`, and `reply-heavy` tie on objective at `9.467`; `coverage-heavy` has the best absolute reward / coverage at `3.655 / 0.75`
+- actionability + events slice: `reply-heavy` and `tuned` tie on objective at `7.805`; `coverage-heavy` has the best absolute reward / coverage at `4.015 / 0.867`
+
+Practical readout:
+
+- use `tuned` or `reply-heavy` when you want the safest default preset for repeated optimization loops
+- inspect `coverage-heavy` when the bottleneck is missed fields in `read` / `explain`, especially action-item handoff
+- keep `conservative` for sparse imported data or noisier corpora where unsupported fields are risky
+
+## Benchmark catalogs
+
+The repo now keeps two code catalogs:
+
+- dataset catalog: `src/email/datasets.ts`
+- benchmark candidate catalog and operation mapping: `src/email/benchmark-candidates.ts`
+
+## Candidate benchmark additions
+
+Useful next benchmarks from primary sources:
+
+- [AESLC](https://aclanthology.org/P19-1043.pdf): write-side benchmark for email subject line generation. Good for testing whether compressed context preserves the intent needed to produce a precise subject line.
+- [CEREC](https://aclanthology.org/2020.coling-main.30/): entity resolution in email conversations. Good for testing stakeholder disambiguation, pronoun resolution, and reference carryover in long threads.
+- [W3C / TREC Enterprise](https://trec.nist.gov/pubs/trec14/papers/ENTERPRISE.OVERVIEW.pdf): known-item search and email retrieval over public W3C lists. Good for testing long-thread retrieval, memory lookup, and “find the message that matters” behavior.
+- [Avocado Research Email Collection](https://catalog.ldc.upenn.edu/docs/LDC2015T03/README.txt): modern enterprise email corpus with 279 processed accounts. Best next source for imported behavior trajectories once a licensed adapter is added.
+
+Recommended mapping:
+
+- `write`: EnronSR + AESLC
+- `read`: RADAR + MailEx + CEREC
+- `explain`: EmailSum + BC3 + W3C
+- imported behavior policy data: Avocado
+
+That same mapping is now available in code through `recommendEmailBenchmarkPlan()`.
+
 ## Current limits
 
 - The built-in policy still defaults to seed trajectories unless you pass imported episodes explicitly.

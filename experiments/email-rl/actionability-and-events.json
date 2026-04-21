@@ -1,0 +1,20 @@
+{
+  "benchmarkIds": [
+    "radar-action-items",
+    "mailex-event-extraction",
+    "enronsr-reply-alignment"
+  ],
+  "anchorVariantId": "seed-default",
+  "outputDir": "../../output/benchmarks/email-rl-actionability-and-events",
+  "variants": [
+    {
+      "variantId": "seed-default",
+      "title": "Seed default"
+    },
+    {
+      "variantId": "seed-tuned",
+      "title": "Seed tuned",
+      "preset": "tuned"
+    }
+  ]
+}

@@ -28,6 +28,7 @@ export interface EmailRlComparisonVariantResult {
   title: string;
   description?: string;
   objectiveScore: number;
+  absolutePolicyScore: number;
   rewardDeltaVsAnchor: number;
   coverageDeltaVsAnchor: number;
   rewardLiftDeltaVsAnchorPct: number;
@@ -41,6 +42,7 @@ export interface EmailRlComparisonResult {
   benchmarkIds: string[];
   anchorVariantId: string;
   objectiveFormula: string;
+  absolutePolicyFormula: string;
   variants: EmailRlComparisonVariantResult[];
   ranking: string[];
 }
@@ -92,6 +94,7 @@ export async function runEmailRlComparison(input: {
     benchmarkIds: variants[0]?.benchmark.benchmarkIds ?? [],
     anchorVariantId,
     objectiveFormula: "objective = rlReward + rlCoverage + rewardLiftPct/10 + coverageLiftPct/20",
+    absolutePolicyFormula: "absolute = rlReward + rlCoverage",
     variants: comparisonVariants,
     ranking: ranked.map((variant) => variant.variantId)
   };
@@ -140,13 +143,14 @@ export function renderEmailRlComparisonMarkdown(result: EmailRlComparisonResult)
     `Benchmarks: ${result.benchmarkIds.join(", ")}`,
     `Anchor variant: ${result.anchorVariantId}`,
     `Objective: ${result.objectiveFormula}`,
+    `Absolute policy score: ${result.absolutePolicyFormula}`,
     ""
   ];
 
   if (anchor) {
     lines.push(
       "## Anchor snapshot",
-      `- ${anchor.title}: reward ${anchor.benchmark.rlPolicy.averageReward} | coverage ${anchor.benchmark.rlPolicy.coverage} | training episodes ${anchor.benchmark.trainingEpisodeCount}`,
+      `- ${anchor.title}: reward ${anchor.benchmark.rlPolicy.averageReward} | coverage ${anchor.benchmark.rlPolicy.coverage} | objective ${anchor.objectiveScore} | absolute ${anchor.absolutePolicyScore} | training episodes ${anchor.benchmark.trainingEpisodeCount}`,
       ""
     );
   }
@@ -155,7 +159,7 @@ export function renderEmailRlComparisonMarkdown(result: EmailRlComparisonResult)
 
   for (const variant of rankedVariants) {
     lines.push(
-      `- ${variant.variantId}: objective ${variant.objectiveScore} | reward ${variant.benchmark.rlPolicy.averageReward} | coverage ${variant.benchmark.rlPolicy.coverage} | delta vs anchor reward ${variant.rewardDeltaVsAnchor} | coverage ${variant.coverageDeltaVsAnchor}`
+      `- ${variant.variantId}: objective ${variant.objectiveScore} | absolute ${variant.absolutePolicyScore} | reward ${variant.benchmark.rlPolicy.averageReward} | coverage ${variant.benchmark.rlPolicy.coverage} | delta vs anchor reward ${variant.rewardDeltaVsAnchor} | coverage ${variant.coverageDeltaVsAnchor}`
     );
   }
 
@@ -167,6 +171,7 @@ export function renderEmailRlComparisonMarkdown(result: EmailRlComparisonResult)
     lines.push(
       `- Training episodes: ${variant.benchmark.trainingEpisodeCount} (${variant.benchmark.trainingDatasetIds.join(", ")})`,
       `- RL reward / coverage: ${variant.benchmark.rlPolicy.averageReward} / ${variant.benchmark.rlPolicy.coverage}`,
+      `- Objective / absolute: ${variant.objectiveScore} / ${variant.absolutePolicyScore}`,
       `- Delta vs anchor reward / coverage: ${variant.rewardDeltaVsAnchor} / ${variant.coverageDeltaVsAnchor}`
     );
 
@@ -202,6 +207,7 @@ function toComparisonVariantResult(input: {
     title: input.variant.title,
     description: input.variant.description,
     objectiveScore: computeObjectiveScore(input.variant.benchmark),
+    absolutePolicyScore: computeAbsolutePolicyScore(input.variant.benchmark),
     rewardDeltaVsAnchor: roundTo(
       input.variant.benchmark.rlPolicy.averageReward - input.anchor.benchmark.rlPolicy.averageReward
     ),
@@ -250,9 +256,14 @@ function computeObjectiveScore(result: EmailRlBenchmarkResult) {
   );
 }
 
+function computeAbsolutePolicyScore(result: EmailRlBenchmarkResult) {
+  return roundTo(result.rlPolicy.averageReward + result.rlPolicy.coverage);
+}
+
 function compareVariants(left: EmailRlComparisonVariantResult, right: EmailRlComparisonVariantResult) {
   return (
     right.objectiveScore - left.objectiveScore ||
+    right.absolutePolicyScore - left.absolutePolicyScore ||
     right.benchmark.rlPolicy.averageReward - left.benchmark.rlPolicy.averageReward ||
     right.benchmark.rlPolicy.coverage - left.benchmark.rlPolicy.coverage ||
     left.variantId.localeCompare(right.variantId)

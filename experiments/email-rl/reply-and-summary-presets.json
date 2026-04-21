@@ -1,0 +1,10 @@
+{
+  "benchmarkIds": [
+    "enronsr-reply-alignment",
+    "emailsum-thread-summarization",
+    "bc3-thread-summary"
+  ],
+  "anchorVariantId": "seed-default",
+  "outputDir": "../../output/benchmarks/email-rl-reply-and-summary-presets",
+  "presetPack": "read-write"
+}

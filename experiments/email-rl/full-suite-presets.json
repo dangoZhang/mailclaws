@@ -1,0 +1,12 @@
+{
+  "benchmarkIds": [
+    "emailsum-thread-summarization",
+    "bc3-thread-summary",
+    "radar-action-items",
+    "mailex-event-extraction",
+    "enronsr-reply-alignment"
+  ],
+  "anchorVariantId": "seed-default",
+  "outputDir": "../../output/benchmarks/email-rl-full-suite-presets",
+  "presetPack": "all"
+}

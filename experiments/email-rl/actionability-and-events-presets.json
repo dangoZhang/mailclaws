@@ -1,0 +1,10 @@
+{
+  "benchmarkIds": [
+    "radar-action-items",
+    "mailex-event-extraction",
+    "enronsr-reply-alignment"
+  ],
+  "anchorVariantId": "seed-default",
+  "outputDir": "../../output/benchmarks/email-rl-actionability-and-events-presets",
+  "presetPack": "read-write"
+}

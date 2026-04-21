@@ -1,0 +1,20 @@
+{
+  "benchmarkIds": [
+    "enronsr-reply-alignment",
+    "emailsum-thread-summarization",
+    "bc3-thread-summary"
+  ],
+  "anchorVariantId": "seed-default",
+  "outputDir": "../../output/benchmarks/email-rl-reply-and-summary",
+  "variants": [
+    {
+      "variantId": "seed-default",
+      "title": "Seed default"
+    },
+    {
+      "variantId": "seed-tuned",
+      "title": "Seed tuned",
+      "preset": "tuned"
+    }
+  ]
+}
