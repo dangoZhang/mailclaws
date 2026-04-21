@@ -170,6 +170,37 @@ pnpm tsx scripts/benchmark-email-rl-compare.mts --episodes output/email-trajecto
 
 并把横向对比 artifact 写到 `output/benchmarks/email-rl-compare/artifacts/`。
 
+如果要把实验方案固化成可复用清单，compare 脚本现在也支持 manifest：
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --config experiments/email-rl-compare.json --json
+```
+
+manifest 示例：
+
+```json
+{
+  "benchmarkIds": ["radar-action-items", "enronsr-reply-alignment"],
+  "anchorVariantId": "seed-default",
+  "outputDir": "output/benchmarks/email-rl-compare-manifest",
+  "variants": [
+    {
+      "variantId": "seed-default",
+      "title": "Seed default"
+    },
+    {
+      "variantId": "imported-tuned",
+      "title": "Imported tuned",
+      "episodes": "../data/radar.jsonl",
+      "preset": "tuned",
+      "appendSeedEpisodes": true
+    }
+  ]
+}
+```
+
+manifest 里的相对路径会按 manifest 文件所在目录解析。
+
 ## Trajectory 导入
 
 仓库现在带了一个 corpus importer，可以把外部 JSON 或 JSONL 记录转成 MailClaws 的 trajectory episode。

@@ -1,83 +1,22 @@
 import { buildEmailRlComparisonArtifacts, renderEmailRlComparisonMarkdown } from "../src/benchmarks/email-rl-compare.js";
-import { loadEmailTrajectoryEpisodes } from "../src/email/trajectory-import.js";
-
-const tunedPreset = {
-  gamma: 0.6,
-  supportPenalty: 0.1,
-  behaviorPenalty: 0.04,
-  similarityFloor: 0.45,
-  maxWriteFields: 4,
-  maxReadFields: 3,
-  maxExplainFields: 4
-};
+import {
+  buildDefaultEmailRlComparisonVariants,
+  loadEmailRlComparisonManifest
+} from "../src/benchmarks/email-rl-experiment-config.js";
 
 const args = process.argv.slice(2);
 const wantsJson = takeBooleanFlag(args, "--json");
 const outputDir = takeFlagValue(args, "--output-dir");
 const benchmarkIds = parseCsv(takeFlagValue(args, "--benchmark-ids"));
 const episodesPath = takeFlagValue(args, "--episodes");
-const trainingEpisodes = episodesPath ? loadEmailTrajectoryEpisodes(episodesPath) : undefined;
-
-const variants = [
-  {
-    variantId: "seed-default",
-    title: "Seed trajectories + default policy",
-    benchmarkIds
-  },
-  {
-    variantId: "seed-tuned",
-    title: "Seed trajectories + tuned policy",
-    benchmarkIds,
-    policyConfig: tunedPreset,
-    maxWriteFields: tunedPreset.maxWriteFields,
-    maxReadFields: tunedPreset.maxReadFields,
-    maxExplainFields: tunedPreset.maxExplainFields
-  }
-];
-
-if (trainingEpisodes) {
-  variants.push(
-    {
-      variantId: "imported-default",
-      title: "Imported trajectories + default policy",
-      benchmarkIds,
-      trainingEpisodes
-    },
-    {
-      variantId: "seed-plus-imported-default",
-      title: "Seed + imported trajectories + default policy",
-      benchmarkIds,
-      trainingEpisodes,
-      appendSeedEpisodes: true
-    },
-    {
-      variantId: "imported-tuned",
-      title: "Imported trajectories + tuned policy",
-      benchmarkIds,
-      trainingEpisodes,
-      policyConfig: tunedPreset,
-      maxWriteFields: tunedPreset.maxWriteFields,
-      maxReadFields: tunedPreset.maxReadFields,
-      maxExplainFields: tunedPreset.maxExplainFields
-    },
-    {
-      variantId: "seed-plus-imported-tuned",
-      title: "Seed + imported trajectories + tuned policy",
-      benchmarkIds,
-      trainingEpisodes,
-      appendSeedEpisodes: true,
-      policyConfig: tunedPreset,
-      maxWriteFields: tunedPreset.maxWriteFields,
-      maxReadFields: tunedPreset.maxReadFields,
-      maxExplainFields: tunedPreset.maxExplainFields
-    }
-  );
-}
+const configPath = takeFlagValue(args, "--config");
+const config = configPath ? loadEmailRlComparisonManifest(configPath) : null;
 
 const result = await buildEmailRlComparisonArtifacts({
-  outputDir,
-  variants,
-  anchorVariantId: "seed-default"
+  outputDir: outputDir ?? config?.outputDir,
+  generatedAt: config?.generatedAt,
+  variants: config?.variants ?? buildDefaultEmailRlComparisonVariants({ benchmarkIds, trainingEpisodesPath: episodesPath }),
+  anchorVariantId: config?.anchorVariantId ?? "seed-default"
 });
 
 if (wantsJson) {

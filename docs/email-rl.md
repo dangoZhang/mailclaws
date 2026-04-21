@@ -169,6 +169,37 @@ That comparison report ranks:
 
 and writes side-by-side artifacts under `output/benchmarks/email-rl-compare/artifacts/`.
 
+If you want stable, reusable experiment recipes, the compare script also accepts a manifest:
+
+```bash
+pnpm tsx scripts/benchmark-email-rl-compare.mts --config experiments/email-rl-compare.json --json
+```
+
+Example manifest:
+
+```json
+{
+  "benchmarkIds": ["radar-action-items", "enronsr-reply-alignment"],
+  "anchorVariantId": "seed-default",
+  "outputDir": "output/benchmarks/email-rl-compare-manifest",
+  "variants": [
+    {
+      "variantId": "seed-default",
+      "title": "Seed default"
+    },
+    {
+      "variantId": "imported-tuned",
+      "title": "Imported tuned",
+      "episodes": "../data/radar.jsonl",
+      "preset": "tuned",
+      "appendSeedEpisodes": true
+    }
+  ]
+}
+```
+
+Relative paths inside the manifest are resolved from the manifest directory.
+
 ## Trajectory import
 
 The repo now includes a corpus importer that turns external JSON or JSONL records into MailClaws trajectory episodes.
