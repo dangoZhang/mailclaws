@@ -47,6 +47,8 @@
     "package:release": "pnpm build && pnpm docs:build && node scripts/build-release-bundle.mjs",
     "release:ship": "node scripts/release-ship.mjs",
     "benchmark:prompt-footprint": "tsx scripts/benchmark-prompt-footprint.mts",
+    "benchmark:email-rl": "tsx scripts/benchmark-email-rl.mts",
+    "benchmark:email-rl:json": "tsx scripts/benchmark-email-rl.mts --json",
     "benchmark:prompt-footprint:json": "tsx scripts/benchmark-prompt-footprint.mts --json",
     "lint": "eslint .",
     "mailclaws": "tsx src/cli/mailclaws.ts",

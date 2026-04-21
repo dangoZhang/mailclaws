@@ -99,13 +99,24 @@ function buildSidebar(base: string, locale: "en" | "zh-CN" | "fr") {
     },
     {
       text: labels.reference,
-      items: [
-        { text: labels.operatorsGuide, link: withBase(base, "operators-guide") },
-        { text: labels.securityBoundaries, link: withBase(base, "security-boundaries") },
-        { text: "ADR-001 Architecture", link: withBase(base, "adr/ADR-001-architecture") }
-      ]
+      items: buildReferenceItems(base, locale)
     }
   ];
+}
+
+function buildReferenceItems(base: string, locale: "en" | "zh-CN" | "fr") {
+  const labels = localeLabels(locale);
+  const items = [
+    { text: labels.operatorsGuide, link: withBase(base, "operators-guide") },
+    { text: labels.securityBoundaries, link: withBase(base, "security-boundaries") }
+  ];
+
+  if (locale !== "fr") {
+    items.push({ text: labels.offlineEmailRl, link: withBase(base, "email-rl") });
+  }
+
+  items.push({ text: "ADR-001 Architecture", link: withBase(base, "adr/ADR-001-architecture") });
+  return items;
 }
 
 function withBase(base: string, slug: string) {
@@ -132,6 +143,7 @@ function localeLabels(locale: "en" | "zh-CN" | "fr") {
         mailboxProviders: "邮箱接入清单",
         operatorsGuide: "运维指南",
         securityBoundaries: "安全边界",
+        offlineEmailRl: "Email 离线 RL"
       };
     case "fr":
       return {
@@ -151,6 +163,7 @@ function localeLabels(locale: "en" | "zh-CN" | "fr") {
         mailboxProviders: "Providers mailbox",
         operatorsGuide: "Guide opérateur",
         securityBoundaries: "Limites de sécurité",
+        offlineEmailRl: "Offline Email RL"
       };
     default:
       return {
@@ -170,6 +183,7 @@ function localeLabels(locale: "en" | "zh-CN" | "fr") {
         mailboxProviders: "Mailbox Providers",
         operatorsGuide: "Operators Guide",
         securityBoundaries: "Security Boundaries",
+        offlineEmailRl: "Offline Email RL"
       };
   }
 }

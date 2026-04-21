@@ -6,6 +6,7 @@ import type { DatabaseSync } from "node:sqlite";
 import type { AppConfig } from "../config.js";
 import { buildRoomFinalPrePacket, buildRoomPreSnapshotId, createRoomPreSnapshot } from "../core/pre.js";
 import { readSharedFactsState } from "../core/shared-facts.js";
+import { buildEmailSemanticPacket, formatEmailSemanticPacket } from "../email/schema-policy.js";
 import {
   consumeMailbox,
   consumeMailboxDelivery,
@@ -791,18 +792,19 @@ export async function processLeasedRoomJob(
       workerSummaries: allPreludeWorkerSummaries
     });
   }
-  const inputText = buildOpenClawInput(
-    message,
-    retrievedContext,
-    [
+  const latestPreSnapshot = getLatestRoomPreSnapshot(deps.db, room.roomKey);
+  const inputText = buildOpenClawInput(message, retrievedContext, {
+    attachments: roomAttachments,
+    preSnapshot: latestPreSnapshot,
+    additionalContext: [
       formatRoutingContext(room),
-      formatRoomPreContext(getLatestRoomPreSnapshot(deps.db, room.roomKey)),
+      formatRoomPreContext(latestPreSnapshot),
       formatSharedFactsContext(existingSharedFacts),
       formatWorkerContext(allPreludeWorkerSummaries)
     ]
       .filter((value) => value.length > 0)
       .join("\n\n")
-  );
+  });
   const orchestratorAgentId = resolveExecutionAgentId(deps.config, "mail-orchestrator");
   const orchestratorRuntimeAgentId = orchestratorAgentId ?? deps.config.openClaw.agentId;
   const memoryNamespaces = resolveOrchestratorTurnMemoryNamespaces(deps.config, {
@@ -1816,11 +1818,22 @@ function buildRoomContextQuery(message: NonNullable<ReturnType<typeof findMailMe
 function buildOpenClawInput(
   message: NonNullable<ReturnType<typeof findMailMessageByDedupeKey>>,
   retrievedContext: RoomSearchHit[] = [],
-  additionalContext = ""
+  options: {
+    attachments?: ReturnType<typeof listMailAttachmentsForRoom>;
+    preSnapshot?: ReturnType<typeof getLatestRoomPreSnapshot>;
+    additionalContext?: string;
+  } = {}
 ) {
   const replyTo = message.replyTo ?? [];
   const attachmentBlock = replyTo.length > 0 ? `Reply-To: ${replyTo.join(", ")}\n` : "";
   const relatedContext = formatRetrievedRoomContext(message, retrievedContext);
+  const emailPacket = formatInboundEmailPacket({
+    mode: "write",
+    message,
+    retrievedContext,
+    attachments: options.attachments,
+    preSnapshot: options.preSnapshot
+  });
 
   return [
     formatDefaultMailSkills("front-orchestrator"),
@@ -1828,9 +1841,11 @@ function buildOpenClawInput(
     `Subject: ${message.rawSubject ?? message.normalizedSubject}`,
     attachmentBlock.trimEnd(),
     "",
+    emailPacket,
+    "Current inbound body:",
     message.textBody ?? "",
     relatedContext,
-    additionalContext
+    options.additionalContext ?? ""
   ]
     .filter((line) => line.length > 0)
     .join("\n");
@@ -3267,6 +3282,12 @@ function buildResearchWorkerInput(
       includeRecommendedAction: true
     }),
     "Prefer room facts, retrieved context, and attachments over transcript retelling.",
+    formatInboundEmailPacket({
+      mode: "read",
+      message,
+      retrievedContext,
+      attachments
+    }),
     "Current inbound body:",
     message.textBody ?? "",
     formatRetrievedRoomContext(message, retrievedContext),
@@ -3301,6 +3322,12 @@ function buildSubAgentDelegationInput(input: {
       includeRecommendedAction: true,
       includeDraftReply: true
     }),
+    formatInboundEmailPacket({
+      mode: "explain",
+      message: input.message,
+      retrievedContext: input.retrievedContext,
+      attachments: input.attachments
+    }),
     "Current inbound body:",
     input.message.textBody ?? "(no text body)",
     formatRetrievedRoomContext(input.message, input.retrievedContext),
@@ -3334,6 +3361,12 @@ function buildDrafterWorkerInput(
       includeRecommendedAction: true,
       includeDraftReply: true
     }),
+    formatInboundEmailPacket({
+      mode: "write",
+      message,
+      retrievedContext,
+      attachments
+    }),
     "Current inbound body:",
     message.textBody ?? "",
     formatRetrievedRoomContext(message, retrievedContext),
@@ -3366,6 +3399,10 @@ function buildReviewerWorkerInput(
       includeFacts: true,
       includeRecommendedAction: true
     }),
+    formatInboundEmailPacket({
+      mode: "explain",
+      message
+    }),
     "Draft reply:",
     responseText,
     formatWorkerContext(workerSummaries)
@@ -3392,6 +3429,10 @@ function buildGuardWorkerInput(
       includeRecommendedAction: true,
       includeApprovalFields: true
     }),
+    formatInboundEmailPacket({
+      mode: "explain",
+      message
+    }),
     "Draft reply:",
     responseText,
     formatWorkerContext(workerSummaries)
@@ -3404,6 +3445,7 @@ function formatDefaultMailSkills(actorLabel: string) {
   return [
     `Default mail skills for ${actorLabel}:`,
     "- Read Email: read the newest inbound first; only pull older room context by reference when it changes the answer; ignore decorative transcript noise.",
+    "- Email Schema: start from the inbound email packet; preserve asks, deadlines, decisions, commitments, stakeholders, evidence, and explain briefly why retained items matter.",
     "- Compress for humans: produce one headline, up to 3 key evidence bullets, up to 2 risks or pending checks, and one concrete next step.",
     "- Read Attachments: decode text-like attachments into plain-language facts; never leak base64, hashes, or raw transport wrappers into the mail body.",
     "- Write Email: spend words on decisions, evidence, risk, and next action; avoid rephrasing the whole request; keep every claim tied to facts, artifacts, or approved room memory.",
@@ -3505,6 +3547,39 @@ function formatRoutingContext(room: NonNullable<ReturnType<typeof getThreadRoom>
   }
 
   return ["Routing context:", ...lines].join("\n");
+}
+
+function formatInboundEmailPacket(input: {
+  mode: "read" | "write" | "explain";
+  message: NonNullable<ReturnType<typeof findMailMessageByDedupeKey>>;
+  retrievedContext?: RoomSearchHit[];
+  attachments?: ReturnType<typeof listMailAttachmentsForRoom>;
+  preSnapshot?: ReturnType<typeof getLatestRoomPreSnapshot>;
+}) {
+  return formatEmailSemanticPacket(
+    buildEmailSemanticPacket({
+      mode: input.mode,
+      from: input.message.from,
+      to: input.message.to,
+      cc: input.message.cc,
+      replyTo: input.message.replyTo,
+      subject: input.message.rawSubject ?? input.message.normalizedSubject,
+      body: input.message.textBody ?? "",
+      attachments: (input.attachments ?? []).map((attachment) => ({
+        filename: attachment.filename,
+        summaryText: attachment.summaryText
+      })),
+      preSnapshot: input.preSnapshot
+        ? {
+            summary: input.preSnapshot.summary,
+            decisions: input.preSnapshot.decisions,
+            openQuestions: input.preSnapshot.openQuestions,
+            requestedActions: input.preSnapshot.requestedActions,
+            commitments: input.preSnapshot.commitments
+          }
+        : null
+    })
+  );
 }
 
 function formatSharedFactsContext(sharedFacts: RoomSharedFactsArtifact | null | undefined) {

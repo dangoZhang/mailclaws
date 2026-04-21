@@ -149,7 +149,10 @@ describe("mail orchestration", () => {
     expect(requests[0]?.sessionKey).toContain(":front:mailclaws%40example.com:thread:");
     expect(requests[0]?.inputText).toContain("Default mail skills for front-orchestrator:");
     expect(requests[0]?.inputText).toContain("Read Email:");
+    expect(requests[0]?.inputText).toContain("Email Schema:");
     expect(requests[0]?.inputText).toContain("Write Email:");
+    expect(requests[0]?.inputText).toContain("Current inbound email packet:");
+    expect(requests[0]?.inputText).toContain("[why:");
     expect(requests[0]?.inputText).toContain("From: sender@example.com");
 
     const replay = replayRoom(handle.db, ingested.roomKey);
@@ -1670,6 +1673,7 @@ describe("mail orchestration", () => {
     expect(requests).toHaveLength(2);
     expect(requests[1]).toContain("Latest room pre snapshot:");
     expect(requests[1]).toContain("Default mail skills for front-orchestrator:");
+    expect(requests[1]).toContain("Current inbound email packet:");
     expect(requests[1]).toContain("Summary: Initial room summary.");
     expect(requests[1]).toContain("Can you refine the last answer with the new detail?");
 
